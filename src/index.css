@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { @apply bg-creme text-texto font-sans antialiased; }
+.rotulo { @apply font-sans uppercase tracking-[0.18em] text-xs text-apoio; }
+.assinatura { @apply block w-10 h-px bg-texto mt-4; }
