@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { AlertTriangle, CalendarDays, ClipboardCheck, Map as MapIcon, MessageCircle, Plus, Search, Send, Users, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+
+type Alerta = { id: string; kind: string; message: string; created_at: string; patient_id: string; patients: { full_name: string } | null }
 import { useAuth } from '../../auth/AuthProvider'
 import { Aviso, Botao, Campo, Iniciais, Selecao, Selo, Titulo } from '../../components/ui'
 
@@ -58,15 +61,42 @@ function Vazio({ icone: I, titulo, texto }: { icone: LucideIcon; titulo: string;
 export function Hoje() {
   const { profile } = useAuth()
   const [n, setN] = useState<number | null>(null)
-  useEffect(() => {
+  const [alertas, setAlertas] = useState<Alerta[]>([])
+  const carregar = () => {
     supabase.from('patients').select('id', { count: 'exact', head: true }).eq('status', 'ativa').then(({ count }) => setN(count ?? 0))
-  }, [])
+    supabase.from('clinical_alerts').select('id, kind, message, created_at, patient_id, patients(full_name)').is('resolved_at', null).order('created_at')
+      .then(({ data }) => setAlertas((data as unknown as Alerta[]) ?? []))
+  }
+  useEffect(carregar, [])
+  async function resolver(id: string) {
+    await supabase.from('clinical_alerts').update({ resolved_at: new Date().toISOString(), resolved_by: profile?.id }).eq('id', id)
+    carregar()
+  }
   const nome = profile?.full_name?.split(' ')[0]
   return (
     <div className="flex flex-col gap-10">
       <Titulo rotulo={hoje()} sub="O que precisa da sua atenção hoje, em ordem de prioridade.">Bom dia{nome ? `, ${nome}` : ''}</Titulo>
+      {alertas.length > 0 && (
+        <section className="border border-terracota/50 bg-terracota/[0.05]" aria-label="Alertas clínicos">
+          <div className="px-6 h-14 flex items-center gap-3 border-b border-terracota/30 text-terracota">
+            <AlertTriangle className="w-5 h-5" /><h2 className="font-display text-2xl">Avaliar hoje</h2>
+          </div>
+          <ul className="divide-y divide-terracota/20">
+            {alertas.map(a => (
+              <li key={a.id} className="px-6 py-4 flex flex-wrap items-center gap-4">
+                <div className="flex-1 min-w-[240px]">
+                  <Link to={`/painel/pacientes/${a.patient_id}`} className="font-medium hover:underline">{a.patients?.full_name}</Link>
+                  <p className="text-sm text-apoio mt-1">{a.message}</p>
+                </div>
+                <span className="text-xs text-apoio">{new Date(a.created_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                {profile?.role === 'medica' && <Botao variante="linha" onClick={() => resolver(a.id)}>Marcar como avaliado</Botao>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        <Indicador rotulo="Reações sinalizadas" valor={0} icone={AlertTriangle} tom="alerta" nota="Resposta no mesmo dia" />
+        <Indicador rotulo="Alertas e reações" valor={alertas.length} icone={AlertTriangle} tom="alerta" nota="Resposta no mesmo dia" />
         <Indicador rotulo="Check-ins na fila" valor={0} icone={MessageCircle} nota="Prazo de 3 dias úteis" />
         <Indicador rotulo="Mapas para revisar" valor={0} icone={MapIcon} nota="Aguardando aprovação" />
         <Indicador rotulo="Pacientes ativas" valor={n ?? '·'} icone={Users} nota="No programa Longevidade" />
@@ -163,7 +193,7 @@ export function Pacientes() {
                   <td className="py-4 px-5">
                     <div className="flex items-center gap-3">
                       <Iniciais nome={p.full_name} />
-                      <div className="min-w-0"><p className="font-medium truncate">{p.full_name}</p><p className="text-apoio text-xs truncate">{p.email}</p></div>
+                      <div className="min-w-0"><Link to={`/painel/pacientes/${p.id}`} className="font-medium truncate block hover:underline underline-offset-4">{p.full_name}</Link><p className="text-apoio text-xs truncate">{p.email}</p></div>
                     </div>
                   </td>
                   <td className="py-4 px-5">{p.location === 'spinel' ? 'Instituto Spinel' : p.location === 'equilibre' ? 'Clínica Equilibre' : '·'}</td>

@@ -4,6 +4,7 @@ import { ArrowRight, CalendarDays, ClipboardList, LogOut, MessageCircle, PlayCir
 import { useAuth } from '../../auth/AuthProvider'
 import { supabase } from '../../lib/supabase'
 import { Borboleta, Selo } from '../../components/ui'
+import { usePendentes } from './questionarios'
 
 type Matricula = { start_date: string; end_date: string; programs: { name: string; duration_months: number } | null }
 
@@ -15,6 +16,7 @@ function saudacao() {
 export function Inicio() {
   const { profile, signOut } = useAuth()
   const [m, setM] = useState<Matricula | null>(null)
+  const pend = usePendentes()
 
   useEffect(() => {
     supabase.from('enrollments').select('start_date, end_date, programs(name, duration_months)').eq('status', 'ativa')
@@ -54,6 +56,7 @@ export function Inicio() {
       </section>
 
       <div className="grid gap-3">
+        {!!pend?.length && <Atalho to="/app/questionarios" destaque icone={<ClipboardList className="w-5 h-5" strokeWidth={1.5} />} titulo={`${pend.length} questionário${pend.length > 1 ? 's' : ''} para responder`} texto="Leva poucos minutos e prepara seu encontro" />}
         <Atalho to="/app/checkin" icone={<MessageCircle className="w-5 h-5" strokeWidth={1.5} />} titulo="Check-in" texto="Nenhum pendente agora" />
         <Atalho to="/app/protocolo" icone={<ClipboardList className="w-5 h-5" strokeWidth={1.5} />} titulo="Meu protocolo" texto="Tudo o que foi orientado na consulta" />
         <div className="cartao p-5 flex items-center gap-4">
@@ -82,9 +85,9 @@ export function Inicio() {
   )
 }
 
-function Atalho({ to, icone, titulo, texto }: { to: string; icone: ReactNode; titulo: string; texto: string }) {
+function Atalho({ to, icone, titulo, texto, destaque }: { to: string; icone: ReactNode; titulo: string; texto: string; destaque?: boolean }) {
   return (
-    <Link to={to} className="cartao p-5 flex items-center gap-4 group hover:border-cafe/40 transition-colors">
+    <Link to={to} className={`cartao p-5 flex items-center gap-4 group hover:border-cafe/40 transition-colors ${destaque ? '!border-terracota/50' : ''}`}>
       <span className="w-11 h-11 grid place-items-center bg-areia/50 text-cafe">{icone}</span>
       <div className="flex-1 min-w-0"><p className="font-display text-xl">{titulo}</p><p className="text-sm text-apoio truncate">{texto}</p></div>
       <ArrowRight className="w-4 h-4 text-apoio group-hover:translate-x-0.5 transition-transform" />
