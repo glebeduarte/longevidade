@@ -2,15 +2,25 @@ import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
-import { Aviso, Botao, Campo, Marca, Titulo } from '../components/ui'
+import { Aviso, Borboleta, Botao, Campo, Marca, Titulo } from '../components/ui'
 
 function Moldura({ children }: { children: ReactNode }) {
   return (
-    <main className="min-h-screen flex flex-col px-6 py-10">
-      <Marca />
-      <div className="flex-1 flex items-center">
-        <div className="w-full max-w-sm mx-auto flex flex-col gap-8 py-10">{children}</div>
-      </div>
+    <main className="min-h-screen grid lg:grid-cols-[1.05fr_1fr]">
+      <section className="relative overflow-hidden bg-cafe text-creme px-6 sm:px-10 lg:px-16 py-8 lg:py-14 flex flex-col">
+        <div className="absolute inset-0 grao opacity-60" aria-hidden="true" />
+        <Borboleta className="absolute -right-24 -bottom-16 w-[520px] h-[364px] text-areia/[0.08] hidden lg:block" />
+        <div className="relative"><Marca claro /></div>
+        <div className="relative mt-auto hidden lg:block max-w-md">
+          <p className="rotulo !text-areia/70">Climatério e longevidade feminina</p>
+          <p className="font-display text-[56px] leading-[1.02] mt-5">Seu corpo mudou.<br />Te ajudo a entender e cuidar dele.</p>
+          <span className="block w-10 h-px bg-areia/60 mt-8" />
+          <p className="mt-6 text-sm text-areia/80 leading-relaxed">Dra. Bartira Rebouças · Endocrinologista · CRM-RN 5297 · RQE 2986</p>
+        </div>
+      </section>
+      <section className="flex items-center px-6 sm:px-10 py-12 lg:py-16">
+        <div className="w-full max-w-[400px] mx-auto flex flex-col gap-8">{children}</div>
+      </section>
     </main>
   )
 }
@@ -47,8 +57,10 @@ export function Entrar() {
         {erro && <Aviso tipo="erro">{erro}</Aviso>}
         <Botao type="submit" disabled={carregando}>{carregando ? 'Entrando' : 'Entrar'}</Botao>
       </form>
-      <Link to="/esqueci" className="text-sm text-apoio underline underline-offset-4">Esqueci minha senha</Link>
-      <Aviso>O acesso é criado pela equipe da Dra. Bartira. Você recebe o convite por e-mail.</Aviso>
+      <div className="flex items-center justify-between border-t border-areia pt-6">
+        <Link to="/esqueci" className="text-sm text-apoio hover:text-texto underline-offset-4 hover:underline">Esqueci minha senha</Link>
+        <span className="text-xs text-apoio/80">Acesso por convite</span>
+      </div>
     </Moldura>
   )
 }
@@ -146,10 +158,10 @@ export function Consentimento() {
 
   return (
     <main className="min-h-screen px-6 py-10">
-      <div className="max-w-xl mx-auto flex flex-col gap-8">
+      <div className="max-w-2xl mx-auto flex flex-col gap-8">
         <Marca />
-        <Titulo rotulo={termo ? `Versão ${termo.version}` : 'Termo'}>Antes de começar</Titulo>
-        <div className="whitespace-pre-line leading-relaxed text-[15px] max-h-[55vh] overflow-y-auto border-y border-areia py-6">
+        <Titulo rotulo={termo ? `Termo de consentimento · versão ${termo.version}` : 'Termo'} sub="Leia com calma. Ele explica como seus dados são cuidados durante o programa.">Antes de começar</Titulo>
+        <div className="cartao whitespace-pre-line leading-relaxed text-[15px] max-h-[52vh] overflow-y-auto p-6 md:p-8">
           {termo?.body ?? 'Carregando o termo.'}
         </div>
         <label className="flex gap-3 items-start text-sm">

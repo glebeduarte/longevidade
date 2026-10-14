@@ -3,7 +3,7 @@ import { AuthProvider } from './auth/AuthProvider'
 import { LayoutApp, LayoutPainel, Protegido } from './layouts/layouts'
 import { DefinirSenha, Entrar, Esqueci } from './pages/auth'
 import { EmBreve, Inicio } from './pages/app/app'
-import { Equipe, Hoje, Pacientes } from './pages/painel/painel'
+import { Encontros, Equipe, Hoje, Pacientes } from './pages/painel/painel'
 import Placeholder from './pages/Placeholder'
 
 export default function App() {
@@ -30,6 +30,7 @@ export default function App() {
               <Route index element={<Hoje />} />
               <Route path="pacientes" element={<Pacientes />} />
               <Route path="equipe" element={<Equipe />} />
+              <Route path="agenda" element={<Encontros />} />
             </Route>
           </Route>
 
