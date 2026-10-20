@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ExternalLink, Plus, Send } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { entrarVista } from '../../lib/vista'
+import { ExternalLink, Eye, Plus, Send } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { can, useAuth } from '../../auth/AuthProvider'
 import { Aviso, Bloco, Botao, Campo, Iniciais, Selo, Titulo, Vazio } from '../../components/ui'
@@ -201,3 +202,35 @@ export function Videos() {
   )
 }
 
+
+/** Escolher uma paciente e abrir o app como ela, em modo leitura. */
+export function VerComo() {
+  const nav = useNavigate()
+  const [lista, setLista] = useState<Array<{ id: string; full_name: string; email: string; user_id: string | null; status: string }> | null>(null)
+  const [busca, setBusca] = useState('')
+  useEffect(() => { supabase.from('patients').select('id, full_name, email, user_id, status').eq('status', 'ativa').order('full_name').then(({ data }) => setLista(data ?? [])) }, [])
+  const filtrada = (lista ?? []).filter(p => `${p.full_name} ${p.email}`.toLowerCase().includes(busca.toLowerCase()))
+  function abrir(p: { id: string; full_name: string; user_id: string | null }) {
+    entrarVista({ pid: p.id, nome: limpo(p.full_name), userId: p.user_id }); nav('/app')
+  }
+  return (
+    <div className="flex flex-col gap-6">
+      <Titulo sub="Abre o app exatamente como a paciente vê: programa, check-ins, protocolo, evolução e questionários. Nada que você fizer lá é gravado no lugar dela.">Ver como paciente</Titulo>
+      <div className="relative max-w-sm">
+        <label htmlFor="vc-busca" className="sr-only">Buscar paciente</label>
+        <input id="vc-busca" value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por nome ou e-mail" className="campo" />
+      </div>
+      <section className="cartao overflow-hidden" aria-label="Pacientes ativas">
+        {!lista ? <p className="p-5 text-corpo text-apoio">Carregando</p> : filtrada.length === 0 ? <div className="p-5"><Vazio titulo="Nenhuma paciente encontrada" /></div> : (
+          <ul>{filtrada.map((p, i) => (
+            <li key={p.id} className={`px-5 py-3 flex items-center gap-3 ${i ? 'border-t border-regra' : ''}`}>
+              <Iniciais nome={p.full_name} />
+              <div className="flex-1 min-w-0"><p className="text-corpo font-medium truncate">{p.full_name}</p><p className="text-meta text-apoio truncate">{p.user_id ? 'Já acessou o app' : 'Convite ainda não aceito'} · {p.email}</p></div>
+              <Botao tamanho="sm" variante="linha" onClick={() => abrir(p)}><Eye className="w-4 h-4" />Ver como</Botao>
+            </li>))}
+          </ul>
+        )}
+      </section>
+    </div>
+  )
+}

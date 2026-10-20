@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { ArrowDownRight, ArrowLeft, ArrowUpRight, FileText, Paperclip, Plus, Send } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { entrarVista } from '../../lib/vista'
+import { ArrowDownRight, ArrowLeft, Eye, ArrowUpRight, FileText, Paperclip, Plus, Send } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { can, useAuth } from '../../auth/AuthProvider'
 import { Abas, Aviso, Bloco, Botao, Campo, Iniciais, Selo, Vazio } from '../../components/ui'
@@ -26,6 +27,7 @@ function SemAcesso() {
 export function FichaPaciente() {
   const { id } = useParams()
   const { profile, perms } = useAuth()
+  const nav = useNavigate()
   const [p, setP] = useState<Paciente | null>(null)
   const [aba, setAba] = useState<Aba>(() => (new URLSearchParams(location.search).get('aba') as Aba) || 'atendimento')
   const [mapa, setMapa] = useState<string | null>(null)
@@ -58,7 +60,10 @@ export function FichaPaciente() {
             {[idade != null ? `${idade} anos` : null, local, p.phone].filter(Boolean).join(' · ')}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {profile?.role === 'medica' && p.status === 'ativa' && (
+            <Botao tamanho="sm" variante="linha" onClick={() => { entrarVista({ pid: p.id, nome: p.full_name.replace(/\s*\(teste\)/, ''), userId: p.user_id }); nav('/app') }}><Eye className="w-4 h-4" />Ver como paciente</Botao>
+          )}
           {mapa && <button onClick={() => trocar('mapa')} className="rounded-full focus-visible:outline-2"><Selo tom="alerta">Mapa em andamento</Selo></button>}
           {p.status === 'encerrada' ? <Selo>Programa encerrado</Selo> : p.user_id ? <Selo tom="ok">Acesso ativo</Selo> : <Selo>Convite enviado</Selo>}
         </div>

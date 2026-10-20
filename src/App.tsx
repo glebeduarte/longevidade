@@ -4,7 +4,7 @@ import { LayoutApp, LayoutPainel, Protegido } from './layouts/layouts'
 import { DefinirSenha, Entrar, Esqueci } from './pages/auth'
 import { CheckinPaciente, Evolucao, Inicio, MeuProtocolo } from './pages/app/app'
 import { Equipe, Hoje, Pacientes } from './pages/painel/painel'
-import { Agenda, FilaCheckins, Videos } from './pages/painel/rotina'
+import { Agenda, FilaCheckins, VerComo, Videos } from './pages/painel/rotina'
 import { FichaPaciente } from './pages/painel/ficha'
 import { ImprimirMapa } from './pages/painel/mapa'
 import { Faixas } from './pages/painel/faixas'
@@ -41,6 +41,7 @@ export default function App() {
               <Route path="agenda" element={<Agenda />} />
               <Route path="checkins" element={<FilaCheckins />} />
               <Route path="videos" element={<Videos />} />
+              <Route path="ver-como" element={<VerComo />} />
               <Route path="faixas" element={<Faixas />} />
             </Route>
             <Route path="/painel/pacientes/:id/mapa/:mapaId" element={<ImprimirMapa />} />

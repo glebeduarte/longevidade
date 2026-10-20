@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { CalendarDays, ClipboardList, MessagesSquare, PlayCircle, SlidersHorizontal, Home, LineChart, LogOut, Menu, MessageCircle, Sun, Users, UserCog, X } from 'lucide-react'
+import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { sairVista, useVista, vistaAtual } from '../lib/vista'
+import { CalendarDays, Eye, ClipboardList, MessagesSquare, PlayCircle, SlidersHorizontal, Home, LineChart, LogOut, Menu, MessageCircle, Sun, Users, UserCog, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { can, useAuth, type Perms } from '../auth/AuthProvider'
 import { Consentimento } from '../pages/auth'
@@ -19,8 +20,9 @@ export function Protegido({ papeis }: { papeis: Array<'medica' | 'equipe' | 'pac
   const { session, profile, loading, needsConsent } = useAuth()
   if (loading) return <Carregando />
   if (!session || !profile || !profile.active) return <Navigate to="/entrar" replace />
-  if (!papeis.includes(profile.role)) return <Navigate to={profile.role === 'paciente' ? '/app' : '/painel'} replace />
-  if (needsConsent) return <Consentimento />
+  const vendo = !!vistaAtual() && profile.role === 'medica' && papeis.includes('paciente')
+  if (!papeis.includes(profile.role) && !vendo) return <Navigate to={profile.role === 'paciente' ? '/app' : '/painel'} replace />
+  if (needsConsent && !vendo) return <Consentimento />
   return <Outlet />
 }
 
@@ -33,12 +35,23 @@ const navApp: Array<{ to: string; rotulo: string; icone: LucideIcon; end?: boole
 
 export function LayoutApp() {
   const { profile } = useAuth()
+  const vista = useVista()
+  const nav = useNavigate()
   return (
     <div className="min-h-screen flex flex-col bg-fundo">
-      <header className="sticky top-0 z-20 bg-fundo border-b border-borda">
+      {vista && (
+        <div className="sticky top-0 z-30 bg-cafe text-creme">
+          <div className="max-w-2xl mx-auto px-4 py-2 flex items-center gap-3">
+            <Eye className="w-4 h-4 shrink-0 text-areia" strokeWidth={1.7} />
+            <p className="flex-1 text-meta leading-tight">Vendo como <b className="font-medium">{vista.nome}</b>. Somente leitura.</p>
+            <button onClick={() => { const pid = vista.pid; sairVista(); nav(`/painel/pacientes/${pid}`) }} className="h-8 px-3 rounded bg-creme/15 hover:bg-creme/25 text-meta font-medium whitespace-nowrap">Sair da visualização</button>
+          </div>
+        </div>
+      )}
+      <header className={`sticky ${vista ? 'top-12' : 'top-0'} z-20 bg-fundo border-b border-borda`}>
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <Marca />
-          <Iniciais nome={profile?.full_name ?? profile?.email} className="w-8 h-8 text-[12px]" />
+          <Iniciais nome={vista ? vista.nome : profile?.full_name ?? profile?.email} className="w-8 h-8 text-[12px]" />
         </div>
       </header>
       <div className="flex-1 pb-24"><div className="max-w-2xl mx-auto"><Outlet /></div></div>
@@ -64,6 +77,7 @@ const itensPainel: Array<{ to: string; rotulo: string; icone: LucideIcon; precis
   { to: '/painel/pacientes', rotulo: 'Pacientes', icone: Users, precisa: 'can_manage_patients', grupo: 'Rotina' },
   { to: '/painel/checkins', rotulo: 'Check-ins', icone: MessagesSquare, precisa: 'can_answer_checkins', grupo: 'Rotina' },
   { to: '/painel/agenda', rotulo: 'Encontros', icone: CalendarDays, precisa: 'can_manage_patients', grupo: 'Rotina' },
+  { to: '/painel/ver-como', rotulo: 'Ver como paciente', icone: Eye, precisa: 'medica', grupo: 'Configurações' },
   { to: '/painel/videos', rotulo: 'Vídeos', icone: PlayCircle, precisa: 'medica', grupo: 'Configurações' },
   { to: '/painel/faixas', rotulo: 'Faixas dos indicadores', icone: SlidersHorizontal, precisa: 'medica', grupo: 'Configurações' },
   { to: '/painel/equipe', rotulo: 'Equipe e acessos', icone: UserCog, precisa: 'medica', grupo: 'Configurações' },

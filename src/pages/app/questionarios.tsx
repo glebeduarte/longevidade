@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, ClipboardList, Phone } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { Botao } from '../../components/ui'
+import { Aviso, Botao } from '../../components/ui'
+import { daPaciente, useVista } from '../../lib/vista'
 
 type Envio = { id: string; questionnaire_id: string; created_at: string; questionnaires: { name: string; domain: string; instructions: string | null } | null }
 type Pergunta = { id: string; position: number; text: string; kind: 'escolha' | 'sim_nao' | 'numero'; options: Array<{ label: string; value: number }>; alert_if_gt: number | null }
@@ -10,7 +11,7 @@ type Pergunta = { id: string; position: number; text: string; kind: 'escolha' | 
 export function usePendentes() {
   const [lista, setLista] = useState<Envio[] | null>(null)
   useEffect(() => {
-    supabase.from('questionnaire_assignments').select('id, questionnaire_id, created_at, questionnaires(name, domain, instructions, sort)')
+    daPaciente(supabase.from('questionnaire_assignments').select('id, questionnaire_id, created_at, questionnaires(name, domain, instructions, sort)'))
       .eq('status', 'pendente').order('created_at')
       .then(({ data }) => setLista((data as unknown as Envio[]) ?? []))
   }, [])
@@ -57,6 +58,7 @@ export function Responder() {
   const [i, setI] = useState(0)
   const [resp, setResp] = useState<Record<string, number>>({})
   const [numero, setNumero] = useState('')
+  const vistaAtiva = !!useVista()
   const [fase, setFase] = useState<'respondendo' | 'enviando' | 'fim' | 'apoio' | 'erro'>('respondendo')
 
   useEffect(() => {
@@ -75,6 +77,7 @@ export function Responder() {
   const total = perguntas.length
 
   async function enviar(final: Record<string, number>) {
+    if (vistaAtiva) { setFase('fim'); return }
     setFase('enviando')
     const { error } = await supabase.from('questionnaire_responses').insert({
       assignment_id: envio!.id, patient_id: pacienteId, questionnaire_id: envio!.questionnaire_id, answers: final,
@@ -127,6 +130,7 @@ export function Responder() {
           <div className="mt-2 h-1.5 rounded-full bg-tom overflow-hidden"><div className="h-1.5 rounded-full bg-cafe transition-all" style={{ width: `${((i + 1) / total) * 100}%` }} /></div>
         </div>
       </div>
+      {vistaAtiva && <Aviso>Modo visualização: as respostas não são gravadas.</Aviso>}
       {i === 0 && envio.questionnaires?.instructions && <p className="text-corpo text-apoio leading-relaxed -mb-2">{envio.questionnaires.instructions}</p>}
       <h1 key={q.id} className="text-[22px] leading-snug font-medium entra">{q.text}</h1>
       {q.kind === 'numero' ? (

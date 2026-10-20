@@ -14,6 +14,7 @@ import {
 import { ListaProtocolo } from '../painel/programa'
 import { RelatorioMapa } from '../painel/mapa'
 import type { Relatorio } from '../../lib/mapa'
+import { daPaciente, useVista } from '../../lib/vista'
 
 function saudacao() {
   const h = new Date().getHours()
@@ -26,10 +27,10 @@ function usePrograma() {
   const [encontros, setEncontros] = useState<Encontro[]>([])
   const [checkins, setCheckins] = useState<Checkin[]>([])
   const carregar = () => {
-    supabase.from('enrollments').select('*, programs(*)').eq('status', 'ativa').order('start_date', { ascending: false }).limit(1).maybeSingle()
+    daPaciente(supabase.from('enrollments').select('*, programs(*)').eq('status', 'ativa')).order('start_date', { ascending: false }).limit(1).maybeSingle()
       .then(({ data }) => setM((data as Matricula) ?? null))
-    supabase.from('encounters').select('*').order('target_date').then(({ data }) => setEncontros((data as Encontro[]) ?? []))
-    supabase.from('checkins').select('*').order('due_date').then(({ data }) => setCheckins((data as Checkin[]) ?? []))
+    daPaciente(supabase.from('encounters').select('*')).order('target_date').then(({ data }) => setEncontros((data as Encontro[]) ?? []))
+    daPaciente(supabase.from('checkins').select('*')).order('due_date').then(({ data }) => setCheckins((data as Checkin[]) ?? []))
   }
   useEffect(carregar, [])
   const hoje = hojeISO()
@@ -42,13 +43,14 @@ function usePrograma() {
 
 export function Inicio() {
   const { profile, signOut } = useAuth()
+  const vista = useVista()
   const pend = usePendentes()
   const { m, aberto, proximoCheckin, proximo } = usePrograma()
   const [videos, setVideos] = useState<Video[]>([])
   const [tocando, setTocando] = useState<Video | null>(null)
   useEffect(() => { supabase.from('videos').select('*').eq('active', true).order('sort').then(({ data }) => setVideos((data as Video[]) ?? [])) }, [])
 
-  const nome = profile?.full_name?.split(' ')[0]
+  const nome = (vista ? vista.nome : profile?.full_name)?.split(' ')[0]
   const prog = m ? mesDoPrograma(m) : null
 
   return (
@@ -111,7 +113,7 @@ export function Inicio() {
 
       {tocando && <Player v={tocando} aoFechar={() => setTocando(null)} />}
 
-      <button onClick={signOut} className="self-start inline-flex items-center gap-2 text-corpo text-apoio hover:text-texto"><LogOut className="w-4 h-4" />Sair</button>
+      {!vista && <button onClick={signOut} className="self-start inline-flex items-center gap-2 text-corpo text-apoio hover:text-texto"><LogOut className="w-4 h-4" />Sair</button>}
     </div>
   )
 }
@@ -162,8 +164,9 @@ export function CheckinPaciente() {
   const historico = checkins.filter(c => c.status === 'respondido' || c.status === 'atendido').reverse().slice(0, 6)
   const completo = SINTOMAS.every(([k]) => a[k] != null) && a.adesao && (!a.reacao || (a.reacao_texto ?? '').trim())
 
+  const vista = useVista()
   async function enviar() {
-    if (!aberto) return
+    if (!aberto || vista) return
     setFase('enviando')
     const { error } = await supabase.rpc('responder_checkin', { cid: aberto.id, p_answers: a })
     if (error) return setFase('erro')
@@ -233,7 +236,8 @@ export function CheckinPaciente() {
           </div>
 
           {fase === 'erro' && <Aviso tipo="erro">Não foi possível enviar. Confira sua conexão e tente de novo.</Aviso>}
-          <Botao className="w-full !h-12" disabled={!completo || fase === 'enviando'} onClick={enviar}>{fase === 'enviando' ? 'Enviando' : 'Enviar check-in'}</Botao>
+          {vista ? <Aviso>Modo visualização: o envio fica desativado para não registrar respostas no lugar da paciente.</Aviso>
+            : <Botao className="w-full !h-12" disabled={!completo || fase === 'enviando'} onClick={enviar}>{fase === 'enviando' ? 'Enviando' : 'Enviar check-in'}</Botao>}
         </div>
       )}
 
@@ -258,7 +262,7 @@ export function CheckinPaciente() {
 export function MeuProtocolo() {
   const [lista, setLista] = useState<Protocolo[] | null>(null)
   const [ver, setVer] = useState(false)
-  useEffect(() => { supabase.from('protocols').select('*').not('published_at', 'is', null).order('version', { ascending: false }).then(({ data }) => setLista((data as Protocolo[]) ?? [])) }, [])
+  useEffect(() => { daPaciente(supabase.from('protocols').select('*')).not('published_at', 'is', null).order('version', { ascending: false }).then(({ data }) => setLista((data as Protocolo[]) ?? [])) }, [])
   const [atual, ...antigos] = lista ?? []
   return (
     <div className="px-4 pt-6 flex flex-col gap-5">
@@ -311,8 +315,8 @@ export function Evolucao() {
   const [ver, setVer] = useState<string | null>(null)
   const { encontros } = usePrograma()
   useEffect(() => {
-    supabase.from('measurements').select('id, code, value, measured_at, note').in('code', ['peso', 'cintura', 'pgc', 'pas']).order('measured_at').then(({ data }) => setMed((data as Medida[]) ?? []))
-    supabase.from('health_maps').select('id, finished_at, snapshot, recommendations, summary').eq('status', 'finalizado').order('finished_at', { ascending: false })
+    daPaciente(supabase.from('measurements').select('id, code, value, measured_at, note')).in('code', ['peso', 'cintura', 'pgc', 'pas']).order('measured_at').then(({ data }) => setMed((data as Medida[]) ?? []))
+    daPaciente(supabase.from('health_maps').select('id, finished_at, snapshot, recommendations, summary')).eq('status', 'finalizado').order('finished_at', { ascending: false })
       .then(({ data }) => setMapas((data as never[]) ?? []))
   }, [])
   const serie = useMemo(() => (code: string) => med.filter(m => m.code === code).map(m => ({ d: m.measured_at, v: Number(m.value) })), [med])
