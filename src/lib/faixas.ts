@@ -8,6 +8,7 @@ export const NIVEL: Record<Nivel, { rotulo: string; cor: string; fundo: string }
   otimo: { rotulo: 'Ótimo', cor: 'text-oliva', fundo: 'bg-oliva' },
 }
 
-export const dataBR = (d: string) => new Date(d).toLocaleDateString('pt-BR')
+// Data só com dia (AAAA-MM-DD) é lida no fuso local, para não voltar um dia no Brasil.
+export const dataBR = (d: string) => (/^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(`${d}T12:00:00`) : new Date(d)).toLocaleDateString('pt-BR')
 export const num = (v: number | null | undefined, casas = 1) =>
   v == null ? '·' : v.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: casas })

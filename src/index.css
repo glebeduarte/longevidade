@@ -2,35 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Design system v2 · Longevidade
+  Uma serifa com um só trabalho (título da página e nome da paciente). Todo o resto em Jost.
+  Números sempre em Jost com algarismos tabulares. Rótulos em caixa normal.
+  Superfícies separadas por um passo de tom e uma borda de 1px. Sombra só no que flutua.
+  Raios: 10 nos cartões, 6 nos controles, pílula nos selos.
+*/
+
 @layer base {
-  body { @apply bg-creme text-texto font-sans antialiased; font-feature-settings: "ss01"; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { @apply bg-fundo text-texto font-sans antialiased text-corpo; font-feature-settings: "ss01"; }
   h1, h2, h3 { text-wrap: balance; }
   ::selection { background: #d8cbb9; }
-  :focus-visible { outline: 2px solid #4a382d; outline-offset: 3px; }
+  :focus-visible { outline: 2px solid #4a382d; outline-offset: 2px; border-radius: 4px; }
+  input::placeholder, textarea::placeholder { color: #857467; }
 }
 
 @layer components {
-  .rotulo { @apply font-sans uppercase tracking-[0.2em] text-[11px] font-medium text-apoio; }
-  .assinatura { @apply block w-10 h-px bg-cobre mt-5; }
-  .superficie { @apply bg-white/60 border border-areia/70 backdrop-blur-sm; }
-  .cartao { @apply bg-[#faf7f2] border border-areia/70 shadow-[0_1px_0_rgba(58,43,34,0.04),0_12px_32px_-16px_rgba(58,43,34,0.18)]; }
+  /* tipografia */
+  .titulo-pagina { @apply font-display font-normal text-pagina tracking-[-0.01em] text-texto; }
+  .titulo-bloco { @apply text-bloco font-medium text-texto; }
+  .rotulo { @apply text-meta text-apoio; }
+  .numero { @apply text-numero font-normal tabular-nums text-texto; }
+  .assinatura { @apply block w-8 h-px bg-cobre mt-3; }
+
+  /* superfícies */
+  .cartao { @apply bg-folha border border-borda rounded-lg; }
+  .painel-tom { @apply bg-tom rounded-lg; }
+  .superficie { @apply bg-folha border border-borda rounded-lg; }
+
+  /* controles */
+  .campo { @apply w-full min-h-[44px] bg-folha border border-controle rounded px-3 text-corpo text-texto transition-colors
+    hover:border-apoio/60 focus:outline-none focus:border-cafe focus:ring-2 focus:ring-cafe/10; }
+  .segmentado { @apply inline-flex p-1 bg-tom rounded-lg gap-1; }
+  .segmentado > button { @apply px-3.5 h-9 rounded text-corpo text-apoio transition-colors hover:text-texto; }
+  .segmentado > button[aria-selected="true"], .segmentado > button[aria-checked="true"] { @apply bg-folha text-texto shadow-[0_1px_2px_rgba(46,34,27,0.08)]; }
+  .link { @apply text-cafe underline-offset-4 hover:underline; }
+
   .grao { background-image: radial-gradient(rgba(58,43,34,0.05) 1px, transparent 1px); background-size: 3px 3px; }
 }
 
+@layer utilities {
+  .tabular-nums { font-variant-numeric: lining-nums tabular-nums; }
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  .entra { animation: entra .5s cubic-bezier(.2,.7,.2,1) both; }
-  @keyframes entra { from { opacity: .001; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .entra { animation: entra .32s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes entra { from { opacity: .001; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 }
 
 @media print {
   @page { size: A4; margin: 14mm; }
   body { background: #fff; }
-  .imprimir .cartao { box-shadow: none; background: #fff; }
+  .imprimir .cartao { background: #fff; }
   .imprimir .pagina { break-inside: avoid; }
   .imprimir .relatorio > .pagina + .pagina { break-before: page; }
   .imprimir * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-}
-
-@layer utilities {
-  .tabular-nums { font-variant-numeric: lining-nums tabular-nums; }
 }

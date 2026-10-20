@@ -43,7 +43,7 @@ Impressão:
 Ajustes no protocolo:`,
 }
 
-const campo = 'w-full bg-white/70 border border-areia px-4 text-[15px] focus:outline-none focus:border-cafe focus:bg-white'
+const campo = 'campo'
 
 export function AbaAtendimento({ pid, nascimento }: { pid: string; nascimento: string | null }) {
   return (
@@ -93,20 +93,20 @@ function Evolucao({ pid }: { pid: string }) {
 
   return (
     <section className="cartao" aria-labelledby="t-evolucao">
-      <div className="px-6 pt-6 flex flex-wrap items-end justify-between gap-4">
+      <div className="px-5 pt-4 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 id="t-evolucao" className="font-display text-[28px] leading-none">Evolução clínica</h2>
-          <p className="text-sm text-apoio mt-2">Visível só para você e para a equipe com acesso clínico.</p>
+          <h2 id="t-evolucao" className="titulo-bloco">Evolução clínica</h2>
+          <p className="text-meta text-apoio mt-0.5">Visível só para você e para a equipe com acesso clínico.</p>
         </div>
-        <div role="radiogroup" aria-label="Tipo de registro" className="flex border border-areia">
+        <div role="radiogroup" aria-label="Tipo de registro" className="segmentado">
           {([['evolucao', 'Evolução'], ['anotacao', 'Anotação interna']] as const).map(([k, r]) => (
             <button key={k} role="radio" aria-checked={tipo === k} onClick={() => setTipo(k)}
-              className={`px-4 h-10 text-sm transition-colors ${tipo === k ? 'bg-cafe text-creme' : 'text-apoio hover:text-texto'}`}>{r}</button>
+              >{r}</button>
           ))}
         </div>
       </div>
 
-      <div className="p-6 flex flex-col gap-3">
+      <div className="p-5 flex flex-col gap-3">
         <div className="flex flex-wrap gap-3">
           <label className="sr-only" htmlFor="ev-data">Data do registro</label>
           <input id="ev-data" type="date" value={data} onChange={e => setData(e.target.value)} className={`${campo} min-h-[44px] w-auto`} />
@@ -123,13 +123,13 @@ function Evolucao({ pid }: { pid: string }) {
           className={`${campo} py-4 leading-relaxed resize-y min-h-[240px]`} />
         <div className="flex items-center gap-4">
           <Botao disabled={!texto.trim()} onClick={salvar}>{tipo === 'evolucao' ? 'Salvar evolução' : 'Salvar anotação'}</Botao>
-          {msg && <span className={`text-sm ${msg.t === 'ok' ? 'text-oliva' : 'text-terracota'}`} role="status">{msg.m}</span>}
+          {msg && <span className={`text-corpo ${msg.t === 'ok' ? 'text-oliva' : 'text-terracota'}`} role="status">{msg.m}</span>}
         </div>
       </div>
 
-      <div className="border-t border-areia/70">
-        <div className="px-6 py-4 flex flex-wrap items-center gap-3">
-          <h3 className="font-display text-xl mr-auto">Histórico <span className="text-apoio text-base">{notas.length}</span></h3>
+      <div className="border-t border-borda">
+        <div className="px-5 py-4 flex flex-wrap items-center gap-3">
+          <h3 className="titulo-bloco mr-auto">Histórico <span className="text-apoio text-base">{notas.length}</span></h3>
           <div className="relative">
             <Search className="w-4 h-4 text-apoio absolute left-3 top-1/2 -translate-y-1/2" />
             <label className="sr-only" htmlFor="ev-busca">Buscar no histórico</label>
@@ -141,23 +141,23 @@ function Evolucao({ pid }: { pid: string }) {
           </select>
         </div>
         {visiveis.length === 0 ? (
-          <p className="px-6 pb-6 text-sm text-apoio">{notas.length ? 'Nada encontrado com esse filtro.' : 'Nenhum registro ainda. A primeira evolução aparece aqui.'}</p>
+          <p className="px-5 pb-5 text-corpo text-apoio">{notas.length ? 'Nada encontrado com esse filtro.' : 'Nenhum registro ainda. A primeira evolução aparece aqui.'}</p>
         ) : (
           <ol className="pb-2">
             {visiveis.map(n => {
               const ab = aberta === n.id
               return (
-                <li key={n.id} className="px-6 py-4 border-t border-areia/50 first:border-t-0">
+                <li key={n.id} className="px-5 py-4 border-t border-regra first:border-t-0">
                   <div className="flex items-baseline gap-3">
                     <p className="font-medium tabular-nums">{dataBR(n.noted_at)}</p>
-                    <p className="text-xs text-apoio">{n.kind === 'anotacao' ? 'Anotação interna' : 'Evolução'}{n.profiles?.full_name && n.author !== profile?.id ? ` · ${n.profiles.full_name}` : ''}</p>
-                    <button onClick={() => copiar(n)} className="ml-auto text-xs text-apoio hover:text-texto inline-flex items-center gap-1.5">
+                    <p className="text-meta text-apoio">{n.kind === 'anotacao' ? 'Anotação interna' : 'Evolução'}{n.profiles?.full_name && n.author !== profile?.id ? ` · ${n.profiles.full_name}` : ''}</p>
+                    <button onClick={() => copiar(n)} className="ml-auto text-meta text-apoio hover:text-texto inline-flex items-center gap-1.5">
                       {copiado === n.id ? <><Check className="w-3.5 h-3.5" />Copiado</> : <><Copy className="w-3.5 h-3.5" />Copiar</>}
                     </button>
                   </div>
                   <p className={`mt-2 text-[15px] leading-relaxed whitespace-pre-wrap ${ab ? '' : 'line-clamp-3'}`}>{n.body}</p>
                   {n.body.split('\n').length > 3 || n.body.length > 260 ? (
-                    <button onClick={() => setAberta(ab ? null : n.id)} className="mt-1 text-sm text-cafe hover:underline">{ab ? 'Recolher' : 'Ler tudo'}</button>
+                    <button onClick={() => setAberta(ab ? null : n.id)} className="mt-1 text-corpo text-cafe hover:underline">{ab ? 'Recolher' : 'Ler tudo'}</button>
                   ) : null}
                 </li>
               )
@@ -194,10 +194,10 @@ function Condutas({ pid }: { pid: string }) {
 
   return (
     <section className="cartao" aria-labelledby="t-condutas">
-      <div className="px-6 pt-6 pb-2 flex items-end justify-between gap-4">
-        <h2 id="t-condutas" className="font-display text-[28px] leading-none">Condutas ativas</h2>
+      <div className="px-5 pt-4 pb-2 flex items-end justify-between gap-4">
+        <h2 id="t-condutas" className="titulo-bloco">Condutas ativas</h2>
         {encerradas.length > 0 && (
-          <button onClick={() => setHistorico(!historico)} className="text-sm text-apoio hover:text-texto">
+          <button onClick={() => setHistorico(!historico)} className="text-corpo text-apoio hover:text-texto">
             {historico ? 'Ocultar encerradas' : `Ver encerradas (${encerradas.length})`}
           </button>
         )}
@@ -206,19 +206,19 @@ function Condutas({ pid }: { pid: string }) {
         {(['medicacao', 'plano'] as const).map((k, i) => {
           const itens = (historico ? lista : ativas).filter(c => c.kind === k)
           return (
-            <div key={k} className={`p-6 flex flex-col gap-3 ${i ? 'md:border-l border-t md:border-t-0 border-areia/60' : ''}`}>
+            <div key={k} className={`px-5 pb-5 pt-2 flex flex-col gap-3 ${i ? 'md:border-l border-t md:border-t-0 border-borda' : ''}`}>
               <p className="rotulo">{k === 'medicacao' ? 'Medicações' : 'Plano e combinados'}</p>
-              {itens.length === 0 && <p className="text-sm text-apoio">{k === 'medicacao' ? 'Nenhuma medicação ativa.' : 'Nenhum combinado ativo.'}</p>}
+              {itens.length === 0 && <p className="text-corpo text-apoio">{k === 'medicacao' ? 'Nenhuma medicação ativa.' : 'Nenhum combinado ativo.'}</p>}
               <ul className="flex flex-col">
                 {itens.map(c => (
-                  <li key={c.id} className={`group py-2.5 border-b border-areia/50 last:border-0 flex gap-3 ${c.active ? '' : 'opacity-55'}`}>
+                  <li key={c.id} className={`group py-2.5 border-b border-regra last:border-0 flex gap-3 ${c.active ? '' : 'opacity-55'}`}>
                     <div className="flex-1 min-w-0">
                       <p className="text-[15px]">{c.title}</p>
-                      <p className="text-xs text-apoio">{c.detail ? `${c.detail} · ` : ''}desde {dataBR(c.started_at)}{c.ended_at ? ` até ${dataBR(c.ended_at)}` : ''}</p>
+                      <p className="text-meta text-apoio">{c.detail ? `${c.detail} · ` : ''}desde {dataBR(c.started_at)}{c.ended_at ? ` até ${dataBR(c.ended_at)}` : ''}</p>
                     </div>
                     {c.active && (
                       <button onClick={() => encerrar(c)} aria-label={`Encerrar ${c.title}`}
-                        className="text-xs text-apoio hover:text-terracota opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity">Encerrar</button>
+                        className="text-meta text-apoio hover:text-terracota opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity">Encerrar</button>
                     )}
                   </li>
                 ))}
@@ -238,7 +238,7 @@ function Condutas({ pid }: { pid: string }) {
                   </div>
                 </div>
               ) : (
-                <button onClick={() => setNovo({ kind: k, title: '', detail: '' })} className="self-start inline-flex items-center gap-1.5 text-sm text-cafe hover:underline">
+                <button onClick={() => setNovo({ kind: k, title: '', detail: '' })} className="self-start inline-flex items-center gap-1.5 text-corpo text-cafe hover:underline">
                   <Plus className="w-4 h-4" />{k === 'medicacao' ? 'Adicionar medicação' : 'Adicionar combinado'}
                 </button>
               )}
@@ -256,6 +256,7 @@ function Problemas({ pid, nascimento }: { pid: string; nascimento: string | null
   const [cat, setCat] = useState<Indicador[]>([])
   const [med, setMed] = useState<Medida[]>([])
   const [ignorados, setIgnorados] = useState<string[]>([])
+  const [todas, setTodas] = useState(false)
   const [novo, setNovo] = useState('')
   const [detalhe, setDetalhe] = useState('')
 
@@ -277,8 +278,9 @@ function Problemas({ pid, nascimento }: { pid: string; nascimento: string | null
     ]
     return itens.map(x => ({ ...x, nivel: nivelDe(x.value, x.bands) }))
       .filter(x => (x.nivel === 'ruim' || x.nivel === 'atencao'))
-      .map(x => ({ titulo: `${x.name} ${x.nivel === 'ruim' ? 'alterado' : 'limítrofe'}`, detalhe: `${x.value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} ${x.unit}${x.data ? ` em ${dataBR(x.data)}` : ''}` }))
+      .map(x => ({ nivel: x.nivel, titulo: `${x.name} ${x.nivel === 'ruim' ? 'fora da faixa' : 'em atenção'}`, detalhe: `${x.value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} ${x.unit}${x.data ? ` em ${dataBR(x.data)}` : ''}` }))
       .filter(s => !titulos.has(s.titulo.toLowerCase()) && !ignorados.includes(s.titulo))
+      .sort((a, b) => (a.nivel === 'ruim' ? 0 : 1) - (b.nivel === 'ruim' ? 0 : 1))
   }, [cat, med, lista, ignorados, nascimento])
 
   async function adicionar(title: string, detail: string | null) {
@@ -294,44 +296,48 @@ function Problemas({ pid, nascimento }: { pid: string; nascimento: string | null
 
   return (
     <section className="cartao" aria-labelledby="t-problemas">
-      <div className="px-6 pt-6 pb-4">
-        <h2 id="t-problemas" className="font-display text-[28px] leading-none">Lista de problemas</h2>
-        <p className="text-sm text-apoio mt-2">{ativos.length} ativo{ativos.length === 1 ? '' : 's'}{resolvidos.length ? ` · ${resolvidos.length} resolvido${resolvidos.length === 1 ? '' : 's'}` : ''}</p>
+      <div className="px-5 pt-4 pb-4">
+        <h2 id="t-problemas" className="titulo-bloco">Lista de problemas</h2>
+        <p className="text-meta text-apoio mt-0.5">{ativos.length} ativo{ativos.length === 1 ? '' : 's'}{resolvidos.length ? ` · ${resolvidos.length} resolvido${resolvidos.length === 1 ? '' : 's'}` : ''}</p>
       </div>
 
       {sugestoes.length > 0 && (
-        <div className="mx-6 mb-4 bg-areia/30 p-4 flex flex-col gap-2">
-          <p className="rotulo">Sugestões a partir dos exames</p>
-          {sugestoes.map(s => (
-            <div key={s.titulo} className="flex items-center gap-3 bg-creme/80 px-3 py-2.5">
+        <div className="mx-5 mb-4 rounded-lg bg-tom p-3 flex flex-col gap-1">
+          <p className="rotulo px-1 pb-1">Sugeridos pelos exames · {sugestoes.length}</p>
+          {(todas ? sugestoes : sugestoes.slice(0, 3)).map(s => (
+            <div key={s.titulo} className="flex items-center gap-2.5 rounded bg-folha px-3 py-2">
+              <span className={`w-2 h-2 rounded-full shrink-0 ${s.nivel === 'ruim' ? 'bg-terracota' : 'bg-cobre/70'}`} aria-hidden="true" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm">{s.titulo}</p>
-                <p className="text-xs text-apoio">{s.detalhe}</p>
+                <p className="text-corpo truncate">{s.titulo}</p>
+                <p className="text-meta text-apoio">{s.detalhe}</p>
               </div>
-              <button onClick={() => adicionar(s.titulo, s.detalhe)} className="text-xs text-cafe hover:underline inline-flex items-center gap-1"><Plus className="w-3.5 h-3.5" />Incluir</button>
-              <button onClick={() => setIgnorados([...ignorados, s.titulo])} aria-label={`Ignorar ${s.titulo}`} className="text-apoio hover:text-texto"><X className="w-4 h-4" /></button>
+              <button onClick={() => adicionar(s.titulo, s.detalhe)} className="h-8 px-2 rounded text-meta font-medium text-cafe hover:bg-tom inline-flex items-center gap-1"><Plus className="w-3.5 h-3.5" />Incluir</button>
+              <button onClick={() => setIgnorados([...ignorados, s.titulo])} aria-label={`Ignorar ${s.titulo}`} title="Ignorar" className="w-8 h-8 grid place-items-center rounded text-apoio hover:text-texto hover:bg-tom"><X className="w-4 h-4" /></button>
             </div>
           ))}
+          {sugestoes.length > 3 && (
+            <button onClick={() => setTodas(!todas)} className="self-start px-1 pt-1 text-meta text-cafe hover:underline">{todas ? 'Mostrar menos' : `Ver mais ${sugestoes.length - 3}`}</button>
+          )}
         </div>
       )}
 
       <ul>
         {[...ativos, ...resolvidos].map(p => (
-          <li key={p.id} className="px-6 py-3.5 border-t border-areia/50 flex gap-3 items-start">
+          <li key={p.id} className="px-5 py-3.5 border-t border-regra flex gap-3 items-start">
             <button onClick={() => alternar(p)} aria-label={p.active ? `Marcar ${p.title} como resolvido` : `Reabrir ${p.title}`}
               className={`mt-0.5 w-5 h-5 shrink-0 border grid place-items-center transition-colors ${p.active ? 'border-areia hover:border-cafe' : 'bg-oliva border-oliva text-creme'}`}>
               {!p.active && <Check className="w-3.5 h-3.5" />}
             </button>
             <div className={`min-w-0 ${p.active ? '' : 'opacity-55'}`}>
               <p className={`text-[15px] ${p.active ? '' : 'line-through decoration-apoio/50'}`}>{p.title}</p>
-              {p.detail && <p className="text-xs text-apoio mt-0.5 leading-relaxed">{p.detail}</p>}
+              {p.detail && <p className="text-meta text-apoio mt-0.5 leading-relaxed">{p.detail}</p>}
             </div>
           </li>
         ))}
       </ul>
-      {lista.length === 0 && sugestoes.length === 0 && <p className="px-6 pb-2 text-sm text-apoio">Nenhum problema registrado.</p>}
+      {lista.length === 0 && sugestoes.length === 0 && <p className="px-5 pb-2 text-corpo text-apoio">Nenhum problema registrado.</p>}
 
-      <form className="p-6 border-t border-areia/70 flex flex-col gap-2" onSubmit={e => { e.preventDefault(); if (novo.trim()) adicionar(novo.trim(), detalhe.trim() || null) }}>
+      <form className="p-5 border-t border-borda flex flex-col gap-2" onSubmit={e => { e.preventDefault(); if (novo.trim()) adicionar(novo.trim(), detalhe.trim() || null) }}>
         <label className="sr-only" htmlFor="pb-novo">Novo problema</label>
         <input id="pb-novo" value={novo} onChange={e => setNovo(e.target.value)} placeholder="Novo problema, ex.: Sarcopenia" className={`${campo} min-h-[44px]`} />
         {novo && (<>
@@ -340,7 +346,7 @@ function Problemas({ pid, nascimento }: { pid: string; nascimento: string | null
         </>)}
         <Botao type="submit" variante="linha" disabled={!novo.trim()} className="self-start min-h-[42px] px-5"><Plus className="w-4 h-4" />Adicionar</Botao>
       </form>
-      <div className="px-6 pb-6"><Aviso>Sugestões nascem das faixas dos exames. Nada entra na lista sem você incluir.</Aviso></div>
+      
     </section>
   )
 }

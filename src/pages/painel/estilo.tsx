@@ -30,41 +30,36 @@ export function AbaEstilo({ pid, questionarios }: { pid: string; questionarios: 
   const direita = dominios.filter(d => !['Humor', 'Sono', 'Atividade física'].includes(d.nome))
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] gap-6 items-start">
+    <div className="flex flex-col gap-4">
+      <div className="grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-4 items-start">
         <FatoresDeRisco pid={pid} />
         <section className="cartao" aria-labelledby="t-estilo">
-          <div className="px-6 pt-6 pb-2">
-            <h2 id="t-estilo" className="font-display text-[28px] leading-none">Estilo de vida</h2>
-            <p className="text-sm text-apoio mt-2">Última resposta de cada questionário. A cor do domínio é a do resultado mais frágil.</p>
+          <div className="px-5 pt-4 pb-2">
+            <h2 id="t-estilo" className="titulo-bloco">Estilo de vida</h2>
+            <p className="text-meta text-apoio mt-0.5">Última resposta de cada questionário. A cor do domínio é a do resultado mais frágil.</p>
           </div>
           {resp && resp.length === 0 ? (
-            <p className="p-6 text-sm text-apoio">Nenhum questionário respondido ainda. Envie abaixo e as respostas aparecem aqui.</p>
+            <p className="p-5 text-corpo text-apoio">Nenhum questionário respondido ainda. Envie abaixo e as respostas aparecem aqui.</p>
           ) : (
-            <div className="grid md:grid-cols-2">
-              {[esquerda, direita].map((col, i) => (
-                <div key={i} className={`px-6 pb-4 ${i ? 'md:border-l border-areia/60' : ''}`}>
-                  {col.map(d => (
-                    <div key={d.nome} className="pt-4">
-                      <div className="flex items-center gap-2.5 pb-1.5 border-b border-areia/60">
-                        <span className={`w-2.5 h-2.5 ${d.nivel ? TOM[d.nivel] : 'bg-areia/60'}`} aria-hidden="true" />
-                        <h3 className="font-display text-xl flex-1">{d.nome}</h3>
-                        <span className={`text-xs ${d.nivel ? NIVEL[d.nivel].cor : 'text-apoio'}`}>{d.nivel ? NIVEL[d.nivel].rotulo : d.itens.length ? 'Registro' : 'Falta responder'}</span>
-                      </div>
-                      <ul>
-                        {d.itens.map(r => (
-                          <li key={r.id} className="flex items-baseline gap-3 py-2 text-sm">
-                            <span className="flex-1 min-w-0 truncate">{r.questionnaires?.name}</span>
-                            {r.flagged && <span className="text-xs text-terracota">alerta</span>}
-                            <span className="text-xs text-apoio tabular-nums">{dataBR(r.submitted_at)}</span>
-                            <span className={`w-[132px] text-right ${r.band_level ? NIVEL[r.band_level].cor : 'text-apoio'}`}>
-                              {r.score != null && <span className="tabular-nums text-texto mr-1.5">{num(r.score, 1)}</span>}{r.band_label ?? 'Registro'}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+            <div className="grid sm:grid-cols-2 gap-3 px-5 pb-5 pt-2">
+              {[...esquerda, ...direita].map(d => (
+                <div key={d.nome} className="painel-tom px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${d.nivel ? TOM[d.nivel] : 'bg-areia'}`} aria-hidden="true" />
+                    <h3 className="text-corpo font-medium flex-1">{d.nome}</h3>
+                    <span className={`text-meta ${d.nivel ? NIVEL[d.nivel].cor : 'text-apoio'}`}>{d.nivel ? NIVEL[d.nivel].rotulo : d.itens.length ? 'Registro' : 'Falta responder'}</span>
+                  </div>
+                  <ul className="mt-1.5">
+                    {d.itens.map(r => (
+                      <li key={r.id} className="flex items-baseline gap-2 py-1 text-corpo" title={`Respondido em ${dataBR(r.submitted_at)}`}>
+                        <span className="flex-1 min-w-0 text-apoio truncate">{r.questionnaires?.name}{r.flagged && <span className="text-terracota"> · alerta</span>}</span>
+                        <span className={`text-right ${r.band_level ? NIVEL[r.band_level].cor : 'text-apoio'}`}>
+                          {r.score != null && <span className="tabular-nums text-texto mr-1">{num(r.score, 1)}</span>}{r.band_label ?? 'Registro'}
+                        </span>
+                      </li>
+                    ))}
+                    {!d.itens.length && <li className="py-1 text-meta text-apoio">Nenhum questionário deste tema respondido.</li>}
+                  </ul>
                 </div>
               ))}
             </div>
@@ -91,7 +86,7 @@ function FatoresDeRisco({ pid }: { pid: string }) {
   const [f, setF] = useFatores(pid)
   const [passo, setPasso] = useState(0)
   const [salvo, setSalvo] = useState<string | null>(null)
-  if (!f) return <section className="cartao p-6 text-sm text-apoio">Carregando</section>
+  if (!f) return <section className="cartao p-5 text-corpo text-apoio">Carregando</section>
 
   const p = PASSOS[passo]
   const feitos = PASSOS.filter(x => x.tipo !== 'varias' ? respondido(f, x.campo) : true).length
@@ -105,32 +100,32 @@ function FatoresDeRisco({ pid }: { pid: string }) {
 
   const opcao = (ativo: boolean, rotulo: string, aoClicar: () => void, papel: 'radio' | 'checkbox') => (
     <button key={rotulo} role={papel} aria-checked={ativo} onClick={aoClicar}
-      className={`w-full text-left px-4 min-h-[48px] flex items-center gap-3 border transition-colors ${ativo ? 'border-cafe bg-cafe/[0.05]' : 'border-areia hover:border-cafe/50'}`}>
-      <span className={`w-4 h-4 shrink-0 grid place-items-center border ${papel === 'radio' ? 'rounded-full' : ''} ${ativo ? 'bg-cafe border-cafe text-creme' : 'border-apoio/50'}`}>
+      className={`w-full text-left px-3.5 min-h-[44px] rounded flex items-center gap-3 border transition-colors ${ativo ? 'border-cafe/70 bg-ativo/60' : 'border-borda bg-folha hover:border-controle'}`}>
+      <span className={`w-4 h-4 shrink-0 grid place-items-center border ${papel === 'radio' ? 'rounded-full' : 'rounded-sm'} ${ativo ? 'bg-cafe border-cafe text-creme' : 'border-apoio/50'}`}>
         {ativo && <Check className="w-3 h-3" />}
       </span>
-      <span className="text-[15px]">{rotulo}</span>
+      <span className="text-corpo">{rotulo}</span>
     </button>
   )
 
   return (
     <section className="cartao flex flex-col" aria-labelledby="t-fatores">
-      <div className="px-6 pt-6 flex items-end justify-between gap-4">
+      <div className="px-5 pt-4 flex items-end justify-between gap-4">
         <div>
-          <h2 id="t-fatores" className="font-display text-[28px] leading-none">Fatores de risco</h2>
-          <p className="text-sm text-apoio mt-2">{feitos} de {PASSOS.length} respondidos{salvo ? ` · ${salvo}` : ''}</p>
+          <h2 id="t-fatores" className="titulo-bloco">Fatores de risco</h2>
+          <p className="text-meta text-apoio mt-0.5">{feitos} de {PASSOS.length} respondidos{salvo ? ` · ${salvo}` : ''}</p>
         </div>
         <div className="flex gap-[3px]" aria-hidden="true">
           {PASSOS.map((x, i) => (
             <button key={i} tabIndex={-1} onClick={() => setPasso(i)}
-              className={`w-4 h-1.5 ${i === passo ? 'bg-cafe' : respondido(f, x.campo) && (x.tipo !== 'varias' || (f[x.campo] as string[]).length) ? 'bg-oliva/60' : 'bg-areia'}`} />
+              className={`w-4 h-1.5 rounded-full ${i === passo ? 'bg-cafe' : respondido(f, x.campo) && (x.tipo !== 'varias' || (f[x.campo] as string[]).length) ? 'bg-oliva/60' : 'bg-areia'}`} />
           ))}
         </div>
       </div>
 
-      <div className="p-6 flex flex-col gap-3 min-h-[380px]">
-        <p className="rotulo">{passo + 1} de {PASSOS.length}</p>
-        <p className="font-display text-[22px] leading-snug">{p.pergunta}</p>
+      <div className="p-5 flex flex-col gap-3 min-h-[360px]">
+        <p className="rotulo">Pergunta {passo + 1} de {PASSOS.length}</p>
+        <p className="text-[17px] leading-snug font-medium">{p.pergunta}</p>
         <div className="flex flex-col gap-2 mt-1" role={p.tipo === 'varias' ? 'group' : 'radiogroup'}>
           {p.tipo === 'uma' && p.opcoes.map(o => opcao(f[p.campo] === o, o, () => gravar({ ...f, [p.campo]: o }), 'radio'))}
           {p.tipo === 'simnao' && (['Sim', 'Não'] as const).map(o => opcao(f[p.campo] === (o === 'Sim'), o, () => gravar({ ...f, [p.campo]: o === 'Sim' }), 'radio'))}
@@ -140,16 +135,16 @@ function FatoresDeRisco({ pid }: { pid: string }) {
               return opcao(lista.includes(o), o, () => gravar({ ...f, [p.campo]: lista.includes(o) ? lista.filter(x => x !== o) : [...lista, o] }), 'checkbox')
             })}
             {opcao((f[p.campo] as string[]).length === 0, 'Nenhuma destas', () => gravar({ ...f, [p.campo]: [] }), 'checkbox')}
-            {p.nota && <p className="text-xs text-apoio mt-1">{p.nota}</p>}
+            {p.nota && <p className="text-meta text-apoio mt-1">{p.nota}</p>}
           </>)}
         </div>
       </div>
 
-      <div className="px-6 pb-6 flex justify-between mt-auto">
+      <div className="px-5 pb-5 flex justify-between mt-auto">
         <Botao variante="texto" onClick={() => setPasso(Math.max(0, passo - 1))} disabled={passo === 0}><ArrowLeft className="w-4 h-4" />Anterior</Botao>
         {passo < PASSOS.length - 1
           ? <Botao variante="linha" onClick={() => setPasso(passo + 1)}>Próxima<ArrowRight className="w-4 h-4" /></Botao>
-          : <span className="text-sm text-apoio self-center">Respostas salvas a cada toque</span>}
+          : <span className="text-corpo text-apoio self-center">Respostas salvas a cada toque</span>}
       </div>
     </section>
   )

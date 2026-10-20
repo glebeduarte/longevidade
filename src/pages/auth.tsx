@@ -6,20 +6,19 @@ import { Aviso, Borboleta, Botao, Campo, Marca, Titulo } from '../components/ui'
 
 function Moldura({ children }: { children: ReactNode }) {
   return (
-    <main className="min-h-screen grid lg:grid-cols-[1.05fr_1fr]">
-      <section className="relative overflow-hidden bg-cafe text-creme px-6 sm:px-10 lg:px-16 py-8 lg:py-14 flex flex-col">
-        <div className="absolute inset-0 grao opacity-60" aria-hidden="true" />
-        <Borboleta className="absolute -right-24 -bottom-16 w-[520px] h-[364px] text-areia/[0.08] hidden lg:block" />
+    <main className="min-h-screen grid grid-rows-[auto_1fr] lg:grid-rows-1 lg:grid-cols-[1.05fr_1fr]">
+      <section className="relative overflow-hidden bg-cafe text-creme px-5 sm:px-10 lg:px-16 py-5 lg:py-14 flex flex-col">
+                <Borboleta className="absolute -right-24 -bottom-16 w-[520px] h-[364px] text-areia/[0.08] hidden lg:block" />
         <div className="relative"><Marca claro /></div>
         <div className="relative mt-auto hidden lg:block max-w-md">
-          <p className="rotulo !text-areia/70">Climatério e longevidade feminina</p>
-          <p className="font-display text-[56px] leading-[1.02] mt-5">Seu corpo mudou.<br />Te ajudo a entender e cuidar dele.</p>
+          <p className="text-corpo text-areia">Climatério e longevidade feminina</p>
+          <p className="font-display text-[48px] leading-[1.04] mt-4">Seu corpo mudou.<br />Te ajudo a entender e cuidar dele.</p>
           <span className="block w-10 h-px bg-areia/60 mt-8" />
-          <p className="mt-6 text-sm text-areia/80 leading-relaxed">Dra. Bartira Rebouças · Endocrinologista · CRM-RN 5297 · RQE 2986</p>
+          <p className="mt-6 text-corpo text-areia/80 leading-relaxed">Dra. Bartira Rebouças · Endocrinologista · CRM-RN 5297 · RQE 2986</p>
         </div>
       </section>
-      <section className="flex items-center px-6 sm:px-10 py-12 lg:py-16">
-        <div className="w-full max-w-[400px] mx-auto flex flex-col gap-8">{children}</div>
+      <section className="flex items-center px-5 sm:px-10 py-10 lg:py-16 bg-fundo">
+        <div className="w-full max-w-[380px] mx-auto flex flex-col gap-6">{children}</div>
       </section>
     </main>
   )
@@ -50,16 +49,16 @@ export function Entrar() {
 
   return (
     <Moldura>
-      <Titulo rotulo="Área da paciente e da equipe">Entrar</Titulo>
+      <Titulo sub="Área da paciente e da equipe">Entrar</Titulo>
       <form onSubmit={enviar} className="flex flex-col gap-6">
         <Campo id="email" label="E-mail" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} />
         <Campo id="senha" label="Senha" type="password" autoComplete="current-password" required value={senha} onChange={e => setSenha(e.target.value)} />
         {erro && <Aviso tipo="erro">{erro}</Aviso>}
         <Botao type="submit" disabled={carregando}>{carregando ? 'Entrando' : 'Entrar'}</Botao>
       </form>
-      <div className="flex items-center justify-between border-t border-areia pt-6">
-        <Link to="/esqueci" className="text-sm text-apoio hover:text-texto underline-offset-4 hover:underline">Esqueci minha senha</Link>
-        <span className="text-xs text-apoio/80">Acesso por convite</span>
+      <div className="flex items-center justify-between border-t border-borda pt-5">
+        <Link to="/esqueci" className="text-corpo text-apoio hover:text-texto underline-offset-4 hover:underline">Esqueci minha senha</Link>
+        <span className="text-meta text-apoio/80">Acesso por convite</span>
       </div>
     </Moldura>
   )
@@ -80,7 +79,7 @@ export function Esqueci() {
 
   return (
     <Moldura>
-      <Titulo rotulo="Acesso">Esqueci minha senha</Titulo>
+      <Titulo>Esqueci minha senha</Titulo>
       {enviado ? (
         <Aviso>Se este e-mail tiver cadastro, você vai receber um link para criar uma nova senha.</Aviso>
       ) : (
@@ -90,7 +89,7 @@ export function Esqueci() {
           <Botao type="submit">Enviar link</Botao>
         </form>
       )}
-      <Link to="/entrar" className="text-sm text-apoio underline underline-offset-4">Voltar para entrar</Link>
+      <Link to="/entrar" className="text-corpo text-apoio underline underline-offset-4">Voltar para entrar</Link>
     </Moldura>
   )
 }
@@ -115,16 +114,16 @@ export function DefinirSenha() {
   if (!session) {
     return (
       <Moldura>
-        <Titulo rotulo="Acesso">Link expirado</Titulo>
+        <Titulo>Link expirado</Titulo>
         <Aviso>Este link não vale mais. Peça um novo para criar sua senha.</Aviso>
-        <Link to="/esqueci" className="text-sm underline underline-offset-4">Pedir novo link</Link>
+        <Link to="/esqueci" className="text-corpo underline underline-offset-4">Pedir novo link</Link>
       </Moldura>
     )
   }
 
   return (
     <Moldura>
-      <Titulo rotulo="Acesso">Crie sua senha</Titulo>
+      <Titulo>Crie sua senha</Titulo>
       <form onSubmit={enviar} className="flex flex-col gap-6">
         <Campo id="senha" label="Nova senha" type="password" autoComplete="new-password" required value={senha} onChange={e => setSenha(e.target.value)} />
         <Campo id="conf" label="Repita a senha" type="password" autoComplete="new-password" required value={conf} onChange={e => setConf(e.target.value)} />
@@ -164,7 +163,7 @@ export function Consentimento() {
         <div className="cartao whitespace-pre-line leading-relaxed text-[15px] max-h-[52vh] overflow-y-auto p-6 md:p-8">
           {termo?.body ?? 'Carregando o termo.'}
         </div>
-        <label className="flex gap-3 items-start text-sm">
+        <label className="flex gap-3 items-start text-corpo">
           <input type="checkbox" className="mt-1 w-5 h-5 accent-cafe" checked={aceito} onChange={e => setAceito(e.target.checked)} />
           Li e aceito o termo de consentimento para tratamento dos meus dados.
         </label>

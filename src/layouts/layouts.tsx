@@ -1,5 +1,6 @@
-import { Navigate, NavLink, Outlet } from 'react-router-dom'
-import { CalendarDays, ClipboardList, SlidersHorizontal, Home, LineChart, LogOut, MessageCircle, Sun, Users, UserCog } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { CalendarDays, ClipboardList, SlidersHorizontal, Home, LineChart, LogOut, Menu, MessageCircle, Sun, Users, UserCog, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { can, useAuth, type Perms } from '../auth/AuthProvider'
 import { Consentimento } from '../pages/auth'
@@ -8,7 +9,7 @@ import { Borboleta, Iniciais, Marca } from '../components/ui'
 function Carregando() {
   return (
     <main className="min-h-screen grid place-items-center">
-      <Borboleta className="w-12 h-9 text-cobre animate-pulse" />
+      <Borboleta className="w-10 h-7 text-cobre animate-pulse" />
     </main>
   )
 }
@@ -32,23 +33,22 @@ const navApp: Array<{ to: string; rotulo: string; icone: LucideIcon; end?: boole
 export function LayoutApp() {
   const { profile } = useAuth()
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-20 bg-creme/85 backdrop-blur-md border-b border-areia/60">
-        <div className="max-w-2xl mx-auto px-5 h-16 flex items-center justify-between">
+    <div className="min-h-screen flex flex-col bg-fundo">
+      <header className="sticky top-0 z-20 bg-fundo border-b border-borda">
+        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <Marca />
-          <Iniciais nome={profile?.full_name ?? profile?.email} className="w-9 h-9 text-base" />
+          <Iniciais nome={profile?.full_name ?? profile?.email} className="w-8 h-8 text-[12px]" />
         </div>
       </header>
-      <div className="flex-1 pb-28"><div className="max-w-2xl mx-auto"><Outlet /></div></div>
-      <nav aria-label="Navegação principal"
-        className="fixed bottom-0 inset-x-0 z-20 bg-[#faf7f2]/90 backdrop-blur-md border-t border-areia/70 pb-[env(safe-area-inset-bottom)]">
+      <div className="flex-1 pb-24"><div className="max-w-2xl mx-auto"><Outlet /></div></div>
+      <nav aria-label="Navegação principal" className="fixed bottom-0 inset-x-0 z-20 bg-folha border-t border-borda pb-[env(safe-area-inset-bottom)]">
         <div className="max-w-2xl mx-auto grid grid-cols-4">
           {navApp.map(({ to, rotulo, icone: I, end }) => (
             <NavLink key={to} to={to} end={end}
-              className={({ isActive }) => `relative flex flex-col items-center gap-1 py-3 text-[10px] uppercase tracking-[0.16em] transition-colors ${isActive ? 'text-cafe' : 'text-apoio/70 hover:text-apoio'}`}>
+              className={({ isActive }) => `flex flex-col items-center gap-1 pt-2.5 pb-2 text-[12px] transition-colors ${isActive ? 'text-cafe font-medium' : 'text-apoio hover:text-texto'}`}>
               {({ isActive }) => (<>
-                <span className={`absolute top-0 h-0.5 w-8 transition-colors ${isActive ? 'bg-terracota' : 'bg-transparent'}`} />
-                <I className="w-5 h-5" strokeWidth={isActive ? 1.8 : 1.4} />{rotulo}
+                <span className={`grid place-items-center w-14 h-7 rounded-full transition-colors ${isActive ? 'bg-ativo' : ''}`}><I className="w-[18px] h-[18px]" strokeWidth={isActive ? 1.9 : 1.5} /></span>
+                {rotulo}
               </>)}
             </NavLink>
           ))}
@@ -62,43 +62,78 @@ const itensPainel: Array<{ to: string; rotulo: string; icone: LucideIcon; precis
   { to: '/painel', rotulo: 'Hoje', icone: Sun, grupo: 'Rotina' },
   { to: '/painel/pacientes', rotulo: 'Pacientes', icone: Users, precisa: 'can_manage_patients', grupo: 'Rotina' },
   { to: '/painel/agenda', rotulo: 'Encontros', icone: CalendarDays, precisa: 'can_manage_patients', grupo: 'Rotina' },
-  { to: '/painel/faixas', rotulo: 'Faixas dos indicadores', icone: SlidersHorizontal, precisa: 'medica', grupo: 'Gestão' },
-  { to: '/painel/equipe', rotulo: 'Equipe e acessos', icone: UserCog, precisa: 'medica', grupo: 'Gestão' },
+  { to: '/painel/faixas', rotulo: 'Faixas dos indicadores', icone: SlidersHorizontal, precisa: 'medica', grupo: 'Configurações' },
+  { to: '/painel/equipe', rotulo: 'Equipe e acessos', icone: UserCog, precisa: 'medica', grupo: 'Configurações' },
 ]
 
-export function LayoutPainel() {
-  const { profile, perms, signOut } = useAuth()
+function Navegacao({ aoEscolher }: { aoEscolher?: () => void }) {
+  const { profile, perms } = useAuth()
   const itens = itensPainel.filter(i =>
     !i.precisa || (i.precisa === 'medica' ? profile?.role === 'medica' : can(profile, perms, i.precisa)))
   const grupos = [...new Set(itens.map(i => i.grupo))]
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[264px_1fr]">
-      <aside className="lg:sticky lg:top-0 lg:h-screen bg-[#ece5da] border-b lg:border-b-0 lg:border-r border-areia flex lg:flex-col">
-        <div className="px-6 h-16 lg:h-20 flex items-center shrink-0"><Marca /></div>
-        <nav aria-label="Painel" className="flex lg:flex-col gap-1 lg:gap-6 px-3 lg:px-4 lg:py-4 overflow-x-auto items-center lg:items-stretch">
-          {grupos.map(g => (
-            <div key={g} className="flex lg:flex-col gap-1">
-              <p className="rotulo px-3 mb-2 hidden lg:block">{g}</p>
-              {itens.filter(i => i.grupo === g).map(({ to, rotulo, icone: I }) => (
-                <NavLink key={to} to={to} end={to === '/painel'}
-                  className={({ isActive }) => `flex items-center gap-3 px-3 h-11 text-sm whitespace-nowrap transition-colors ${isActive ? 'bg-cafe text-creme' : 'text-cafe/80 hover:bg-white/60 hover:text-texto'}`}>
-                  <I className="w-[18px] h-[18px]" strokeWidth={1.5} />{rotulo}
-                </NavLink>
-              ))}
-            </div>
+    <nav aria-label="Painel" className="flex flex-col gap-6">
+      {grupos.map((g, gi) => (
+        <div key={g} className="flex flex-col gap-0.5">
+          {gi > 0 && <p className="px-3 mb-1.5 text-meta text-apoio">{g}</p>}
+          {itens.filter(i => i.grupo === g).map(({ to, rotulo, icone: I }) => (
+            <NavLink key={to} to={to} end={to === '/painel'} onClick={aoEscolher}
+              className={({ isActive }) => `flex items-center gap-2.5 px-3 h-9 rounded text-corpo transition-colors ${isActive ? 'bg-ativo text-texto font-medium' : 'text-apoio hover:bg-tom hover:text-texto'}`}>
+              <I className="w-4 h-4 shrink-0" strokeWidth={1.6} />{rotulo}
+            </NavLink>
           ))}
-        </nav>
-        <div className="hidden lg:flex mt-auto m-4 p-3 bg-white/60 border border-areia/70 items-center gap-3">
-          <Iniciais nome={profile?.full_name ?? profile?.email} />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm truncate">{profile?.full_name ?? profile?.email}</p>
-            <p className="text-[11px] text-apoio uppercase tracking-[0.14em]">{profile?.role === 'medica' ? 'Médica' : 'Equipe'}</p>
-          </div>
-          <button onClick={signOut} aria-label="Sair" className="w-9 h-9 grid place-items-center text-apoio hover:text-terracota"><LogOut className="w-4 h-4" /></button>
         </div>
-        <button onClick={signOut} aria-label="Sair" className="lg:hidden ml-auto px-5 text-apoio"><LogOut className="w-5 h-5" /></button>
+      ))}
+    </nav>
+  )
+}
+
+function Usuario() {
+  const { profile, signOut } = useAuth()
+  return (
+    <div className="flex items-center gap-2.5 px-2 py-2 rounded-lg">
+      <Iniciais nome={profile?.full_name ?? profile?.email} className="w-8 h-8 text-[12px]" />
+      <div className="min-w-0 flex-1 leading-tight">
+        <p className="text-corpo truncate">{profile?.full_name ?? profile?.email}</p>
+        <p className="text-meta text-apoio">{profile?.role === 'medica' ? 'Médica' : 'Equipe'}</p>
+      </div>
+      <button onClick={signOut} aria-label="Sair" title="Sair" className="w-8 h-8 grid place-items-center rounded text-apoio hover:text-texto hover:bg-tom"><LogOut className="w-4 h-4" strokeWidth={1.6} /></button>
+    </div>
+  )
+}
+
+export function LayoutPainel() {
+  const [menu, setMenu] = useState(false)
+  const { pathname } = useLocation()
+  useEffect(() => setMenu(false), [pathname])
+  return (
+    <div className="min-h-screen bg-fundo lg:grid lg:grid-cols-[240px_1fr]">
+      {/* Desktop: barra lateral no próprio chão da tela, separada por uma linha */}
+      <aside className="hidden lg:flex sticky top-0 h-screen flex-col gap-8 px-3 py-5 border-r border-borda">
+        <div className="px-3"><Marca /></div>
+        <Navegacao />
+        <div className="mt-auto"><Usuario /></div>
       </aside>
-      <main className="min-w-0 px-5 sm:px-8 lg:px-14 py-8 lg:py-14"><div className="max-w-6xl"><Outlet /></div></main>
+
+      {/* Celular e tablet: barra de 56px com o menu em folha inteira */}
+      <header className="lg:hidden sticky top-0 z-30 h-14 px-4 flex items-center justify-between bg-fundo border-b border-borda">
+        <Marca />
+        <button onClick={() => setMenu(true)} aria-label="Abrir menu" aria-expanded={menu} className="w-11 h-11 -mr-2 grid place-items-center rounded text-texto hover:bg-tom"><Menu className="w-5 h-5" strokeWidth={1.6} /></button>
+      </header>
+      {menu && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-fundo flex flex-col px-3 py-3 entra" role="dialog" aria-modal="true" aria-label="Menu">
+          <div className="h-12 px-3 flex items-center justify-between">
+            <Marca />
+            <button onClick={() => setMenu(false)} aria-label="Fechar menu" className="w-11 h-11 -mr-2 grid place-items-center rounded hover:bg-tom"><X className="w-5 h-5" strokeWidth={1.6} /></button>
+          </div>
+          <div className="mt-6 flex-1"><Navegacao aoEscolher={() => setMenu(false)} /></div>
+          <Usuario />
+        </div>
+      )}
+
+      <main className="min-w-0 px-4 sm:px-6 lg:px-10 py-6 lg:py-9">
+        <div className="max-w-[1180px] mx-auto"><Outlet /></div>
+      </main>
     </div>
   )
 }

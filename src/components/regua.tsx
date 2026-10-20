@@ -23,11 +23,11 @@ export function Regua({ valor, bands, compacta = false }: { valor: number | null
     <div className="relative pt-2" role="img" aria-label={atual ? `Faixa ${NIVEL[atual].rotulo}` : 'Sem valor'}>
       <div className={`flex gap-[2px] ${compacta ? 'h-1.5' : 'h-2'}`}>
         {bands.map((b, k) => (
-          <span key={k} className={`flex-1 ${TOM[b.level]} ${k === i ? '' : 'opacity-30'}`} />
+          <span key={k} className={`flex-1 first:rounded-l-full last:rounded-r-full ${TOM[b.level]} ${k === i ? '' : 'opacity-30'}`} />
         ))}
       </div>
       {pos != null && (
-        <span className="absolute top-0 -translate-x-1/2 w-[3px] h-[calc(100%+4px)] bg-texto" style={{ left: `${pos}%` }} aria-hidden="true" />
+        <span className="absolute top-0 -translate-x-1/2 w-[3px] h-[calc(100%+4px)] rounded-full bg-texto ring-2 ring-folha" style={{ left: `${pos}%` }} aria-hidden="true" />
       )}
     </div>
   )
@@ -38,18 +38,18 @@ export function LinhaIndicador({ nome, valor, unidade, bands, data, nota, anteri
   const n = nivelDe(valor, bands)
   const delta = valor != null && anterior != null ? valor - anterior : null
   return (
-    <div className="grid grid-cols-[1fr_auto] sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] items-end gap-x-6 gap-y-2 py-4">
+    <div className="grid grid-cols-[1fr_auto] sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] items-center gap-x-6 gap-y-2 py-3">
       <div className="min-w-0">
-        <p className="text-[15px] truncate">{nome}</p>
-        <p className="text-xs text-apoio mt-0.5">{[data, nota].filter(Boolean).join(' · ') || ' '}</p>
+        <p className="text-corpo truncate">{nome}</p>
+        <p className="text-meta text-apoio mt-0.5">{[data, nota].filter(Boolean).join(' · ') || ' '}</p>
       </div>
       <div className="order-3 sm:order-none col-span-2 sm:col-span-1"><Regua valor={valor} bands={bands} /></div>
-      <div className="text-right min-w-[92px]">
-        <p className="font-display text-[28px] leading-none tabular-nums">
+      <div className="text-right min-w-[104px]">
+        <p className="text-[20px] leading-none tabular-nums">
           {valor == null ? <span className="text-apoio/60">·</span> : fmt(valor)}
-          <span className="text-xs text-apoio ml-1 font-sans">{unidade}</span>
+          <span className="text-meta text-apoio ml-1 font-sans">{unidade}</span>
         </p>
-        <p className={`text-[11px] mt-1 ${n ? NIVEL[n].cor : 'text-apoio'}`}>
+        <p className={`text-meta mt-1 ${n ? NIVEL[n].cor : 'text-apoio'}`}>
           {n ? NIVEL[n].rotulo : valor == null ? 'Sem registro' : 'Sem faixa'}
           {delta != null && delta !== 0 && <span className="text-apoio"> · {delta > 0 ? '+' : ''}{fmt(delta)}</span>}
         </p>

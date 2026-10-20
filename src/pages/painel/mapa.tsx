@@ -98,7 +98,7 @@ export function AbaMapa({ pid }: { pid: string }) {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-center gap-3">
-          <button onClick={() => setVer(null)} className="inline-flex items-center gap-2 text-sm text-apoio hover:text-texto"><ArrowLeft className="w-4 h-4" />Mapa atual</button>
+          <button onClick={() => setVer(null)} className="inline-flex items-center gap-2 text-corpo text-apoio hover:text-texto"><ArrowLeft className="w-4 h-4" />Mapa atual</button>
           <Selo tom="ok">Finalizado em {dataBR(escolhido.finished_at!)}</Selo>
           <Link to={`/painel/pacientes/${pid}/mapa/${escolhido.id}`} target="_blank" className="ml-auto"><Botao variante="linha"><Printer className="w-4 h-4" />Imprimir</Botao></Link>
         </div>
@@ -109,10 +109,10 @@ export function AbaMapa({ pid }: { pid: string }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="cartao p-6 flex flex-wrap items-center gap-x-6 gap-y-4">
+      <section className="cartao p-5 flex flex-wrap items-center gap-x-6 gap-y-4">
         <div className="mr-auto">
-          <h2 className="font-display text-[28px] leading-none">{aberto ? 'Mapa da saúde em andamento' : 'Mapa da saúde'}</h2>
-          <p className="text-sm text-apoio mt-2">
+          <h2 className="titulo-bloco">{aberto ? 'Mapa da saúde em andamento' : 'Mapa da saúde'}</h2>
+          <p className="text-meta text-apoio mt-0.5">
             {aberto ? `Aberto em ${dataBR(aberto.started_at)}. A paciente só vê depois de você finalizar.`
               : anteriores.length ? `Último finalizado em ${dataBR(anteriores.find(m => m.status === 'finalizado')?.finished_at ?? anteriores[0].started_at)}.`
               : 'Aplicado no início e no fim do programa.'}
@@ -123,7 +123,7 @@ export function AbaMapa({ pid }: { pid: string }) {
           <Botao variante="linha" onClick={guardar}>Salvar rascunho</Botao>
           <Botao onClick={finalizar}>Revisar e finalizar</Botao>
         </>) : <Botao onClick={iniciar}>Iniciar novo mapa</Botao>}
-        {msg && <span className="basis-full text-sm text-oliva" role="status">{msg}</span>}
+        {msg && <span className="basis-full text-corpo text-oliva" role="status">{msg}</span>}
       </section>
 
       {aberto && pend.length > 0 && (
@@ -131,9 +131,9 @@ export function AbaMapa({ pid }: { pid: string }) {
           <p className="rotulo">Pendências antes de finalizar</p>
           <ul className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3">
             {pend.map(p => (
-              <li key={p.chave} className="bg-cobre/[0.08] border-l-2 border-cobre px-4 py-3">
-                <p className="text-sm font-medium text-texto">{p.rotulo}</p>
-                <p className="text-xs text-apoio mt-1 leading-relaxed">{p.detalhe}</p>
+              <li key={p.chave} className="rounded-lg bg-[#f5e7dc] px-4 py-3">
+                <p className="text-corpo font-medium text-atencao">{p.rotulo}</p>
+                <p className="text-meta text-apoio mt-1 leading-relaxed">{p.detalhe}</p>
               </li>
             ))}
           </ul>
@@ -149,10 +149,10 @@ export function AbaMapa({ pid }: { pid: string }) {
 
       {anteriores.length > 0 && (
         <section className="cartao" aria-labelledby="t-hist-mapas">
-          <h2 id="t-hist-mapas" className="font-display text-2xl px-6 pt-5 pb-3">Mapas anteriores</h2>
+          <h2 id="t-hist-mapas" className="titulo-bloco px-5 pt-4 pb-3">Mapas anteriores</h2>
           <ul>
             {anteriores.map(m => (
-              <li key={m.id} className="px-6 py-3 border-t border-areia/50 flex items-center gap-4 text-sm">
+              <li key={m.id} className="px-5 py-3 border-t border-regra flex items-center gap-4 text-corpo">
                 <span className="tabular-nums w-28">{dataBR(m.started_at)}</span>
                 <span className="text-apoio flex-1">{m.status === 'finalizado' ? `Finalizado em ${dataBR(m.finished_at!)}` : 'Suspenso'}</span>
                 {m.snapshot?.nota != null && <span className="tabular-nums">Nota {m.snapshot.nota}</span>}
@@ -171,31 +171,31 @@ type Edicao = { rec: (dominio: string, texto: string) => void; resumo: (t: strin
 /** O relatório: o mesmo componente na tela e na impressão. */
 export function RelatorioMapa({ r, recomendacoes, resumo, editar }: { r: Relatorio; recomendacoes: Record<string, string>; resumo: string | null; editar?: Edicao }) {
   return (
-    <div className="flex flex-col gap-6 relatorio">
-      <section className="cartao p-6 md:p-8 grid lg:grid-cols-[minmax(0,1fr)_420px] gap-8 items-center pagina">
+    <div className="flex flex-col gap-8 relatorio">
+      <section className="cartao p-5 md:p-6 grid lg:grid-cols-[minmax(0,1fr)_420px] gap-8 items-center pagina">
         <div>
           <p className="rotulo">Perfil de saúde</p>
-          <h2 className="font-display text-[40px] leading-[1.05] mt-3">{r.paciente.nome}</h2>
+          <h2 className="titulo-pagina !text-[28px] mt-1">{r.paciente.nome.replace(/\s*\(teste\)/, '')}</h2>
           <span className="assinatura" />
           <div className="mt-6 flex items-end gap-6">
             <div>
-              <p className="font-display text-[88px] leading-[0.85] tabular-nums">{r.nota ?? '·'}</p>
-              <p className="text-xs text-apoio mt-2">Nota de saúde de 0 a 100 · cálculo provisório</p>
+              <p className="text-[40px] leading-none tabular-nums">{r.nota ?? <span className="text-apoio/60">·</span>}<span className="text-bloco text-apoio ml-1">de 100</span></p>
+              <p className="text-meta text-apoio mt-2">Nota de saúde de 0 a 100 · cálculo provisório</p>
             </div>
           </div>
           <div className="mt-8">
             <p className="rotulo mb-2">Problemas encontrados</p>
             {r.problemas.length ? (
               <ul className="flex flex-col gap-1.5">
-                {r.problemas.map(p => <li key={p.title} className="text-[15px]">{p.title}{p.detail ? <span className="text-apoio text-sm"> · {p.detail}</span> : null}</li>)}
+                {r.problemas.map(p => <li key={p.title} className="text-[15px]">{p.title}{p.detail ? <span className="text-apoio text-corpo"> · {p.detail}</span> : null}</li>)}
               </ul>
-            ) : <p className="text-sm text-apoio">Nenhum problema ativo.</p>}
+            ) : <p className="text-corpo text-apoio">Nenhum problema ativo.</p>}
           </div>
           <div className="mt-8">
             <p className="rotulo mb-2">Palavra da médica</p>
             {editar ? (
               <textarea value={resumo ?? ''} onChange={e => editar.resumo(e.target.value)} rows={4} placeholder="Resumo e prioridades para os próximos meses, na sua voz."
-                className="w-full bg-white/70 border border-areia px-4 py-3 text-[15px] leading-relaxed focus:outline-none focus:border-cafe" />
+                className="w-full campo !h-auto py-2.5 leading-relaxed" />
             ) : <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{resumo || '·'}</p>}
           </div>
         </div>
@@ -203,12 +203,12 @@ export function RelatorioMapa({ r, recomendacoes, resumo, editar }: { r: Relator
       </section>
 
       <section className="pagina">
-        <h2 className="font-display text-[28px] leading-none mb-4">Indicadores de saúde</h2>
-        <div className="grid lg:grid-cols-2 gap-6 items-start">
+        <h2 className="titulo-bloco !text-[18px] mb-3">Indicadores de saúde</h2>
+        <div className="lg:columns-2 gap-4 [&>*]:break-inside-avoid [&>*]:mb-4">
           {r.sistemas.map(s => (
-            <div key={s.grp} className="cartao px-6 pt-5 pb-2">
-              <h3 className="font-display text-2xl">{s.nome}</h3>
-              <div className="divide-y divide-areia/50">
+            <div key={s.grp} className="cartao px-5 pt-4 pb-2">
+              <h3 className="titulo-bloco">{s.nome}</h3>
+              <div className="divide-y divide-regra">
                 {s.itens.map(i => <LinhaIndicador key={i.code} nome={i.name} valor={i.value} unidade={i.unit} bands={i.bands} data={i.date ? dataBR(i.date) : undefined} nota={i.calc ? `Calculado · ${i.calc}` : undefined} />)}
               </div>
             </div>
@@ -217,16 +217,16 @@ export function RelatorioMapa({ r, recomendacoes, resumo, editar }: { r: Relator
       </section>
 
       <section className="pagina">
-        <h2 className="font-display text-[28px] leading-none mb-4">Estilo de vida</h2>
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
+        <h2 className="titulo-bloco !text-[18px] mb-3">Estilo de vida</h2>
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 items-stretch">
           {r.estilo.map(d => (
-            <div key={d.nome} className="cartao p-6 flex flex-col gap-3">
+            <div key={d.nome} className="cartao p-5 flex flex-col gap-3">
               <div className="flex items-center gap-2.5">
-                <span className={`w-2.5 h-2.5 ${d.level ? TOM[d.level] : 'bg-areia/60'}`} aria-hidden="true" />
-                <h3 className="font-display text-2xl flex-1">{d.nome}</h3>
-                <span className={`text-xs ${d.level ? NIVEL[d.level].cor : 'text-apoio'}`}>{d.level ? NIVEL[d.level].rotulo : d.itens.length ? 'Registro' : 'Sem resposta'}</span>
+                <span className={`w-2 h-2 rounded-full ${d.level ? TOM[d.level] : 'bg-areia'}`} aria-hidden="true" />
+                <h3 className="titulo-bloco flex-1">{d.nome}</h3>
+                <span className={`text-meta ${d.level ? NIVEL[d.level].cor : 'text-apoio'}`}>{d.level ? NIVEL[d.level].rotulo : d.itens.length ? 'Registro' : 'Sem resposta'}</span>
               </div>
-              <ul className="text-sm flex flex-col gap-1">
+              <ul className="text-corpo flex flex-col gap-1">
                 {d.itens.map(i => (
                   <li key={i.name} className="flex gap-2"><span className="flex-1 text-apoio truncate">{i.name}</span>
                     <span className={i.level ? NIVEL[i.level].cor : ''}>{i.score != null ? `${num(i.score, 1)} · ` : ''}{i.label ?? 'Registro'}</span></li>
@@ -234,28 +234,28 @@ export function RelatorioMapa({ r, recomendacoes, resumo, editar }: { r: Relator
               </ul>
               {editar ? (
                 <textarea value={recomendacoes[d.nome] ?? ''} onChange={e => editar.rec(d.nome, e.target.value)} rows={3} aria-label={`Recomendação para ${d.nome}`}
-                  placeholder="Recomendação para a paciente" className="mt-auto w-full bg-white/70 border border-areia px-3 py-2.5 text-sm leading-relaxed focus:outline-none focus:border-cafe" />
-              ) : recomendacoes[d.nome] ? <p className="mt-auto text-sm leading-relaxed">{recomendacoes[d.nome]}</p> : null}
+                  placeholder="Recomendação para a paciente" className="mt-auto w-full campo !h-auto py-2.5 leading-relaxed" />
+              ) : recomendacoes[d.nome] ? <p className="mt-auto text-corpo leading-relaxed">{recomendacoes[d.nome]}</p> : null}
             </div>
           ))}
         </div>
       </section>
 
-      <section className="pagina grid lg:grid-cols-2 gap-6 items-start">
-        <div className="cartao px-6 pt-5 pb-2">
-          <h2 className="font-display text-2xl">Força e capacidade</h2>
-          <div className="divide-y divide-areia/50">
+      <section className="pagina grid lg:grid-cols-2 gap-4 items-start">
+        <div className="cartao px-5 pt-4 pb-2">
+          <h2 className="titulo-bloco">Força e capacidade</h2>
+          <div className="divide-y divide-regra">
             {r.forca.map(i => <LinhaIndicador key={i.code} nome={i.name} valor={i.value} unidade={i.unit} bands={i.bands} data={i.date ? dataBR(i.date) : undefined} />)}
           </div>
         </div>
-        <div className="cartao p-6 flex flex-col gap-3">
-          <h2 className="font-display text-2xl">Risco cardiovascular em 10 anos</h2>
+        <div className="cartao p-5 flex flex-col gap-3">
+          <h2 className="titulo-bloco">Risco cardiovascular em 10 anos</h2>
           {r.risco_cv.valor != null ? (<>
-            <p className="font-display text-[64px] leading-none tabular-nums">{fmt(r.risco_cv.valor * 100)}<span className="text-2xl text-apoio">%</span></p>
-            <p className={`text-sm ${NIVEL[r.risco_cv.level!].cor}`}>{NIVEL[r.risco_cv.level!].rotulo}</p>
-            <p className="text-xs text-apoio">Escore de Framingham para risco geral de doença cardiovascular (D'Agostino, 2008).</p>
-          </>) : <p className="text-sm text-apoio">{r.risco_cv.motivo}</p>}
-          <p className="text-xs text-apoio pt-3 border-t border-areia/60">Risco de diabetes e estimativa de VO2 aguardam a definição do método pela médica.</p>
+            <p className="text-[40px] leading-none tabular-nums">{fmt(r.risco_cv.valor * 100)}<span className="text-bloco text-apoio ml-0.5">%</span></p>
+            <p className={`text-corpo ${NIVEL[r.risco_cv.level!].cor}`}>{NIVEL[r.risco_cv.level!].rotulo}</p>
+            <p className="text-meta text-apoio">Escore de Framingham para risco geral de doença cardiovascular (D'Agostino, 2008).</p>
+          </>) : <p className="text-corpo text-apoio">{r.risco_cv.motivo}</p>}
+          <p className="text-meta text-apoio pt-3 border-t border-borda">Risco de diabetes e estimativa de VO2 aguardam a definição do método pela médica.</p>
         </div>
       </section>
     </div>
@@ -287,7 +287,7 @@ function Radar({ eixos }: { eixos: Relatorio['eixos'] }) {
           )
         })}
       </svg>
-      <figcaption className="text-xs text-apoio text-center">Eixos sem dado ficam no centro e em cinza.</figcaption>
+      <figcaption className="text-meta text-apoio text-center">Eixos sem dado ficam no centro e em cinza.</figcaption>
     </figure>
   )
 }
@@ -301,20 +301,20 @@ export function ImprimirMapa() {
   }, [mapaId])
   if (!m?.snapshot) return <p className="p-10 rotulo">Carregando</p>
   return (
-    <main className="max-w-5xl mx-auto px-6 py-10 imprimir">
+    <main className="max-w-5xl mx-auto px-5 py-10 imprimir">
       <div className="flex items-center justify-between mb-8 print:mb-6">
         <div className="flex items-center gap-3 text-texto">
           <Borboleta className="w-9 h-7 text-cobre" />
           <div className="leading-none">
-            <span className="font-display text-[24px]">Mapa da Saúde</span>
+            <span className="font-display text-[26px]">Mapa da Saúde</span>
             <span className="block mt-1 text-[9px] uppercase tracking-[0.28em] text-apoio">Dra. Bartira Rebouças · Ciência e acolhimento</span>
           </div>
         </div>
         <div className="flex items-center gap-3 print:hidden">
-          <Link to={`/painel/pacientes/${id}`} className="text-sm text-apoio hover:text-texto">Voltar</Link>
+          <Link to={`/painel/pacientes/${id}`} className="text-corpo text-apoio hover:text-texto">Voltar</Link>
           <Botao onClick={() => window.print()}><Printer className="w-4 h-4" />Imprimir ou salvar PDF</Botao>
         </div>
-        <p className="hidden print:block text-xs text-apoio">{dataBR(m.finished_at!)}</p>
+        <p className="hidden print:block text-meta text-apoio">{dataBR(m.finished_at!)}</p>
       </div>
       <RelatorioMapa r={m.snapshot} recomendacoes={m.recommendations} resumo={m.summary} />
     </main>
