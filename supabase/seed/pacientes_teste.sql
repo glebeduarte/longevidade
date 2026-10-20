@@ -114,3 +114,11 @@ select id, 'em_andamento', '2026-10-06 15:30-03', (select id from public.profile
 insert into public.health_maps (patient_id, status, started_at, created_by, summary)
 select id, 'em_andamento', '2026-10-13 10:30-03', (select id from public.profiles where email = 'glebejr@gmail.com'),
  'Seis meses de muito trabalho e resultado visível: cintura, pressão e glicada caíram. Agora o foco é força e sono.' from public.patients where email = 'renata@teste.longevidade';
+
+-- Programa: matrículas (os encontros e check-ins nascem do gatilho da migração 20261020150000)
+insert into public.enrollments (patient_id, program_id, start_date, end_date)
+select p.id, g.id, d.s::date, d.e::date from (values ('claudia@teste.longevidade','essencial','2026-07-08','2027-01-08'),('renata@teste.longevidade','anual','2026-04-14','2027-04-14')) d(em,sl,s,e)
+join public.patients p on p.email=d.em join public.programs g on g.slug=d.sl
+where not exists (select 1 from public.enrollments x where x.patient_id=p.id);
+-- Depois disso foram marcados encontros realizados, check-ins atendidos, um com reação (Cláudia, 07/10) e um aguardando (Renata, 06/10),
+-- e publicadas as versões de protocolo. Ver o histórico da conversa de 20/10/2026 para os comandos exatos.

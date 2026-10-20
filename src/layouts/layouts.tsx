@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { CalendarDays, ClipboardList, SlidersHorizontal, Home, LineChart, LogOut, Menu, MessageCircle, Sun, Users, UserCog, X } from 'lucide-react'
+import { CalendarDays, ClipboardList, MessagesSquare, PlayCircle, SlidersHorizontal, Home, LineChart, LogOut, Menu, MessageCircle, Sun, Users, UserCog, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { can, useAuth, type Perms } from '../auth/AuthProvider'
 import { Consentimento } from '../pages/auth'
 import { Borboleta, Iniciais, Marca } from '../components/ui'
+import { supabase } from '../lib/supabase'
 
 function Carregando() {
   return (
@@ -61,13 +62,18 @@ export function LayoutApp() {
 const itensPainel: Array<{ to: string; rotulo: string; icone: LucideIcon; precisa?: keyof Perms | 'medica'; grupo: string }> = [
   { to: '/painel', rotulo: 'Hoje', icone: Sun, grupo: 'Rotina' },
   { to: '/painel/pacientes', rotulo: 'Pacientes', icone: Users, precisa: 'can_manage_patients', grupo: 'Rotina' },
+  { to: '/painel/checkins', rotulo: 'Check-ins', icone: MessagesSquare, precisa: 'can_answer_checkins', grupo: 'Rotina' },
   { to: '/painel/agenda', rotulo: 'Encontros', icone: CalendarDays, precisa: 'can_manage_patients', grupo: 'Rotina' },
+  { to: '/painel/videos', rotulo: 'Vídeos', icone: PlayCircle, precisa: 'medica', grupo: 'Configurações' },
   { to: '/painel/faixas', rotulo: 'Faixas dos indicadores', icone: SlidersHorizontal, precisa: 'medica', grupo: 'Configurações' },
   { to: '/painel/equipe', rotulo: 'Equipe e acessos', icone: UserCog, precisa: 'medica', grupo: 'Configurações' },
 ]
 
 function Navegacao({ aoEscolher }: { aoEscolher?: () => void }) {
   const { profile, perms } = useAuth()
+  const [fila, setFila] = useState(0)
+  const { pathname } = useLocation()
+  useEffect(() => { supabase.from('checkins').select('id', { count: 'exact', head: true }).eq('status', 'respondido').then(({ count }) => setFila(count ?? 0)) }, [pathname])
   const itens = itensPainel.filter(i =>
     !i.precisa || (i.precisa === 'medica' ? profile?.role === 'medica' : can(profile, perms, i.precisa)))
   const grupos = [...new Set(itens.map(i => i.grupo))]
@@ -79,7 +85,7 @@ function Navegacao({ aoEscolher }: { aoEscolher?: () => void }) {
           {itens.filter(i => i.grupo === g).map(({ to, rotulo, icone: I }) => (
             <NavLink key={to} to={to} end={to === '/painel'} onClick={aoEscolher}
               className={({ isActive }) => `flex items-center gap-2.5 px-3 h-9 rounded text-corpo transition-colors ${isActive ? 'bg-ativo text-texto font-medium' : 'text-apoio hover:bg-tom hover:text-texto'}`}>
-              <I className="w-4 h-4 shrink-0" strokeWidth={1.6} />{rotulo}
+              <I className="w-4 h-4 shrink-0" strokeWidth={1.6} /><span className="flex-1">{rotulo}</span>{to === '/painel/checkins' && fila > 0 && <span className="min-w-5 h-5 px-1.5 rounded-full bg-cafe text-creme text-[11px] font-medium grid place-items-center tabular-nums">{fila}</span>}
             </NavLink>
           ))}
         </div>

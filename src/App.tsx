@@ -2,8 +2,9 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthProvider'
 import { LayoutApp, LayoutPainel, Protegido } from './layouts/layouts'
 import { DefinirSenha, Entrar, Esqueci } from './pages/auth'
-import { EmBreve, Inicio } from './pages/app/app'
-import { Encontros, Equipe, Hoje, Pacientes } from './pages/painel/painel'
+import { CheckinPaciente, Evolucao, Inicio, MeuProtocolo } from './pages/app/app'
+import { Equipe, Hoje, Pacientes } from './pages/painel/painel'
+import { Agenda, FilaCheckins, Videos } from './pages/painel/rotina'
 import { FichaPaciente } from './pages/painel/ficha'
 import { ImprimirMapa } from './pages/painel/mapa'
 import { Faixas } from './pages/painel/faixas'
@@ -25,9 +26,9 @@ export default function App() {
               <Route index element={<Inicio />} />
               <Route path="questionarios" element={<Questionarios />} />
               <Route path="questionarios/:id" element={<Responder />} />
-              <Route path="protocolo" element={<EmBreve titulo="Meu protocolo" texto="Disponível na próxima fase." />} />
-              <Route path="checkin" element={<EmBreve titulo="Check-in" texto="Disponível em breve." />} />
-              <Route path="evolucao" element={<EmBreve titulo="Minha evolução" texto="Disponível em breve." />} />
+              <Route path="protocolo" element={<MeuProtocolo />} />
+              <Route path="checkin" element={<CheckinPaciente />} />
+              <Route path="evolucao" element={<Evolucao />} />
             </Route>
           </Route>
 
@@ -37,7 +38,9 @@ export default function App() {
               <Route path="pacientes" element={<Pacientes />} />
               <Route path="pacientes/:id" element={<FichaPaciente />} />
               <Route path="equipe" element={<Equipe />} />
-              <Route path="agenda" element={<Encontros />} />
+              <Route path="agenda" element={<Agenda />} />
+              <Route path="checkins" element={<FilaCheckins />} />
+              <Route path="videos" element={<Videos />} />
               <Route path="faixas" element={<Faixas />} />
             </Route>
             <Route path="/painel/pacientes/:id/mapa/:mapaId" element={<ImprimirMapa />} />

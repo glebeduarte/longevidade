@@ -6,6 +6,7 @@ import { useAuth } from '../../auth/AuthProvider'
 import { Aviso, Bloco, Botao, Campo, Iniciais, Selecao, Selo, Titulo, Vazio } from '../../components/ui'
 import { dataBR } from '../../lib/faixas'
 import { idadeEm } from '../../lib/clinica'
+import { dataHora, prazoTexto, type Checkin, type Encontro } from '../../lib/programa'
 
 async function convidar(body: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke('convidar', {
@@ -60,6 +61,8 @@ export function Hoje() {
   const [mapas, setMapas] = useState<MapaAberto[]>([])
   const [envios, setEnvios] = useState<Envio[]>([])
   const [respostas, setRespostas] = useState<RespostaR[]>([])
+  const [fila, setFila] = useState<Checkin[]>([])
+  const [agenda, setAgenda] = useState<Encontro[]>([])
 
   const carregar = () => {
     supabase.from('patients').select('id', { count: 'exact', head: true }).eq('status', 'ativa').then(({ count }) => setAtivas(count ?? 0))
@@ -71,6 +74,10 @@ export function Hoje() {
       .then(({ data }) => setEnvios((data as unknown as Envio[]) ?? []))
     supabase.from('questionnaire_responses').select('id, submitted_at, patient_id, band_label, band_level, patients(full_name), questionnaires(name)').order('submitted_at', { ascending: false }).limit(6)
       .then(({ data }) => setRespostas((data as unknown as RespostaR[]) ?? []))
+    supabase.from('checkins').select('*, patients(full_name)').eq('status', 'respondido').order('submitted_at')
+      .then(({ data }) => setFila(((data as Checkin[]) ?? []).sort((a, b) => Number(b.reaction) - Number(a.reaction))))
+    supabase.from('encounters').select('*, patients(full_name)').eq('status', 'agendado').gte('scheduled_at', new Date(Date.now() - 864e5 / 2).toISOString()).order('scheduled_at').limit(5)
+      .then(({ data }) => setAgenda((data as Encontro[]) ?? []))
   }
   useEffect(carregar, [])
 
@@ -89,14 +96,15 @@ export function Hoje() {
   const nome = profile?.full_name?.split(' ')[0]
   const fato = alertas.length
     ? `${plural(alertas.length, 'alerta clínico pede', 'alertas clínicos pedem')} avaliação hoje.`
+    : fila.length ? `${plural(fila.length, 'check-in aguarda', 'check-ins aguardam')} resposta.`
     : mapas.length ? `${plural(mapas.length, 'mapa da saúde aguarda', 'mapas da saúde aguardam')} sua revisão.`
     : 'Nada urgente por aqui.'
   const hoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 
   const kpis: Array<[string, number | null, string]> = [
     ['Alertas abertos', alertas.length, 'Resposta no mesmo dia'],
+    ['Check-ins na fila', fila.length, 'Prazo de 3 dias úteis'],
     ['Mapas para revisar', mapas.length, 'Em andamento'],
-    ['Questionários aguardando', envios.length, plural(porPaciente.length, 'paciente', 'pacientes')],
     ['Pacientes ativas', ativas, 'No programa Longevidade'],
   ]
 
@@ -141,6 +149,32 @@ export function Hoje() {
       )}
 
       <div className="grid lg:grid-cols-12 gap-4 items-start">
+        <Bloco className="lg:col-span-7" titulo="Check-ins aguardando resposta" sub="Reações relatadas aparecem primeiro" semPad
+          acao={<Link to="/painel/checkins" className="text-meta link">Abrir fila</Link>}>
+          {fila.length ? (
+            <ul className="pb-2">
+              {fila.slice(0, 5).map(c => {
+                const p = prazoTexto(c.submitted_at!)
+                return <LinhaPessoa key={c.id} to="/painel/checkins" nome={c.patients?.full_name ?? ''}
+                  linha2={c.answers?.mensagem || `Check-in de ${dataBR(c.due_date)}`}
+                  direita={c.reaction ? <Selo tom="risco">Reação</Selo> : <span className={`text-meta tabular-nums ${p.vencido ? 'text-[#7c3f29]' : 'text-apoio'}`}>{p.texto}</span>} />
+              })}
+            </ul>
+          ) : <div className="px-5 pb-5"><Vazio titulo="Fila vazia" texto="Nenhum check-in esperando resposta." /></div>}
+        </Bloco>
+
+        <Bloco className="lg:col-span-5" titulo="Próximos encontros" semPad acao={<Link to="/painel/agenda" className="text-meta link">Agenda</Link>}>
+          {agenda.length ? (
+            <ul className="pb-2">
+              {agenda.map(e => (
+                <LinhaPessoa key={e.id} to={`/painel/pacientes/${e.patient_id}?aba=programa`} nome={e.patients?.full_name ?? ''}
+                  linha2={`${e.title}${e.location ? ` · ${e.location === 'spinel' ? 'Instituto Spinel' : 'Clínica Equilibre'}` : ''}`}
+                  direita={<span className="text-meta text-apoio tabular-nums text-right">{dataHora(e.scheduled_at!)}</span>} />
+              ))}
+            </ul>
+          ) : <div className="px-5 pb-5"><Vazio titulo="Nenhum encontro agendado" texto="Agende na aba Programa da paciente." /></div>}
+        </Bloco>
+
         <Bloco className="lg:col-span-7" titulo="Mapas da saúde para revisar" sub="Abertos e ainda não entregues à paciente" semPad
           acao={mapas.length ? <Selo>{mapas.length}</Selo> : undefined}>
           {mapas.length ? (
@@ -164,7 +198,7 @@ export function Hoje() {
           ) : <div className="px-5 pb-5"><Vazio titulo="Tudo respondido" texto="Os questionários enviados aparecem aqui até a paciente responder." /></div>}
         </Bloco>
 
-        <Bloco className="lg:col-span-7" titulo="Respostas recentes" sub="Escore calculado na hora em que a paciente envia" semPad>
+        <Bloco className="lg:col-span-12" titulo="Respostas recentes" sub="Escore calculado na hora em que a paciente envia" semPad>
           {respostas.length ? (
             <ul className="pb-2">
               {respostas.map(r => (
@@ -176,19 +210,7 @@ export function Hoje() {
           ) : <div className="px-5 pb-5"><Vazio titulo="Nenhuma resposta ainda" /></div>}
         </Bloco>
 
-        <Bloco className="lg:col-span-5" titulo="Check-ins e encontros" sub="Entram com as matrículas no programa">
-          <Vazio titulo="Disponível na próxima fase" texto="A fila de check-ins e a agenda de encontros vão aparecer aqui, com prazo de resposta." />
-        </Bloco>
       </div>
-    </div>
-  )
-}
-
-export function Encontros() {
-  return (
-    <div className="flex flex-col gap-6">
-      <Titulo sub="Encontros previstos e realizados de cada paciente.">Encontros</Titulo>
-      <Bloco titulo="Calendário"><Vazio titulo="Disponível em breve" texto="Entra junto com as matrículas no programa." /></Bloco>
     </div>
   )
 }
