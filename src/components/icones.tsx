@@ -2,7 +2,7 @@
 // Desenhadas em 32x32 para ficarem legíveis em tamanhos grandes, pensando em quem lê com mais dificuldade.
 import type { ReactNode } from 'react'
 
-export type Tema = 'humor' | 'sono' | 'alimentacao' | 'alcool' | 'cigarro' | 'atividade' | 'peso' | 'cintura' | 'coracao' | 'gordura' | 'protocolo' | 'checkin' | 'encontro' | 'evolucao' | 'questionario' | 'video' | 'forca' | 'figado' | 'rins' | 'metabolismo' | 'fogacho' | 'fogacho'
+export type Tema = 'humor' | 'sono' | 'alimentacao' | 'alcool' | 'cigarro' | 'atividade' | 'peso' | 'cintura' | 'coracao' | 'gordura' | 'protocolo' | 'checkin' | 'encontro' | 'evolucao' | 'questionario' | 'video' | 'forca' | 'figado' | 'rins' | 'metabolismo' | 'fogacho' | 'fogacho' | 'medicacao' | 'alerta' | 'pessoas' | 'exame' | 'mapa' | 'nota'
 
 /** Cor de cada tema: [fundo claro, traço]. Saem da paleta da marca, com variações quentes. */
 export const COR: Record<Tema, [string, string]> = {
@@ -27,6 +27,18 @@ export const COR: Record<Tema, [string, string]> = {
   rins: ['#e2e7ea', '#3f5961'],
   metabolismo: ['#f2e8d2', '#8a6a2c'],
   fogacho: ['#f6e0d2', '#a3522e'],
+  medicacao: ['#e6e9dc', '#4e5839'],
+  alerta: ['#f6e3dc', '#9a4632'],
+  pessoas: ['#ece4d6', '#6a5338'],
+  exame: ['#e2e7ea', '#3f5961'],
+  mapa: ['#efe2e9', '#7a4a66'],
+  nota: ['#f6e7c8', '#8f6424'],
+}
+
+/** Fundo em degradê suave da cor do tema (do claro para quase branco). */
+export const degrade = (t: Tema, intensidade = 1) => {
+  const [claro] = COR[t]
+  return `linear-gradient(135deg, ${claro} 0%, ${claro}${intensidade < 1 ? 'cc' : ''} 45%, #fffdfa 100%)`
 }
 
 const D: Record<Tema, (c: string, f: string) => ReactNode> = {
@@ -122,6 +134,36 @@ const D: Record<Tema, (c: string, f: string) => ReactNode> = {
   rins: (c, f) => (<>
     <path d="M11 6.5c-3.4 0-5 3.6-5 8.4s2 9.6 5.6 9.6c3 0 3-3.4 1.6-5.6-1-1.6-1-3 0-4.4 1.6-2.4 1.4-8-2.2-8Z" fill={f} stroke={c} strokeWidth="1.5" strokeLinejoin="round" />
     <path d="M21 6.5c3.4 0 5 3.6 5 8.4s-2 9.6-5.6 9.6c-3 0-3-3.4-1.6-5.6 1-1.6 1-3 0-4.4-1.6-2.4-1.4-8 2.2-8Z" fill={f} stroke={c} strokeWidth="1.5" strokeLinejoin="round" />
+  </>),
+  medicacao: (c, f) => (<>
+    <rect x="6" y="11.5" width="20" height="9" rx="4.5" fill={f} stroke={c} strokeWidth="1.6" transform="rotate(-35 16 16)" />
+    <path d="M12.8 11.4l6.4 9.2" stroke={c} strokeWidth="1.6" />
+    <path d="M19.6 9.4a4.5 4.5 0 0 1 5.4 6.6l-3.4 2.4" fill={c} opacity=".75" />
+  </>),
+  alerta: (c, f) => (<>
+    <path d="M16 5.5 27 25H5Z" fill={f} stroke={c} strokeWidth="1.6" strokeLinejoin="round" />
+    <path d="M16 12v6" stroke={c} strokeWidth="1.8" strokeLinecap="round" /><circle cx="16" cy="21.4" r="1.2" fill={c} />
+  </>),
+  pessoas: (c, f) => (<>
+    <circle cx="12.5" cy="11.5" r="4" fill={f} stroke={c} strokeWidth="1.5" />
+    <path d="M5 25c0-4.2 3.4-7 7.5-7s7.5 2.8 7.5 7Z" fill={f} stroke={c} strokeWidth="1.5" strokeLinejoin="round" />
+    <circle cx="21.5" cy="12.5" r="3.2" fill="#fffdfa" stroke={c} strokeWidth="1.4" />
+    <path d="M21 18.2c3.4 0 6 2.4 6 6" fill="none" stroke={c} strokeWidth="1.4" strokeLinecap="round" />
+  </>),
+  exame: (c, f) => (<>
+    <path d="M12 5.5h8M13.5 5.5v14a2.5 2.5 0 0 0 5 0v-14" fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" />
+    <path d="M13.5 13h5v6.5a2.5 2.5 0 0 1-5 0Z" fill={c} opacity=".75" />
+    <path d="M8 26h16" stroke={c} strokeWidth="1.6" strokeLinecap="round" />
+    <circle cx="23" cy="10" r="2.6" fill={f} stroke={c} strokeWidth="1.3" />
+  </>),
+  mapa: (c, f) => (<>
+    <path d="M5 9l7-3 8 3 7-3v17l-7 3-8-3-7 3Z" fill={f} stroke={c} strokeWidth="1.6" strokeLinejoin="round" />
+    <path d="M12 6v17M20 9v17" stroke={c} strokeWidth="1.3" opacity=".7" />
+    <path d="M16 19.5s-3-2-3-4.2a3 3 0 0 1 6 0c0 2.2-3 4.2-3 4.2Z" fill={c} />
+  </>),
+  nota: (c, f) => (<>
+    <path d="M8 5.5h11l5 5v15a1.5 1.5 0 0 1-1.5 1.5h-14.5A1.5 1.5 0 0 1 6.5 25.5v-18.5A1.5 1.5 0 0 1 8 5.5Z" fill={f} stroke={c} strokeWidth="1.6" strokeLinejoin="round" />
+    <path d="M19 5.5v5h5M10.5 15h11M10.5 19h11M10.5 23h7" fill="none" stroke={c} strokeWidth="1.4" strokeLinecap="round" />
   </>),
   fogacho: (c, f) => (<>
     <path d="M16 4.5c1 4 6.5 6.6 6.5 13a6.5 6.5 0 0 1-13 0c0-3.2 1.6-5 3-6.4.2 2 1 3.2 2.2 3.6C14 11 14.6 7.6 16 4.5Z" fill={f} stroke={c} strokeWidth="1.6" strokeLinejoin="round" />

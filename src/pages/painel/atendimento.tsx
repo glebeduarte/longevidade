@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Check, Copy, Plus, Search, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { Icone } from '../../components/icones'
 import { useAuth } from '../../auth/AuthProvider'
 import { Botao } from '../../components/ui'
 import { dataBR } from '../../lib/faixas'
@@ -95,7 +96,7 @@ function Evolucao({ pid }: { pid: string }) {
     <section className="cartao" aria-labelledby="t-evolucao">
       <div className="px-5 pt-4 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 id="t-evolucao" className="titulo-bloco">Evolução clínica</h2>
+          <h2 id="t-evolucao" className="titulo-bloco flex items-center gap-2.5"><Icone tema="nota" fundo tamanho={36} />Evolução clínica</h2>
           <p className="text-meta text-apoio mt-0.5">Visível só para você e para a equipe com acesso clínico.</p>
         </div>
         <div role="radiogroup" aria-label="Tipo de registro" className="segmentado">
@@ -195,7 +196,7 @@ function Condutas({ pid }: { pid: string }) {
   return (
     <section className="cartao" aria-labelledby="t-condutas">
       <div className="px-5 pt-4 pb-2 flex items-end justify-between gap-4">
-        <h2 id="t-condutas" className="titulo-bloco">Condutas ativas</h2>
+        <h2 id="t-condutas" className="titulo-bloco flex items-center gap-2.5"><Icone tema="medicacao" fundo tamanho={36} />Condutas ativas</h2>
         {encerradas.length > 0 && (
           <button onClick={() => setHistorico(!historico)} className="text-corpo text-apoio hover:text-texto">
             {historico ? 'Ocultar encerradas' : `Ver encerradas (${encerradas.length})`}
@@ -297,7 +298,7 @@ function Problemas({ pid, nascimento }: { pid: string; nascimento: string | null
   return (
     <section className="cartao" aria-labelledby="t-problemas">
       <div className="px-5 pt-4 pb-4">
-        <h2 id="t-problemas" className="titulo-bloco">Lista de problemas</h2>
+        <h2 id="t-problemas" className="titulo-bloco flex items-center gap-2.5"><Icone tema="alerta" fundo tamanho={36} />Lista de problemas</h2>
         <p className="text-meta text-apoio mt-0.5">{ativos.length} ativo{ativos.length === 1 ? '' : 's'}{resolvidos.length ? ` · ${resolvidos.length} resolvido${resolvidos.length === 1 ? '' : 's'}` : ''}</p>
       </div>
 

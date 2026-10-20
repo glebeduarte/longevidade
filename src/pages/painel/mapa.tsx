@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../auth/AuthProvider'
 import { Aviso, Borboleta, Botao, Selo } from '../../components/ui'
 import { LinhaIndicador } from '../../components/regua'
-import { Icone, temaDoDominio, temaDoSistema } from '../../components/icones'
+import { Icone, degrade, temaDoDominio, temaDoSistema } from '../../components/icones'
 import { NIVEL, dataBR, num, type Nivel } from '../../lib/faixas'
 import { FATORES_VAZIO, fmt, type Fatores, type Indicador, type Medida } from '../../lib/clinica'
 import { montarRelatorio, pendencias, type EntradaMapa, type Relatorio } from '../../lib/mapa'
@@ -207,8 +207,8 @@ export function RelatorioMapa({ r, recomendacoes, resumo, editar }: { r: Relator
         <h2 className="titulo-bloco !text-[18px] mb-3">Indicadores de saúde</h2>
         <div className="lg:columns-2 gap-4 [&>*]:break-inside-avoid [&>*]:mb-4">
           {r.sistemas.map(s => (
-            <div key={s.grp} className="cartao px-5 pt-4 pb-2">
-              <h3 className="titulo-bloco flex items-center gap-2.5"><Icone tema={temaDoSistema(s.grp)} fundo tamanho={34} />{s.nome}</h3>
+            <div key={s.grp} className="rounded-lg border border-borda px-5 pt-4 pb-2" style={{ background: degrade(temaDoSistema(s.grp)) }}>
+              <h3 className="titulo-bloco flex items-center gap-2.5"><Icone tema={temaDoSistema(s.grp)} fundo tamanho={36} className="!bg-folha/80" />{s.nome}</h3>
               <div className="divide-y divide-regra">
                 {s.itens.map(i => <LinhaIndicador key={i.code} nome={i.name} valor={i.value} unidade={i.unit} bands={i.bands} data={i.date ? dataBR(i.date) : undefined} nota={i.calc ? `Calculado · ${i.calc}` : undefined} />)}
               </div>
@@ -221,9 +221,9 @@ export function RelatorioMapa({ r, recomendacoes, resumo, editar }: { r: Relator
         <h2 className="titulo-bloco !text-[18px] mb-3">Estilo de vida</h2>
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 items-stretch">
           {r.estilo.map(d => (
-            <div key={d.nome} className="cartao p-5 flex flex-col gap-3">
+            <div key={d.nome} className="rounded-lg border border-borda p-5 flex flex-col gap-3" style={{ background: degrade(temaDoDominio(d.nome)) }}>
               <div className="flex items-center gap-2.5">
-                <Icone tema={temaDoDominio(d.nome)} fundo tamanho={40} />
+                <Icone tema={temaDoDominio(d.nome)} fundo tamanho={40} className="!bg-folha/80" />
                 <h3 className="titulo-bloco flex-1">{d.nome}</h3>
                 <span className={`text-meta ${d.level ? NIVEL[d.level].cor : 'text-apoio'}`}>{d.level ? NIVEL[d.level].rotulo : d.itens.length ? 'Registro' : 'Sem resposta'}</span>
               </div>
@@ -244,13 +244,13 @@ export function RelatorioMapa({ r, recomendacoes, resumo, editar }: { r: Relator
 
       <section className="pagina grid lg:grid-cols-2 gap-4 items-start">
         <div className="cartao px-5 pt-4 pb-2">
-          <h2 className="titulo-bloco">Força e capacidade</h2>
+          <h2 className="titulo-bloco flex items-center gap-2.5"><Icone tema="forca" fundo tamanho={36} />Força e capacidade</h2>
           <div className="divide-y divide-regra">
             {r.forca.map(i => <LinhaIndicador key={i.code} nome={i.name} valor={i.value} unidade={i.unit} bands={i.bands} data={i.date ? dataBR(i.date) : undefined} />)}
           </div>
         </div>
         <div className="cartao p-5 flex flex-col gap-3">
-          <h2 className="titulo-bloco">Risco cardiovascular em 10 anos</h2>
+          <h2 className="titulo-bloco flex items-center gap-2.5"><Icone tema="coracao" fundo tamanho={36} />Risco cardiovascular em 10 anos</h2>
           {r.risco_cv.valor != null ? (<>
             <p className="text-[40px] leading-none tabular-nums">{fmt(r.risco_cv.valor * 100)}<span className="text-bloco text-apoio ml-0.5">%</span></p>
             <p className={`text-corpo ${NIVEL[r.risco_cv.level!].cor}`}>{NIVEL[r.risco_cv.level!].rotulo}</p>

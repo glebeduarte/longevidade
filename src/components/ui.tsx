@@ -111,12 +111,13 @@ export function Iniciais({ nome, className = 'w-9 h-9 text-[13px]' }: { nome?: s
 }
 
 /** Bloco com título: o padrão de cartão das telas de trabalho. */
-export function Bloco({ titulo, sub, acao, children, className = '', semPad = false, id }:
-  { titulo: ReactNode; sub?: ReactNode; acao?: ReactNode; children: ReactNode; className?: string; semPad?: boolean; id?: string }) {
+export function Bloco({ titulo, sub, acao, children, className = '', semPad = false, id, icone }:
+  { titulo: ReactNode; sub?: ReactNode; acao?: ReactNode; children: ReactNode; className?: string; semPad?: boolean; id?: string; icone?: ReactNode }) {
   return (
     <section className={`cartao ${className}`} aria-labelledby={id}>
       <div className="flex items-start justify-between gap-4 px-5 pt-4 pb-3">
-        <div className="min-w-0">
+        {icone && <div className="shrink-0 -mr-1">{icone}</div>}
+        <div className="min-w-0 flex-1">
           <h2 id={id} className="titulo-bloco">{titulo}</h2>
           {sub && <p className="text-meta text-apoio mt-0.5">{sub}</p>}
         </div>

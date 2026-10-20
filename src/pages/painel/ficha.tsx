@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { entrarVista } from '../../lib/vista'
 import { ArrowDownRight, ArrowLeft, Eye, ArrowUpRight, FileText, Paperclip, Plus, Send } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { Icone } from '../../components/icones'
 import { can, useAuth } from '../../auth/AuthProvider'
 import { Abas, Aviso, Bloco, Botao, Campo, Iniciais, Selo, Vazio } from '../../components/ui'
 import { NIVEL, dataBR, num, type Nivel } from '../../lib/faixas'
@@ -115,7 +116,7 @@ export function AbaQuestionarios({ pid, podeEnviar }: { pid: string; podeEnviar:
 
   return (
     <div className="grid xl:grid-cols-12 gap-4 items-start">
-      <Bloco className="xl:col-span-7" titulo="Histórico de respostas" sub="Última resposta de cada questionário, com a variação desde a anterior" semPad>
+      <Bloco className="xl:col-span-7" icone={<Icone tema="questionario" fundo tamanho={36} />} titulo="Histórico de respostas" sub="Última resposta de cada questionário, com a variação desde a anterior" semPad>
         {porQ.size === 0 ? (
           <div className="px-5 pb-5"><Vazio titulo="Nenhum questionário respondido ainda" texto="Envie ao lado e as respostas aparecem aqui com escore e faixa." /></div>
         ) : (
@@ -152,14 +153,14 @@ export function AbaQuestionarios({ pid, podeEnviar }: { pid: string; podeEnviar:
 
       <div className="xl:col-span-5 flex flex-col gap-4">
         {envios.length > 0 && (
-          <Bloco titulo="Aguardando resposta" acao={<Selo tom="alerta">{envios.length}</Selo>}>
+          <Bloco icone={<Icone tema="questionario" fundo tamanho={36} />} titulo="Aguardando resposta" acao={<Selo tom="alerta">{envios.length}</Selo>}>
             <ul className="flex flex-col">
               {envios.map(e => <li key={e.id} className="flex justify-between py-1.5 text-corpo"><span>{e.questionnaires?.name}</span><span className="text-apoio tabular-nums">enviado {dataBR(e.created_at)}</span></li>)}
             </ul>
           </Bloco>
         )}
         {podeEnviar && (
-          <Bloco titulo="Enviar questionários" sub="Aparecem na área da paciente e no e-mail dela">
+          <Bloco icone={<Icone tema="questionario" fundo tamanho={36} />} titulo="Enviar questionários" sub="Aparecem na área da paciente e no e-mail dela">
             <div className="flex flex-col -mx-2">
               {todos.map(q => {
                 const ja = pendentes.has(q.id)

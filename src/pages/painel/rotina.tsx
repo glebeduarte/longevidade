@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { entrarVista } from '../../lib/vista'
 import { ExternalLink, Eye, Plus, Send } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { Icone } from '../../components/icones'
 import { can, useAuth } from '../../auth/AuthProvider'
 import { Aviso, Bloco, Botao, Campo, Iniciais, Selo, Titulo, Vazio } from '../../components/ui'
 import { dataBR } from '../../lib/faixas'
@@ -42,7 +43,7 @@ export function FilaCheckins() {
     <div className="flex flex-col gap-6">
       <Titulo sub={fila ? `${fila.length} ${fila.length === 1 ? 'check-in aguarda' : 'check-ins aguardam'} resposta · prazo de 3 dias úteis` : undefined}>Check-ins</Titulo>
       {!fila ? <p className="text-corpo text-apoio">Carregando</p> : fila.length === 0 ? (
-        <Bloco titulo="Fila vazia"><Vazio titulo="Nenhum check-in aguardando resposta" texto="As respostas das pacientes aparecem aqui assim que chegam." /></Bloco>
+        <Bloco icone={<Icone tema="checkin" fundo tamanho={36} />} titulo="Fila vazia"><Vazio titulo="Nenhum check-in aguardando resposta" texto="As respostas das pacientes aparecem aqui assim que chegam." /></Bloco>
       ) : (
         <div className="grid lg:grid-cols-[minmax(0,380px)_1fr] gap-4 items-start">
           <section className="cartao overflow-hidden" aria-label="Fila">
@@ -93,7 +94,7 @@ export function FilaCheckins() {
         </div>
       )}
       {feitos.length > 0 && (
-        <Bloco titulo="Respondidos recentemente" semPad>
+        <Bloco icone={<Icone tema="checkin" fundo tamanho={36} />} titulo="Respondidos recentemente" semPad>
           <ul className="pb-2">{feitos.map(c => (
             <li key={c.id} className="px-5 py-2.5 border-t border-regra flex items-center gap-3 text-corpo">
               <span className="w-2 h-2 rounded-full bg-oliva" /><span className="font-medium">{limpo(c.patients?.full_name)}</span>
@@ -126,7 +127,7 @@ export function Agenda() {
     <div className="flex flex-col gap-6">
       <Titulo sub={lista ? `${agendados.length} agendados · ${aAgendar.length} para agendar nos próximos 45 dias` : undefined}>Encontros</Titulo>
       <div className="grid lg:grid-cols-12 gap-4 items-start">
-        <Bloco className="lg:col-span-7" titulo="Agenda" sub="Encontros com data marcada" semPad>
+        <Bloco className="lg:col-span-7" icone={<Icone tema="encontro" fundo tamanho={36} />} titulo="Agenda" sub="Encontros com data marcada" semPad>
           {!porDia.length ? <div className="px-5 pb-5"><Vazio titulo="Nada agendado" texto="Agende pelo bloco ao lado ou na aba Programa da paciente." /></div> : (
             <div className="pb-2">{porDia.map(([d, es]) => (
               <div key={d}>
@@ -144,7 +145,7 @@ export function Agenda() {
             </div>
           )}
         </Bloco>
-        <Bloco className="lg:col-span-5" titulo="Para agendar" sub="Previstos pelo plano, ainda sem data" semPad>
+        <Bloco className="lg:col-span-5" icone={<Icone tema="encontro" fundo tamanho={36} />} titulo="Para agendar" sub="Previstos pelo plano, ainda sem data" semPad>
           {!aAgendar.length ? <div className="px-5 pb-5"><Vazio titulo="Tudo em dia" /></div> : (
             <ul className="pb-2">{aAgendar.map(e => (
               <li key={e.id}>
@@ -179,7 +180,7 @@ export function Videos() {
       <Titulo sub="Os vídeos ativos aparecem no início do app da paciente. Aceita links do YouTube, Vimeo ou arquivo de vídeo.">Vídeos de orientação</Titulo>
       {lista.some(v => v.url.includes('exemplo.com')) && <Aviso>Os vídeos com endereço exemplo.com são de demonstração. Troque pelos links reais.</Aviso>}
       <div className="grid lg:grid-cols-12 gap-4 items-start">
-        <Bloco className="lg:col-span-7" titulo="Biblioteca" sub={`${lista.filter(v => v.active).length} ativos`} semPad>
+        <Bloco className="lg:col-span-7" icone={<Icone tema="video" fundo tamanho={36} />} titulo="Biblioteca" sub={`${lista.filter(v => v.active).length} ativos`} semPad>
           <ul className="pb-2">{lista.map(v => (
             <li key={v.id} className={`px-5 py-3 border-t border-regra flex items-center gap-3 ${v.active ? '' : 'opacity-55'}`}>
               <div className="flex-1 min-w-0"><p className="text-corpo font-medium">{v.title}</p><p className="text-meta text-apoio truncate">{v.description}{v.duration_min ? ` · ${v.duration_min} min` : ''}</p></div>
@@ -188,7 +189,7 @@ export function Videos() {
             </li>))}
           </ul>
         </Bloco>
-        <Bloco className="lg:col-span-5" titulo="Novo vídeo">
+        <Bloco className="lg:col-span-5" icone={<Icone tema="video" fundo tamanho={36} />} titulo="Novo vídeo">
           <div className="flex flex-col gap-3">
             <Campo id="v-t" label="Título" value={novo.title} onChange={e => setNovo({ ...novo, title: e.target.value })} />
             <Campo id="v-u" label="Link" placeholder="https://youtube.com/..." value={novo.url} onChange={e => setNovo({ ...novo, url: e.target.value })} />

@@ -78,7 +78,7 @@ function NovaMatricula({ pid, aoSalvar }: { pid: string; aoSalvar: () => void })
   return (
     <div className="grid lg:grid-cols-[320px_1fr] gap-x-10 gap-y-4">
       <div>
-        <h2 className="titulo-bloco">Matricular no programa</h2>
+        <h2 className="titulo-bloco flex items-center gap-2.5"><Icone tema="protocolo" fundo tamanho={36} />Matricular no programa</h2>
         <p className="text-corpo text-apoio mt-1">Ao confirmar, o sistema cria os encontros do plano e a agenda de check-ins: semanal no primeiro mês e quinzenal depois.</p>
       </div>
       <div className="painel-tom p-4 flex flex-col gap-3">
@@ -114,7 +114,7 @@ function Encontros({ lista, podeGerir, aoMudar }: { lista: Encontro[]; podeGerir
   const tom = (s: Encontro['status']) => s === 'realizado' ? 'ok' : s === 'agendado' ? 'escuro' : s === 'faltou' ? 'risco' : 'neutro'
 
   return (
-    <Bloco titulo="Encontros" sub="Gerados pelo plano. Agende, registre a presença ou ajuste a data." semPad>
+    <Bloco icone={<Icone tema="encontro" fundo tamanho={36} />} titulo="Encontros" sub="Gerados pelo plano. Agende, registre a presença ou ajuste a data." semPad>
       <ol className="pb-2">
         {lista.map(e => {
           const prox = e.status === 'agendado' || (e.status === 'previsto' && e.target_date >= hojeISO())
@@ -162,7 +162,7 @@ function LinhaCheckins({ lista }: { lista: Checkin[] }) {
   const cor = (c: Checkin) => c.reaction ? 'bg-terracota' : c.status === 'atendido' ? 'bg-oliva' : c.status === 'respondido' ? 'bg-cobre' : c.status === 'perdido' ? 'bg-areia' : 'border border-controle'
 
   return (
-    <Bloco titulo="Check-ins" sub={proximo ? `Próximo em ${dataBR(proximo.due_date)}` : 'Sem check-ins futuros'} semPad>
+    <Bloco icone={<Icone tema="checkin" fundo tamanho={36} />} titulo="Check-ins" sub={proximo ? `Próximo em ${dataBR(proximo.due_date)}` : 'Sem check-ins futuros'} semPad>
       <div className="px-5 pb-3 flex flex-wrap gap-1" aria-label="Linha do tempo dos check-ins">
         {lista.map(c => <span key={c.id} title={`${dataBR(c.due_date)} · ${c.status}`} className={`w-3 h-3 rounded-full ${cor(c)} ${c.due_date > hoje ? 'opacity-40' : ''}`} />)}
       </div>
@@ -228,7 +228,7 @@ function Protocolos({ pid, podeEditar }: { pid: string; podeEditar: boolean }) {
   const mostrado = ver != null ? lista.find(p => p.version === ver) : atual
 
   return (
-    <Bloco titulo="Protocolo" sub={atual ? `Versão ${atual.version} publicada em ${dataBR(atual.published_at!)} · a paciente vê esta versão no app` : 'Nenhuma versão publicada'}
+    <Bloco icone={<Icone tema="protocolo" fundo tamanho={36} />} titulo="Protocolo" sub={atual ? `Versão ${atual.version} publicada em ${dataBR(atual.published_at!)} · a paciente vê esta versão no app` : 'Nenhuma versão publicada'}
       acao={podeEditar && !rasc ? <Botao tamanho="sm" variante="linha" onClick={novaVersao}><Plus className="w-4 h-4" />{atual ? 'Nova versão' : 'Criar protocolo'}</Botao> : undefined}>
       {rasc ? (
         <div className="flex flex-col gap-3">
@@ -299,7 +299,7 @@ function Encerrar({ pid, nome, mat, aoEncerrar }: { pid: string; nome: string; m
   return (
     <section className="cartao p-5 flex flex-col gap-3" aria-labelledby="t-encerrar">
       <div className="flex items-start justify-between gap-3">
-        <div><h2 id="t-encerrar" className="titulo-bloco">Encerrar programa</h2>
+        <div><h2 id="t-encerrar" className="titulo-bloco flex items-center gap-2.5"><Icone tema="encontro" fundo tamanho={36} />Encerrar programa</h2>
           <p className="text-meta text-apoio mt-0.5">A paciente perde o acesso ao app. Prontuário e exames ficam guardados por 20 anos, como manda a lei.</p></div>
         {!abrir && <Botao tamanho="sm" variante="linha" onClick={() => setAbrir(true)}>Encerrar</Botao>}
       </div>

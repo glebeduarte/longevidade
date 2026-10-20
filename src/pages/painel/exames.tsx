@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../auth/AuthProvider'
 import { Aviso, Botao } from '../../components/ui'
 import { LinhaIndicador, TOM } from '../../components/regua'
-import { Icone, temaDoSistema } from '../../components/icones'
+import { Icone, degrade, temaDoSistema } from '../../components/icones'
 import { NIVEL, dataBR } from '../../lib/faixas'
 import { GRUPOS, calculados, fmt, idadeEm, nivelDe, ultimas, type Indicador, type Medida } from '../../lib/clinica'
 
@@ -68,8 +68,8 @@ export function AbaExames({ pid, nascimento, podeLancar, bio }: { pid: string; n
       {vista === 'grupos' ? (
         <div className="lg:columns-2 gap-4 [&>*]:break-inside-avoid [&>*]:mb-4">
           {grupos.map(({ g, itens, calc: cs }) => (
-            <section key={g} className="cartao px-5 pt-4 pb-2" aria-labelledby={`g-${g}`}>
-              <h2 id={`g-${g}`} className="titulo-bloco pb-1 flex items-center gap-2.5"><Icone tema={temaDoSistema(g)} fundo tamanho={34} />{GRUPOS[g]}</h2>
+            <section key={g} className="rounded-lg border border-borda px-5 pt-4 pb-2" style={{ background: degrade(temaDoSistema(g)) }} aria-labelledby={`g-${g}`}>
+              <h2 id={`g-${g}`} className="titulo-bloco pb-1 flex items-center gap-2.5"><Icone tema={temaDoSistema(g)} fundo tamanho={36} className="!bg-folha/80" />{GRUPOS[g]}</h2>
               <div className="divide-y divide-regra">
                 {itens.map(c => {
                   const hist = ult.get(c.code) ?? []
@@ -113,7 +113,7 @@ export function AbaExames({ pid, nascimento, podeLancar, bio }: { pid: string; n
       )}
 
       <section aria-labelledby="t-bio" className="flex flex-col gap-4 pt-4">
-        <h2 id="t-bio" className="titulo-bloco">Bioimpedância</h2>
+        <h2 id="t-bio" className="titulo-bloco flex items-center gap-2.5"><Icone tema="peso" fundo tamanho={36} />Bioimpedância</h2>
         {bio}
       </section>
     </div>

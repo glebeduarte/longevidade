@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 're
 import { ChevronRight, Plus, Search, Send, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { Icone, degrade, temaDoDominio, type Tema } from '../../components/icones'
 import { useAuth } from '../../auth/AuthProvider'
-import { Aviso, Bloco, Botao, Campo, Iniciais, Selecao, Selo, Titulo, Vazio } from '../../components/ui'
+import { Aviso, Botao, Campo, Iniciais, Selecao, Selo, Titulo, Vazio } from '../../components/ui'
 import { dataBR } from '../../lib/faixas'
 import { idadeEm } from '../../lib/clinica'
-import { dataHora, prazoTexto, type Checkin, type Encontro } from '../../lib/programa'
+import { type Checkin, type Encontro } from '../../lib/programa'
 
 async function convidar(body: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke('convidar', {
@@ -33,51 +34,57 @@ type MapaAberto = { id: string; started_at: string; patient_id: string; patients
 type Envio = { id: string; created_at: string; patient_id: string; patients: { full_name: string } | null; questionnaires: { name: string } | null }
 type RespostaR = { id: string; submitted_at: string; patient_id: string; band_label: string | null; band_level: string | null; patients: { full_name: string } | null; questionnaires: { name: string } | null }
 
-function LinhaPessoa({ to, nome, linha2, direita }: { to: string; nome: string; linha2: ReactNode; direita?: ReactNode }) {
-  return (
-    <li>
-      <Link to={to} className="group flex items-center gap-3 px-5 py-3 hover:bg-tom/60 transition-colors">
-        <Iniciais nome={nome} />
-        <div className="flex-1 min-w-0">
-          <p className="text-corpo font-medium truncate">{nomeLimpo(nome)}</p>
-          <p className="text-meta text-apoio truncate">{linha2}</p>
-        </div>
-        {direita}
-        <ChevronRight className="w-4 h-4 text-apoio/70 group-hover:translate-x-0.5 transition-transform" strokeWidth={1.6} />
-      </Link>
-    </li>
-  )
-}
-
 function saudacao() {
   const h = new Date().getHours()
   return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'
 }
 
+type Acompanhada = { id: string; patient_id: string; start_date: string; end_date: string; programs: { name: string; duration_months: number } | null; patients: { full_name: string; status: string } | null }
+type QDominio = { questionnaires: { domain: string } | null }
+
+/** Cartão grande colorido do topo: ícone, número e um destino. */
+function Destaque({ tema, valor, rotulo, nota, to, urgente }: { tema: Tema; valor: number | null; rotulo: string; nota: string; to: string; urgente?: boolean }) {
+  return (
+    <Link to={to} className="group rounded-xl border border-borda p-4 flex flex-col gap-3 transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-14px_rgba(46,34,27,.35)]"
+      style={{ background: degrade(tema) }}>
+      <div className="flex items-start justify-between">
+        <Icone tema={tema} fundo tamanho={52} className="!bg-folha/80" />
+        <ChevronRight className="w-4 h-4 text-apoio/70 group-hover:translate-x-0.5 transition-transform" strokeWidth={1.6} />
+      </div>
+      <div>
+        <p className={`text-[32px] leading-none tabular-nums ${urgente && valor ? 'text-[#9a4632]' : 'text-texto'}`}>{valor ?? '·'}</p>
+        <p className="text-corpo font-medium mt-1.5">{rotulo}</p>
+        <p className="text-meta text-apoio">{nota}</p>
+      </div>
+    </Link>
+  )
+}
+
 export function Hoje() {
   const { profile } = useAuth()
-  const [ativas, setAtivas] = useState<number | null>(null)
   const [alertas, setAlertas] = useState<Alerta[]>([])
   const [mapas, setMapas] = useState<MapaAberto[]>([])
   const [envios, setEnvios] = useState<Envio[]>([])
-  const [respostas, setRespostas] = useState<RespostaR[]>([])
+  const [respostas, setRespostas] = useState<(RespostaR & QDominio)[]>([])
   const [fila, setFila] = useState<Checkin[]>([])
   const [agenda, setAgenda] = useState<Encontro[]>([])
+  const [turma, setTurma] = useState<Acompanhada[] | null>(null)
 
   const carregar = () => {
-    supabase.from('patients').select('id', { count: 'exact', head: true }).eq('status', 'ativa').then(({ count }) => setAtivas(count ?? 0))
     supabase.from('clinical_alerts').select('id, message, created_at, patient_id, patients(full_name)').is('resolved_at', null).order('created_at')
       .then(({ data }) => setAlertas((data as unknown as Alerta[]) ?? []))
     supabase.from('health_maps').select('id, started_at, patient_id, patients(full_name)').eq('status', 'em_andamento').order('started_at')
       .then(({ data }) => setMapas((data as unknown as MapaAberto[]) ?? []))
     supabase.from('questionnaire_assignments').select('id, created_at, patient_id, patients(full_name), questionnaires(name)').eq('status', 'pendente').order('created_at')
       .then(({ data }) => setEnvios((data as unknown as Envio[]) ?? []))
-    supabase.from('questionnaire_responses').select('id, submitted_at, patient_id, band_label, band_level, patients(full_name), questionnaires(name)').order('submitted_at', { ascending: false }).limit(6)
-      .then(({ data }) => setRespostas((data as unknown as RespostaR[]) ?? []))
+    supabase.from('questionnaire_responses').select('id, submitted_at, patient_id, band_label, band_level, patients(full_name), questionnaires(name, domain)').order('submitted_at', { ascending: false }).limit(8)
+      .then(({ data }) => setRespostas((data as unknown as (RespostaR & QDominio)[]) ?? []))
     supabase.from('checkins').select('*, patients(full_name)').eq('status', 'respondido').order('submitted_at')
       .then(({ data }) => setFila(((data as Checkin[]) ?? []).sort((a, b) => Number(b.reaction) - Number(a.reaction))))
-    supabase.from('encounters').select('*, patients(full_name)').eq('status', 'agendado').gte('scheduled_at', new Date(Date.now() - 864e5 / 2).toISOString()).order('scheduled_at').limit(5)
+    supabase.from('encounters').select('*, patients(full_name)').eq('status', 'agendado').gte('scheduled_at', new Date(Date.now() - 864e5 / 2).toISOString()).order('scheduled_at').limit(4)
       .then(({ data }) => setAgenda((data as Encontro[]) ?? []))
+    supabase.from('enrollments').select('id, patient_id, start_date, end_date, programs(name, duration_months), patients(full_name, status)').eq('status', 'ativa').order('start_date')
+      .then(({ data }) => setTurma((data as unknown as Acompanhada[]) ?? []))
   }
   useEffect(carregar, [])
 
@@ -86,13 +93,6 @@ export function Hoje() {
     carregar()
   }
 
-  // envios pendentes agrupados por paciente
-  const porPaciente = useMemo(() => {
-    const m = new Map<string, Envio[]>()
-    envios.forEach(e => m.set(e.patient_id, [...(m.get(e.patient_id) ?? []), e]))
-    return [...m.values()]
-  }, [envios])
-
   const nome = profile?.full_name?.split(' ')[0]
   const fato = alertas.length
     ? `${plural(alertas.length, 'alerta clínico pede', 'alertas clínicos pedem')} avaliação hoje.`
@@ -100,41 +100,37 @@ export function Hoje() {
     : mapas.length ? `${plural(mapas.length, 'mapa da saúde aguarda', 'mapas da saúde aguardam')} sua revisão.`
     : 'Nada urgente por aqui.'
   const hoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
-
-  const kpis: Array<[string, number | null, string]> = [
-    ['Alertas abertos', alertas.length, 'Resposta no mesmo dia'],
-    ['Check-ins na fila', fila.length, 'Prazo de 3 dias úteis'],
-    ['Mapas para revisar', mapas.length, 'Em andamento'],
-    ['Pacientes ativas', ativas, 'No programa Longevidade'],
-  ]
+  const porPaciente = (pid: string) => ({
+    reacao: fila.some(c => c.patient_id === pid && c.reaction) || alertas.some(a => a.patient_id === pid),
+    checkin: fila.some(c => c.patient_id === pid),
+    mapa: mapas.some(m => m.patient_id === pid),
+    quest: envios.filter(e => e.patient_id === pid).length,
+    encontro: agenda.find(e => e.patient_id === pid),
+  })
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-7">
       <header className="pt-1">
         <h1 className="titulo-pagina">{saudacao()}{nome ? `, ${nome}` : ''}. {fato}</h1>
         <p className="mt-2 text-corpo text-apoio first-letter:uppercase">{hoje}</p>
       </header>
 
-      {/* Indicadores num só cartão dividido */}
-      <section aria-label="Resumo" className="rounded-lg border border-borda overflow-hidden grid grid-cols-2 lg:grid-cols-4 gap-px bg-borda">
-        {kpis.map(([r, v, n], i) => (
-          <div key={r} className="bg-folha px-5 py-4">
-            <p className="rotulo">{r}</p>
-            <p className={`numero mt-1.5 ${i === 0 && alertas.length ? 'text-terracota' : ''}`}>{v ?? <span className="text-apoio/60">·</span>}</p>
-            <p className="text-meta text-apoio mt-0.5">{n}</p>
-          </div>
-        ))}
+      <section aria-label="Resumo do dia" className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Destaque tema="alerta" valor={alertas.length} rotulo="Alertas para avaliar" nota="Resposta no mesmo dia" to="#avaliar" urgente />
+        <Destaque tema="checkin" valor={fila.length} rotulo="Check-ins na fila" nota="Prazo de 3 dias úteis" to="/painel/checkins" />
+        <Destaque tema="mapa" valor={mapas.length} rotulo="Mapas para revisar" nota="Antes de entregar" to={mapas[0] ? `/painel/pacientes/${mapas[0].patient_id}?aba=mapa` : '/painel/pacientes'} />
+        <Destaque tema="questionario" valor={envios.length} rotulo="Questionários sem resposta" nota={plural(new Set(envios.map(e => e.patient_id)).size, 'paciente', 'pacientes')} to="/painel/pacientes" />
       </section>
 
       {alertas.length > 0 && (
-        <section className="cartao border-terracota/40" aria-labelledby="t-alertas">
-          <div className="px-5 pt-4 pb-2 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-terracota" aria-hidden="true" />
+        <section id="avaliar" className="rounded-xl border border-[#e8c9bd] overflow-hidden" style={{ background: degrade('alerta') }} aria-labelledby="t-alertas">
+          <div className="px-5 pt-4 pb-2 flex items-center gap-2.5">
+            <Icone tema="alerta" fundo tamanho={36} className="!bg-folha/80" />
             <h2 id="t-alertas" className="titulo-bloco">Avaliar hoje</h2>
           </div>
-          <ul>
+          <ul className="px-3 pb-3 flex flex-col gap-2">
             {alertas.map(a => (
-              <li key={a.id} className="px-5 py-3 border-t border-regra flex flex-wrap items-center gap-x-4 gap-y-2">
+              <li key={a.id} className="rounded-lg bg-folha/90 px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2">
                 <Iniciais nome={a.patients?.full_name} />
                 <div className="flex-1 min-w-[220px]">
                   <Link to={`/painel/pacientes/${a.patient_id}`} className="text-corpo font-medium link">{nomeLimpo(a.patients?.full_name)}</Link>
@@ -148,68 +144,99 @@ export function Hoje() {
         </section>
       )}
 
+      <section aria-labelledby="t-turma" className="flex flex-col gap-3">
+        <div className="flex items-center gap-2.5">
+          <Icone tema="pessoas" fundo tamanho={36} />
+          <h2 id="t-turma" className="titulo-bloco flex-1">Pacientes em acompanhamento</h2>
+          <Link to="/painel/pacientes" className="text-meta link">Ver todas</Link>
+        </div>
+        {turma && turma.length === 0 && <Vazio titulo="Nenhuma paciente matriculada" texto="Matricule pela aba Programa da ficha." />}
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          {(turma ?? []).filter(t => t.patients?.status === 'ativa').map(t => {
+            const total = t.programs?.duration_months ?? 6
+            const mes = Math.min(total, Math.max(1, Math.ceil((Date.now() - new Date(`${t.start_date}T12:00`).getTime()) / (30.44 * 864e5))))
+            const st = porPaciente(t.patient_id)
+            const sinais: Array<[Tema, string, boolean]> = [
+              ['alerta', 'Reação ou alerta', st.reacao], ['checkin', 'Check-in aguardando resposta', st.checkin],
+              ['mapa', 'Mapa em andamento', st.mapa], ['questionario', `${st.quest} questionário(s) sem resposta`, st.quest > 0],
+            ]
+            return (
+              <Link key={t.id} to={`/painel/pacientes/${t.patient_id}?aba=programa`}
+                className="group cartao p-4 flex flex-col gap-3 transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-14px_rgba(46,34,27,.35)]">
+                <div className="flex items-center gap-3">
+                  <Iniciais nome={t.patients?.full_name} className="w-11 h-11 text-[15px]" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-bloco font-medium truncate">{nomeLimpo(t.patients?.full_name)}</p>
+                    <p className="text-meta text-apoio">{t.programs?.name.replace('Longevidade ', 'Plano ')} · mês {mes} de {total}</p>
+                  </div>
+                  {st.reacao && <Selo tom="risco">Atenção</Selo>}
+                </div>
+                <div className="flex gap-1" aria-label={`Mês ${mes} de ${total}`}>
+                  {Array.from({ length: total }, (_, i) => <span key={i} className={`h-1.5 flex-1 rounded-full ${i < mes ? 'bg-oliva' : 'bg-tom'}`} />)}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {sinais.filter(x => x[2]).map(([tema, rot]) => <span key={tema} title={rot}><Icone tema={tema} fundo tamanho={30} /></span>)}
+                  {!sinais.some(x => x[2]) && <span className="text-meta text-apoio">Tudo em dia</span>}
+                  <span className="ml-auto text-meta text-apoio">{st.encontro ? `Encontro ${new Date(st.encontro.scheduled_at!).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${new Date(st.encontro.scheduled_at!).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      </section>
+
       <div className="grid lg:grid-cols-12 gap-4 items-start">
-        <Bloco className="lg:col-span-7" titulo="Check-ins aguardando resposta" sub="Reações relatadas aparecem primeiro" semPad
-          acao={<Link to="/painel/checkins" className="text-meta link">Abrir fila</Link>}>
-          {fila.length ? (
-            <ul className="pb-2">
-              {fila.slice(0, 5).map(c => {
-                const p = prazoTexto(c.submitted_at!)
-                return <LinhaPessoa key={c.id} to="/painel/checkins" nome={c.patients?.full_name ?? ''}
-                  linha2={c.answers?.mensagem || `Check-in de ${dataBR(c.due_date)}`}
-                  direita={c.reaction ? <Selo tom="risco">Reação</Selo> : <span className={`text-meta tabular-nums ${p.vencido ? 'text-[#7c3f29]' : 'text-apoio'}`}>{p.texto}</span>} />
-              })}
-            </ul>
-          ) : <div className="px-5 pb-5"><Vazio titulo="Fila vazia" texto="Nenhum check-in esperando resposta." /></div>}
-        </Bloco>
-
-        <Bloco className="lg:col-span-5" titulo="Próximos encontros" semPad acao={<Link to="/painel/agenda" className="text-meta link">Agenda</Link>}>
+        <section className="lg:col-span-7 flex flex-col gap-3" aria-labelledby="t-agenda">
+          <div className="flex items-center gap-2.5">
+            <Icone tema="encontro" fundo tamanho={36} />
+            <h2 id="t-agenda" className="titulo-bloco flex-1">Próximos encontros</h2>
+            <Link to="/painel/agenda" className="text-meta link">Agenda</Link>
+          </div>
           {agenda.length ? (
-            <ul className="pb-2">
-              {agenda.map(e => (
-                <LinhaPessoa key={e.id} to={`/painel/pacientes/${e.patient_id}?aba=programa`} nome={e.patients?.full_name ?? ''}
-                  linha2={`${e.title}${e.location ? ` · ${e.location === 'spinel' ? 'Instituto Spinel' : 'Clínica Equilibre'}` : ''}`}
-                  direita={<span className="text-meta text-apoio tabular-nums text-right">{dataHora(e.scheduled_at!)}</span>} />
-              ))}
-            </ul>
-          ) : <div className="px-5 pb-5"><Vazio titulo="Nenhum encontro agendado" texto="Agende na aba Programa da paciente." /></div>}
-        </Bloco>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {agenda.map(e => {
+                const d = new Date(e.scheduled_at!)
+                return (
+                  <Link key={e.id} to={`/painel/pacientes/${e.patient_id}?aba=programa`} className="cartao flex overflow-hidden hover:border-controle transition-colors">
+                    <div className="w-20 shrink-0 grid place-items-center text-center py-3" style={{ background: degrade('encontro') }}>
+                      <div><p className="text-meta text-apoio capitalize">{d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}</p>
+                        <p className="text-[28px] leading-none tabular-nums">{d.getDate()}</p>
+                        <p className="text-meta text-apoio">{d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p></div>
+                    </div>
+                    <div className="p-3.5 min-w-0">
+                      <p className="text-corpo font-medium truncate">{nomeLimpo(e.patients?.full_name)}</p>
+                      <p className="text-meta text-apoio">{e.title}</p>
+                      <p className="text-meta text-apoio">{e.location ? LOCAL[e.location] : ''}</p>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          ) : <Vazio titulo="Nenhum encontro agendado" texto="Agende na aba Programa da paciente." />}
+        </section>
 
-        <Bloco className="lg:col-span-7" titulo="Mapas da saúde para revisar" sub="Abertos e ainda não entregues à paciente" semPad
-          acao={mapas.length ? <Selo>{mapas.length}</Selo> : undefined}>
-          {mapas.length ? (
-            <ul className="pb-2">
-              {mapas.map(m => (
-                <LinhaPessoa key={m.id} to={`/painel/pacientes/${m.patient_id}?aba=mapa`} nome={m.patients?.full_name ?? ''}
-                  linha2={`Aberto ${quando(m.started_at)} · ${dataBR(m.started_at)}`} direita={<span className="hidden sm:inline text-meta text-cafe">Revisar</span>} />
-              ))}
-            </ul>
-          ) : <div className="px-5 pb-5"><Vazio titulo="Nenhum mapa em andamento" texto="Abra um mapa na ficha da paciente no início ou no fim do programa." /></div>}
-        </Bloco>
-
-        <Bloco className="lg:col-span-5" titulo="Questionários aguardando resposta" sub="Enviados e ainda não respondidos" semPad>
-          {porPaciente.length ? (
-            <ul className="pb-2">
-              {porPaciente.slice(0, 5).map(g => (
-                <LinhaPessoa key={g[0].patient_id} to={`/painel/pacientes/${g[0].patient_id}?aba=estilo`} nome={g[0].patients?.full_name ?? ''}
-                  linha2={g.map(e => e.questionnaires?.name).join(', ')} direita={<span className="text-meta text-apoio tabular-nums">{quando(g[0].created_at)}</span>} />
-              ))}
-            </ul>
-          ) : <div className="px-5 pb-5"><Vazio titulo="Tudo respondido" texto="Os questionários enviados aparecem aqui até a paciente responder." /></div>}
-        </Bloco>
-
-        <Bloco className="lg:col-span-12" titulo="Respostas recentes" sub="Escore calculado na hora em que a paciente envia" semPad>
+        <section className="lg:col-span-5 flex flex-col gap-3" aria-labelledby="t-resp">
+          <div className="flex items-center gap-2.5">
+            <Icone tema="nota" fundo tamanho={36} />
+            <h2 id="t-resp" className="titulo-bloco flex-1">Respostas recentes</h2>
+          </div>
           {respostas.length ? (
-            <ul className="pb-2">
-              {respostas.map(r => (
-                <LinhaPessoa key={r.id} to={`/painel/pacientes/${r.patient_id}?aba=estilo`} nome={r.patients?.full_name ?? ''}
-                  linha2={`${r.questionnaires?.name} · ${quando(r.submitted_at)}`}
-                  direita={r.band_label ? <Selo tom={r.band_level === 'ruim' ? 'risco' : r.band_level === 'atencao' ? 'alerta' : r.band_level === 'otimo' || r.band_level === 'bom' ? 'ok' : 'neutro'}>{r.band_label}</Selo> : undefined} />
-              ))}
-            </ul>
-          ) : <div className="px-5 pb-5"><Vazio titulo="Nenhuma resposta ainda" /></div>}
-        </Bloco>
-
+            <div className="grid grid-cols-2 gap-2">
+              {respostas.map(r => {
+                const tema = temaDoDominio(r.questionnaires?.domain ?? '')
+                return (
+                  <Link key={r.id} to={`/painel/pacientes/${r.patient_id}?aba=estilo`} className="rounded-lg border border-borda p-3 flex items-start gap-2.5 hover:border-controle transition-colors" style={{ background: degrade(tema) }}>
+                    <Icone tema={tema} fundo tamanho={32} className="!bg-folha/80" />
+                    <div className="min-w-0">
+                      <p className="text-meta font-medium truncate">{nomeLimpo(r.patients?.full_name).split(' ')[0]} · {r.questionnaires?.name}</p>
+                      <p className={`text-meta ${r.band_level === 'ruim' ? 'text-[#9a4632]' : r.band_level === 'atencao' ? 'text-atencao' : 'text-apoio'}`}>{r.band_label ?? 'Registro'} · {quando(r.submitted_at)}</p>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          ) : <Vazio titulo="Nenhuma resposta ainda" />}
+        </section>
       </div>
     </div>
   )
@@ -425,7 +452,7 @@ export function Equipe() {
       {lista && lista.length === 0 && (
         <div className="grid lg:grid-cols-[320px_1fr] gap-x-10 gap-y-4">
           <div>
-            <h2 className="titulo-bloco">Quem pode fazer o quê</h2>
+            <h2 className="titulo-bloco flex items-center gap-2.5"><Icone tema="pessoas" fundo tamanho={36} />Quem pode fazer o quê</h2>
             <p className="text-corpo text-apoio mt-1">Você escolhe as permissões de cada pessoa ao convidar e pode mudar depois.</p>
           </div>
           <div className="painel-tom p-4 flex flex-col gap-1">

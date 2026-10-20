@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../auth/AuthProvider'
 import { Botao } from '../../components/ui'
-import { COR, Icone, temaDoDominio } from '../../components/icones'
+import { Icone, degrade, temaDoDominio } from '../../components/icones'
 import { NIVEL, dataBR, num, type Nivel } from '../../lib/faixas'
 import { DOMINIOS, FATORES_VAZIO, PASSOS, pior, respondido, type Fatores } from '../../lib/clinica'
 
@@ -35,7 +35,7 @@ export function AbaEstilo({ pid, questionarios }: { pid: string; questionarios: 
         <FatoresDeRisco pid={pid} />
         <section className="cartao" aria-labelledby="t-estilo">
           <div className="px-5 pt-4 pb-2">
-            <h2 id="t-estilo" className="titulo-bloco">Estilo de vida</h2>
+            <h2 id="t-estilo" className="titulo-bloco flex items-center gap-2.5"><Icone tema="atividade" fundo tamanho={36} />Estilo de vida</h2>
             <p className="text-meta text-apoio mt-0.5">Última resposta de cada questionário. A cor do domínio é a do resultado mais frágil.</p>
           </div>
           {resp && resp.length === 0 ? (
@@ -43,7 +43,7 @@ export function AbaEstilo({ pid, questionarios }: { pid: string; questionarios: 
           ) : (
             <div className="grid sm:grid-cols-2 gap-3 px-5 pb-5 pt-2">
               {[...esquerda, ...direita].map(d => (
-                <div key={d.nome} className="rounded-lg px-4 py-3" style={{ background: COR[temaDoDominio(d.nome)][0] + '80' }}>
+                <div key={d.nome} className="rounded-lg px-4 py-3" style={{ background: degrade(temaDoDominio(d.nome)) }}>
                   <div className="flex items-center gap-2.5">
                     <Icone tema={temaDoDominio(d.nome)} fundo tamanho={36} className="!bg-folha" />
                     <h3 className="text-corpo font-medium flex-1">{d.nome}</h3>
@@ -112,7 +112,7 @@ function FatoresDeRisco({ pid }: { pid: string }) {
     <section className="cartao flex flex-col" aria-labelledby="t-fatores">
       <div className="px-5 pt-4 flex items-end justify-between gap-4">
         <div>
-          <h2 id="t-fatores" className="titulo-bloco">Fatores de risco</h2>
+          <h2 id="t-fatores" className="titulo-bloco flex items-center gap-2.5"><Icone tema="coracao" fundo tamanho={36} />Fatores de risco</h2>
           <p className="text-meta text-apoio mt-0.5">{feitos} de {PASSOS.length} respondidos{salvo ? ` · ${salvo}` : ''}</p>
         </div>
         <div className="flex gap-[3px]" aria-hidden="true">
