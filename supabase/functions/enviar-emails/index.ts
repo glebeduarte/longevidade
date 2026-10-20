@@ -9,7 +9,7 @@ const cors = {
 }
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 
-const APP = Deno.env.get('APP_URL') ?? 'https://longevidade-glebeduarte.vercel.app'
+const APP = Deno.env.get('APP_URL') ?? 'https://longevidade-black.vercel.app'
 
 function html(assunto: string, corpo: string) {
   return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#f5f1eb;font-family:Helvetica,Arial,sans-serif;color:#2e221b">

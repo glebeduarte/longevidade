@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../auth/AuthProvider'
 import { Aviso, Botao } from '../../components/ui'
 import { LinhaIndicador, TOM } from '../../components/regua'
+import { Icone, temaDoSistema } from '../../components/icones'
 import { NIVEL, dataBR } from '../../lib/faixas'
 import { GRUPOS, calculados, fmt, idadeEm, nivelDe, ultimas, type Indicador, type Medida } from '../../lib/clinica'
 
@@ -68,7 +69,7 @@ export function AbaExames({ pid, nascimento, podeLancar, bio }: { pid: string; n
         <div className="lg:columns-2 gap-4 [&>*]:break-inside-avoid [&>*]:mb-4">
           {grupos.map(({ g, itens, calc: cs }) => (
             <section key={g} className="cartao px-5 pt-4 pb-2" aria-labelledby={`g-${g}`}>
-              <h2 id={`g-${g}`} className="titulo-bloco pb-1">{GRUPOS[g]}</h2>
+              <h2 id={`g-${g}`} className="titulo-bloco pb-1 flex items-center gap-2.5"><Icone tema={temaDoSistema(g)} fundo tamanho={34} />{GRUPOS[g]}</h2>
               <div className="divide-y divide-regra">
                 {itens.map(c => {
                   const hist = ult.get(c.code) ?? []

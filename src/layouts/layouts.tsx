@@ -38,7 +38,7 @@ export function LayoutApp() {
   const vista = useVista()
   const nav = useNavigate()
   return (
-    <div className="min-h-screen flex flex-col bg-fundo">
+    <div className="app-paciente min-h-screen flex flex-col bg-fundo">
       {vista && (
         <div className="sticky top-0 z-30 bg-cafe text-creme">
           <div className="max-w-2xl mx-auto px-4 py-2 flex items-center gap-3">
@@ -59,9 +59,9 @@ export function LayoutApp() {
         <div className="max-w-2xl mx-auto grid grid-cols-4">
           {navApp.map(({ to, rotulo, icone: I, end }) => (
             <NavLink key={to} to={to} end={end}
-              className={({ isActive }) => `flex flex-col items-center gap-1 pt-2.5 pb-2 text-[12px] transition-colors ${isActive ? 'text-cafe font-medium' : 'text-apoio hover:text-texto'}`}>
+              className={({ isActive }) => `flex flex-col items-center gap-1 pt-2.5 pb-2 text-[13px] transition-colors ${isActive ? 'text-cafe font-medium' : 'text-apoio hover:text-texto'}`}>
               {({ isActive }) => (<>
-                <span className={`grid place-items-center w-14 h-7 rounded-full transition-colors ${isActive ? 'bg-ativo' : ''}`}><I className="w-[18px] h-[18px]" strokeWidth={isActive ? 1.9 : 1.5} /></span>
+                <span className={`grid place-items-center w-14 h-7 rounded-full transition-colors ${isActive ? 'bg-[#f5e1d6] text-terracota' : ''}`}><I className="w-5 h-5" strokeWidth={isActive ? 1.9 : 1.5} /></span>
                 {rotulo}
               </>)}
             </NavLink>

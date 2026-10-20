@@ -43,6 +43,14 @@
   .grao { background-image: radial-gradient(rgba(58,43,34,0.05) 1px, transparent 1px); background-size: 3px 3px; }
 }
 
+/* App da paciente: letra maior e mais contraste, pensando em quem tem mais de 50 anos */
+.app-paciente { font-size: 16px; }
+.app-paciente .text-corpo { font-size: 16px; line-height: 24px; }
+.app-paciente .text-meta { font-size: 14px; line-height: 20px; }
+.app-paciente .titulo-bloco { font-size: 18px; line-height: 24px; }
+.app-paciente .text-apoio { color: #5c4c40; }
+.app-paciente .campo { min-height: 48px; font-size: 16px; }
+
 @layer utilities {
   .tabular-nums { font-variant-numeric: lining-nums tabular-nums; }
 }

@@ -4,7 +4,8 @@ import { ArrowLeft, Printer } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../auth/AuthProvider'
 import { Aviso, Borboleta, Botao, Selo } from '../../components/ui'
-import { LinhaIndicador, TOM } from '../../components/regua'
+import { LinhaIndicador } from '../../components/regua'
+import { Icone, temaDoDominio, temaDoSistema } from '../../components/icones'
 import { NIVEL, dataBR, num, type Nivel } from '../../lib/faixas'
 import { FATORES_VAZIO, fmt, type Fatores, type Indicador, type Medida } from '../../lib/clinica'
 import { montarRelatorio, pendencias, type EntradaMapa, type Relatorio } from '../../lib/mapa'
@@ -207,7 +208,7 @@ export function RelatorioMapa({ r, recomendacoes, resumo, editar }: { r: Relator
         <div className="lg:columns-2 gap-4 [&>*]:break-inside-avoid [&>*]:mb-4">
           {r.sistemas.map(s => (
             <div key={s.grp} className="cartao px-5 pt-4 pb-2">
-              <h3 className="titulo-bloco">{s.nome}</h3>
+              <h3 className="titulo-bloco flex items-center gap-2.5"><Icone tema={temaDoSistema(s.grp)} fundo tamanho={34} />{s.nome}</h3>
               <div className="divide-y divide-regra">
                 {s.itens.map(i => <LinhaIndicador key={i.code} nome={i.name} valor={i.value} unidade={i.unit} bands={i.bands} data={i.date ? dataBR(i.date) : undefined} nota={i.calc ? `Calculado · ${i.calc}` : undefined} />)}
               </div>
@@ -222,7 +223,7 @@ export function RelatorioMapa({ r, recomendacoes, resumo, editar }: { r: Relator
           {r.estilo.map(d => (
             <div key={d.nome} className="cartao p-5 flex flex-col gap-3">
               <div className="flex items-center gap-2.5">
-                <span className={`w-2 h-2 rounded-full ${d.level ? TOM[d.level] : 'bg-areia'}`} aria-hidden="true" />
+                <Icone tema={temaDoDominio(d.nome)} fundo tamanho={40} />
                 <h3 className="titulo-bloco flex-1">{d.nome}</h3>
                 <span className={`text-meta ${d.level ? NIVEL[d.level].cor : 'text-apoio'}`}>{d.level ? NIVEL[d.level].rotulo : d.itens.length ? 'Registro' : 'Sem resposta'}</span>
               </div>

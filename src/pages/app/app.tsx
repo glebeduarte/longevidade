@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, CalendarDays, Check, ClipboardList, LogOut, MessageCircle, PlayCircle, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, LogOut, X } from 'lucide-react'
 import { useAuth } from '../../auth/AuthProvider'
 import { supabase } from '../../lib/supabase'
 import { Aviso, Borboleta, Botao } from '../../components/ui'
@@ -12,6 +12,9 @@ import {
   type Checkin, type Encontro, type Matricula, type Protocolo, type RespostasCheckin, type Video,
 } from '../../lib/programa'
 import { ListaProtocolo } from '../painel/programa'
+import { COR, Icone, Rosto, type Tema } from '../../components/icones'
+const TEMA_SINTOMA: Record<string, Tema> = { fogachos: 'fogacho', sono: 'sono', humor: 'humor', energia: 'metabolismo' }
+const CORES_VIDEO = [COR.humor[0], COR.alimentacao[0], COR.video[0], COR.sono[0]]
 import { RelatorioMapa } from '../painel/mapa'
 import type { Relatorio } from '../../lib/mapa'
 import { daPaciente, useVista } from '../../lib/vista'
@@ -79,12 +82,12 @@ export function Inicio() {
       </section>
 
       <div className="cartao divide-y divide-regra overflow-hidden">
-        {aberto && <Atalho to="/app/checkin" destaque icone={<MessageCircle className="w-5 h-5" strokeWidth={1.5} />} titulo="Seu check-in está aberto" texto="Dois minutos para contar como você está" />}
-        {!!pend?.length && <Atalho to="/app/questionarios" destaque icone={<ClipboardList className="w-5 h-5" strokeWidth={1.5} />} titulo={`${pend.length} questionário${pend.length > 1 ? 's' : ''} para responder`} texto="Leva poucos minutos e prepara seu encontro" />}
-        {!aberto && <Atalho to="/app/checkin" icone={<MessageCircle className="w-5 h-5" strokeWidth={1.5} />} titulo="Check-in" texto={proximoCheckin ? `Próximo em ${dataLonga(proximoCheckin.due_date)}` : 'Nenhum pendente agora'} />}
-        <Atalho to="/app/protocolo" icone={<ClipboardList className="w-5 h-5" strokeWidth={1.5} />} titulo="Meu protocolo" texto="Tudo o que foi orientado no encontro" />
-        <div className="px-4 py-3.5 flex items-center gap-3.5 min-h-[64px]">
-          <CalendarDays className="w-5 h-5 text-apoio shrink-0" strokeWidth={1.5} />
+        {aberto && <Atalho to="/app/checkin" destaque icone={<Icone tema="checkin" fundo tamanho={44} />} titulo="Seu check-in está aberto" texto="Dois minutos para contar como você está" />}
+        {!!pend?.length && <Atalho to="/app/questionarios" destaque icone={<Icone tema="questionario" fundo tamanho={44} />} titulo={`${pend.length} questionário${pend.length > 1 ? 's' : ''} para responder`} texto="Leva poucos minutos e prepara seu encontro" />}
+        {!aberto && <Atalho to="/app/checkin" icone={<Icone tema="checkin" fundo tamanho={44} />} titulo="Check-in" texto={proximoCheckin ? `Próximo em ${dataLonga(proximoCheckin.due_date)}` : 'Nenhum pendente agora'} />}
+        <Atalho to="/app/protocolo" icone={<Icone tema="protocolo" fundo tamanho={44} />} titulo="Meu protocolo" texto="Tudo o que foi orientado no encontro" />
+        <div className="px-4 py-3.5 flex items-center gap-3.5 min-h-[72px]">
+          <Icone tema="encontro" fundo tamanho={44} />
           <div className="flex-1">
             <p className="text-corpo font-medium">Próximo encontro</p>
             <p className="text-meta text-apoio">
@@ -101,9 +104,9 @@ export function Inicio() {
             <span className="text-meta text-apoio">{videos.length} vídeos curtos</span>
           </div>
           <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-2 snap-x">
-            {videos.map(v => (
-              <button key={v.id} onClick={() => setTocando(v)} className="snap-start shrink-0 w-44 aspect-[4/5] max-w-full rounded-lg bg-tom p-4 flex flex-col justify-between text-left hover:bg-ativo transition-colors">
-                <PlayCircle className="w-7 h-7 text-cafe/70" strokeWidth={1.2} />
+            {videos.map((v, i) => (
+              <button key={v.id} onClick={() => setTocando(v)} style={{ background: CORES_VIDEO[i % CORES_VIDEO.length] }} className="snap-start shrink-0 w-44 aspect-[4/5] max-w-full rounded-xl p-4 flex flex-col justify-between text-left hover:brightness-[.97] active:scale-[.99] transition">
+                <Icone tema="video" fundo tamanho={44} />
                 <span><span className="block text-bloco font-medium leading-snug">{v.title}</span>{v.duration_min && <span className="block text-meta text-apoio mt-1">{v.duration_min} min</span>}</span>
               </button>
             ))}
@@ -139,8 +142,8 @@ function Player({ v, aoFechar }: { v: Video; aoFechar: () => void }) {
 
 function Atalho({ to, icone, titulo, texto, destaque }: { to: string; icone: ReactNode; titulo: string; texto: string; destaque?: boolean }) {
   return (
-    <Link to={to} className="group px-4 py-3.5 flex items-center gap-3.5 min-h-[64px] hover:bg-tom/60 transition-colors">
-      <span className={`shrink-0 ${destaque ? 'text-terracota' : 'text-apoio'}`}>{icone}</span>
+    <Link to={to} className={`group px-4 py-3.5 flex items-center gap-3.5 min-h-[72px] transition-colors ${destaque ? 'bg-[#fbf0e9] hover:bg-[#f7e6db]' : 'hover:bg-tom/60'}`}>
+      {icone}
       <div className="flex-1 min-w-0"><p className={`text-corpo font-medium ${destaque ? 'text-[#7c3f29]' : ''}`}>{titulo}</p><p className="text-meta text-apoio truncate">{texto}</p></div>
       <ArrowRight className="w-4 h-4 text-apoio group-hover:translate-x-0.5 transition-transform" strokeWidth={1.6} />
     </Link>
@@ -190,19 +193,27 @@ export function CheckinPaciente() {
 
       {aberto && (
         <div className="flex flex-col gap-4">
-          {SINTOMAS.map(([k, rotulo, min, max]) => (
-            <fieldset key={k} className="cartao p-4">
-              <legend className="sr-only">{rotulo}</legend>
-              <div className="flex items-baseline justify-between"><p className="text-bloco font-medium">{rotulo}</p><p className="text-corpo tabular-nums">{a[k] != null ? `${a[k]} de 10` : ''}</p></div>
-              <div className="mt-3 grid grid-cols-11 gap-1" role="radiogroup" aria-label={rotulo}>
-                {Array.from({ length: 11 }, (_, n) => (
-                  <button key={n} role="radio" aria-checked={a[k] === n} aria-label={`${n}`} onClick={() => setA({ ...a, [k]: n })}
-                    className={`h-10 rounded text-[13px] tabular-nums transition-colors ${a[k] === n ? 'bg-cafe text-creme' : 'bg-tom text-texto hover:bg-ativo'}`}>{n}</button>
-                ))}
-              </div>
-              <div className="mt-1.5 flex justify-between text-meta text-apoio"><span>{min}</span><span>{max}</span></div>
-            </fieldset>
-          ))}
+          {SINTOMAS.map(([k, rotulo, min, max]) => {
+            const tema = TEMA_SINTOMA[k as string], [claro, forte] = COR[tema], v = a[k] as number | undefined
+            return (
+              <fieldset key={k} className="cartao p-4">
+                <legend className="sr-only">{rotulo}</legend>
+                <div className="flex items-center gap-3">
+                  <Icone tema={tema} fundo tamanho={44} />
+                  <p className="titulo-bloco flex-1">{rotulo}</p>
+                  {v != null && <span className="flex items-center gap-2"><span className="text-corpo tabular-nums">{v} de 10</span><Rosto valor={v} inverso={k === 'fogachos'} tamanho={32} /></span>}
+                </div>
+                <div className="mt-3 grid grid-cols-6 sm:grid-cols-11 gap-1.5" role="radiogroup" aria-label={rotulo}>
+                  {Array.from({ length: 11 }, (_, n) => (
+                    <button key={n} role="radio" aria-checked={v === n} aria-label={`${n} de 10`} onClick={() => setA({ ...a, [k]: n })}
+                      style={v === n ? { background: forte, color: '#fffdfa' } : { background: claro }}
+                      className="h-12 rounded-lg text-[17px] font-medium tabular-nums transition active:scale-95 text-texto">{n}</button>
+                  ))}
+                </div>
+                <div className="mt-2 flex justify-between text-meta text-apoio"><span>0 · {min}</span><span>{max} · 10</span></div>
+              </fieldset>
+            )
+          })}
 
           <fieldset className="cartao p-4 flex flex-col gap-2">
             <legend className="text-bloco font-medium float-left w-full mb-2">Conseguiu seguir o protocolo?</legend>
@@ -291,20 +302,21 @@ export function MeuProtocolo() {
 }
 
 /** Gráfico de linha simples, um valor por data. */
-function Linha({ pontos, unidade }: { pontos: Array<{ d: string; v: number }>; unidade: string }) {
+function Linha({ pontos, unidade, cor = COR.evolucao }: { pontos: Array<{ d: string; v: number }>; unidade: string; cor?: [string, string] }) {
   if (pontos.length < 2) return <p className="text-meta text-apoio">{pontos.length ? `${fmt(pontos[0].v)} ${unidade} em ${dataBR(pontos[0].d)}. O gráfico aparece a partir da segunda medida.` : 'Sem medidas ainda.'}</p>
-  const W = 320, H = 110, P = 8
+  const W = 320, H = 110, P = 10
   const vs = pontos.map(p => p.v), min = Math.min(...vs), max = Math.max(...vs), r = max - min || 1
   const t0 = new Date(pontos[0].d).getTime(), t1 = new Date(pontos[pontos.length - 1].d).getTime(), rt = t1 - t0 || 1
   const xy = pontos.map(p => [P + ((new Date(p.d).getTime() - t0) / rt) * (W - 2 * P), P + (1 - (p.v - min) / r) * (H - 2 * P)])
-  const [ux, uy] = xy[xy.length - 1]
+  const [ux] = xy[xy.length - 1]
   return (
     <svg viewBox={`0 0 ${W} ${H + 18}`} className="w-full" role="img" aria-label={`De ${fmt(pontos[0].v)} para ${fmt(pontos[pontos.length - 1].v)} ${unidade}`}>
       <line x1={P} x2={W - P} y1={H - P} y2={H - P} stroke="#e6ddd1" />
-      <polyline points={xy.map(p => p.join(',')).join(' ')} fill="none" stroke="#4e5839" strokeWidth="2" strokeLinejoin="round" />
-      <circle cx={ux} cy={uy} r="3.5" fill="#4e5839" />
-      <text x={P} y={H + 14} fontSize="11" fill="#6b5a4d" fontFamily="Jost">{dataBR(pontos[0].d)}</text>
-      <text x={W - P} y={H + 14} fontSize="11" fill="#6b5a4d" fontFamily="Jost" textAnchor="end">{dataBR(pontos[pontos.length - 1].d)}</text>
+      <polygon points={`${xy[0][0]},${H - P} ${xy.map(p => p.join(',')).join(' ')} ${ux},${H - P}`} fill={cor[0]} opacity=".7" />
+      <polyline points={xy.map(p => p.join(',')).join(' ')} fill="none" stroke={cor[1]} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+      {xy.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i === xy.length - 1 ? 5 : 3.5} fill={i === xy.length - 1 ? cor[1] : '#fffdfa'} stroke={cor[1]} strokeWidth="2" />)}
+      <text x={P} y={H + 14} fontSize="13" fill="#5c4c40" fontFamily="Jost">{dataBR(pontos[0].d)}</text>
+      <text x={W - P} y={H + 14} fontSize="13" fill="#5c4c40" fontFamily="Jost" textAnchor="end">{dataBR(pontos[pontos.length - 1].d)}</text>
     </svg>
   )
 }
@@ -331,7 +343,7 @@ export function Evolucao() {
     )
   }
 
-  const cards: Array<[string, string, string]> = [['peso', 'Peso', 'kg'], ['cintura', 'Cintura', 'cm'], ['pgc', 'Gordura corporal', '%'], ['pas', 'Pressão sistólica', 'mmHg']]
+  const cards: Array<[string, string, string, Tema]> = [['peso', 'Peso', 'kg', 'peso'], ['cintura', 'Cintura', 'cm', 'cintura'], ['pgc', 'Gordura corporal', '%', 'gordura'], ['pas', 'Pressão sistólica', 'mmHg', 'coracao']]
   return (
     <div className="px-4 pt-6 flex flex-col gap-5">
       <Cabecalho titulo="Minha evolução" sub="Suas medidas ao longo do programa. Cada encontro acrescenta um ponto." />
@@ -339,7 +351,7 @@ export function Evolucao() {
         <section className="cartao divide-y divide-regra overflow-hidden" aria-label="Mapas da saúde">
           {mapas.map(m => (
             <button key={m.id} onClick={() => setVer(m.id)} className="w-full text-left px-4 py-3.5 flex items-center gap-3.5 hover:bg-tom/60">
-              <Borboleta className="w-6 h-5 text-cobre shrink-0" />
+              <Icone tema="evolucao" fundo tamanho={44} />
               <div className="flex-1"><p className="text-corpo font-medium">Mapa da Saúde de {dataLonga(m.finished_at.slice(0, 10))}</p><p className="text-meta text-apoio">Nota {m.snapshot?.nota ?? '·'} de 100 · revisado pela Dra. Bartira</p></div>
               <ArrowRight className="w-4 h-4 text-apoio" />
             </button>
@@ -347,16 +359,17 @@ export function Evolucao() {
         </section>
       )}
       <div className="grid gap-3">
-        {cards.map(([code, nome, un]) => {
+        {cards.map(([code, nome, un, tema]) => {
           const s = serie(code), u = s[s.length - 1], p = s[0]
           return (
             <section key={code} className="cartao p-4" aria-label={nome}>
-              <div className="flex items-baseline justify-between gap-3">
-                <p className="text-bloco font-medium">{nome}</p>
-                {u && <p className="text-[22px] tabular-nums leading-none">{fmt(u.v)}<span className="text-meta text-apoio ml-1">{un}</span></p>}
+              <div className="flex items-center justify-between gap-3">
+                <Icone tema={tema} fundo tamanho={44} />
+                <p className="titulo-bloco flex-1">{nome}</p>
+                {u && <p className="text-[26px] tabular-nums leading-none">{fmt(u.v)}<span className="text-meta text-apoio ml-1">{un}</span></p>}
               </div>
               {u && p && s.length > 1 && <p className="text-meta text-apoio mt-1">{u.v - p.v > 0 ? '+' : ''}{fmt(u.v - p.v)} {un} desde {dataBR(p.d)}</p>}
-              <div className="mt-3"><Linha pontos={s} unidade={un} /></div>
+              <div className="mt-3"><Linha pontos={s} unidade={un} cor={COR[tema]} /></div>
             </section>
           )
         })}

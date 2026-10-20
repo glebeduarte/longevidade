@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../auth/AuthProvider'
 import { Botao } from '../../components/ui'
-import { TOM } from '../../components/regua'
+import { COR, Icone, temaDoDominio } from '../../components/icones'
 import { NIVEL, dataBR, num, type Nivel } from '../../lib/faixas'
 import { DOMINIOS, FATORES_VAZIO, PASSOS, pior, respondido, type Fatores } from '../../lib/clinica'
 
@@ -43,9 +43,9 @@ export function AbaEstilo({ pid, questionarios }: { pid: string; questionarios: 
           ) : (
             <div className="grid sm:grid-cols-2 gap-3 px-5 pb-5 pt-2">
               {[...esquerda, ...direita].map(d => (
-                <div key={d.nome} className="painel-tom px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${d.nivel ? TOM[d.nivel] : 'bg-areia'}`} aria-hidden="true" />
+                <div key={d.nome} className="rounded-lg px-4 py-3" style={{ background: COR[temaDoDominio(d.nome)][0] + '80' }}>
+                  <div className="flex items-center gap-2.5">
+                    <Icone tema={temaDoDominio(d.nome)} fundo tamanho={36} className="!bg-folha" />
                     <h3 className="text-corpo font-medium flex-1">{d.nome}</h3>
                     <span className={`text-meta ${d.nivel ? NIVEL[d.nivel].cor : 'text-apoio'}`}>{d.nivel ? NIVEL[d.nivel].rotulo : d.itens.length ? 'Registro' : 'Falta responder'}</span>
                   </div>

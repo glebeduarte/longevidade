@@ -4,11 +4,13 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../auth/AuthProvider'
 import { Aviso, Bloco, Botao, Selo, Vazio } from '../../components/ui'
 import { dataBR } from '../../lib/faixas'
+import { COR, Icone, type Tema } from '../../components/icones'
 import {
   ADESAO, LOCAL, STATUS_ENCONTRO, TIPO_ITEM, dataHora, dia, hojeISO, mesDoPrograma,
   type Checkin, type Encontro, type ItemProtocolo, type Matricula, type Programa, type Protocolo,
 } from '../../lib/programa'
 
+const TEMA_ITEM: Record<ItemProtocolo['tipo'], Tema> = { medicacao: 'protocolo', habito: 'atividade', exame: 'evolucao', orientacao: 'checkin' }
 const preco = (c: number) => (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 
 export function AbaPrograma({ pid, nome, podeGerir, clinico, aoEncerrar }:
@@ -269,8 +271,8 @@ export function ListaProtocolo({ itens }: { itens: ItemProtocolo[] }) {
   return (
     <div className="grid sm:grid-cols-2 gap-3">
       {(Object.keys(TIPO_ITEM) as ItemProtocolo['tipo'][]).filter(t => itens.some(i => i.tipo === t)).map(t => (
-        <div key={t} className="painel-tom px-4 py-3">
-          <p className="rotulo">{TIPO_ITEM[t]}</p>
+        <div key={t} className="rounded-lg px-4 py-3" style={{ background: COR[TEMA_ITEM[t]][0] + '99' }}>
+          <p className="flex items-center gap-2 text-corpo font-medium" style={{ color: COR[TEMA_ITEM[t]][1] }}><Icone tema={TEMA_ITEM[t]} tamanho={26} />{TIPO_ITEM[t]}</p>
           <ul className="mt-1">
             {itens.filter(i => i.tipo === t).map((i, k) => (
               <li key={k} className="py-1.5"><p className="text-corpo font-medium">{i.titulo}</p>{i.detalhe && <p className="text-meta text-apoio">{i.detalhe}</p>}</li>
