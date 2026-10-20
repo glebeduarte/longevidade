@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Check, Copy, Plus, Search, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../auth/AuthProvider'
-import { Aviso, Botao } from '../../components/ui'
+import { Botao } from '../../components/ui'
 import { dataBR } from '../../lib/faixas'
 import { calculados, idadeEm, nivelDe, ultimas, type Indicador, type Medida } from '../../lib/clinica'
 
