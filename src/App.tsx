@@ -5,6 +5,8 @@ import { DefinirSenha, Entrar, Esqueci } from './pages/auth'
 import { EmBreve, Inicio } from './pages/app/app'
 import { Encontros, Equipe, Hoje, Pacientes } from './pages/painel/painel'
 import { FichaPaciente } from './pages/painel/ficha'
+import { ImprimirMapa } from './pages/painel/mapa'
+import { Faixas } from './pages/painel/faixas'
 import { Questionarios, Responder } from './pages/app/questionarios'
 import Placeholder from './pages/Placeholder'
 
@@ -36,7 +38,9 @@ export default function App() {
               <Route path="pacientes/:id" element={<FichaPaciente />} />
               <Route path="equipe" element={<Equipe />} />
               <Route path="agenda" element={<Encontros />} />
+              <Route path="faixas" element={<Faixas />} />
             </Route>
+            <Route path="/painel/pacientes/:id/mapa/:mapaId" element={<ImprimirMapa />} />
           </Route>
 
           <Route path="*" element={<Placeholder rotulo="404" titulo="Página não encontrada" texto="Volte para o início." />} />

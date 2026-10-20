@@ -21,3 +21,16 @@
   .entra { animation: entra .5s cubic-bezier(.2,.7,.2,1) both; }
   @keyframes entra { from { opacity: .001; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 }
+
+@media print {
+  @page { size: A4; margin: 14mm; }
+  body { background: #fff; }
+  .imprimir .cartao { box-shadow: none; background: #fff; }
+  .imprimir .pagina { break-inside: avoid; }
+  .imprimir .relatorio > .pagina + .pagina { break-before: page; }
+  .imprimir * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+@layer utilities {
+  .tabular-nums { font-variant-numeric: lining-nums tabular-nums; }
+}

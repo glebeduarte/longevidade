@@ -5,25 +5,41 @@ import { supabase } from '../../lib/supabase'
 import { can, useAuth } from '../../auth/AuthProvider'
 import { Aviso, Botao, Campo, Iniciais, Selo } from '../../components/ui'
 import { NIVEL, dataBR, num, type Nivel } from '../../lib/faixas'
+import { AbaAtendimento } from './atendimento'
+import { AbaExames } from './exames'
+import { AbaEstilo } from './estilo'
+import { AbaMapa } from './mapa'
 
 type Paciente = { id: string; full_name: string; email: string; phone: string | null; birth_date: string | null; location: string | null; status: string; user_id: string | null }
 type Questionario = { id: string; name: string; domain: string; sort: number }
 type Envio = { id: string; status: string; created_at: string; questionnaire_id: string; questionnaires: { name: string; domain: string } | null }
 type Resposta = { id: string; questionnaire_id: string; score: number | null; band_label: string | null; band_level: Nivel | null; flagged: boolean; submitted_at: string; questionnaires: { name: string; domain: string } | null }
 
+type Aba = 'atendimento' | 'exames' | 'estilo' | 'mapa'
+const ABAS: Array<[Aba, string]> = [['atendimento', 'Atendimento'], ['exames', 'Exames e medidas'], ['estilo', 'Estilo de vida'], ['mapa', 'Mapa da saúde']]
+
+function SemAcesso() {
+  return <Aviso>Esta parte do prontuário fica visível para a médica e para quem tem acesso clínico.</Aviso>
+}
+
 export function FichaPaciente() {
   const { id } = useParams()
   const { profile, perms } = useAuth()
   const [p, setP] = useState<Paciente | null>(null)
-  const [aba, setAba] = useState<'questionarios' | 'bio'>('questionarios')
+  const [aba, setAba] = useState<Aba>(() => (new URLSearchParams(location.search).get('aba') as Aba) || 'atendimento')
+  const [mapa, setMapa] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
     supabase.from('patients').select('*').eq('id', id).maybeSingle().then(({ data }) => setP(data))
     supabase.rpc('log_access', { pid: id, p_resource: 'ficha' })
+    supabase.from('health_maps').select('status').eq('patient_id', id).eq('status', 'em_andamento').maybeSingle().then(({ data }) => setMapa(data ? 'em_andamento' : null))
   }, [id])
 
   if (!p) return <p className="rotulo">Carregando</p>
+  const clinico = can(profile, perms, 'can_view_clinical')
+  const podeLancar = can(profile, perms, 'can_upload_measurements')
+  const trocar = (k: Aba) => { setAba(k); history.replaceState(null, '', `?aba=${k}`) }
   const idade = p.birth_date ? Math.floor((Date.now() - new Date(p.birth_date).getTime()) / 3.15576e10) : null
 
   return (
@@ -37,24 +53,28 @@ export function FichaPaciente() {
             {[idade != null ? `${idade} anos` : null, p.location === 'spinel' ? 'Instituto Spinel' : p.location === 'equilibre' ? 'Clínica Equilibre' : null, p.email].filter(Boolean).join(' · ')}
           </p>
         </div>
-        {p.user_id ? <Selo tom="ok">Acesso ativo</Selo> : <Selo tom="alerta">Convite enviado</Selo>}
+        <div className="flex flex-wrap gap-2">
+          {mapa && <button onClick={() => trocar('mapa')}><Selo tom="alerta">Mapa em andamento</Selo></button>}
+          {p.user_id ? <Selo tom="ok">Acesso ativo</Selo> : <Selo>Convite enviado</Selo>}
+        </div>
       </div>
 
-      <div role="tablist" className="flex gap-1 border-b border-areia">
-        {([['questionarios', 'Questionários'], ['bio', 'Bioimpedância']] as const).map(([k, r]) => (
-          <button key={k} role="tab" aria-selected={aba === k} onClick={() => setAba(k)}
-            className={`px-5 h-12 text-sm -mb-px border-b-2 transition-colors ${aba === k ? 'border-cafe text-texto' : 'border-transparent text-apoio hover:text-texto'}`}>{r}</button>
+      <div role="tablist" aria-label="Seções da ficha" className="flex gap-1 border-b border-areia overflow-x-auto">
+        {ABAS.map(([k, r]) => (
+          <button key={k} role="tab" aria-selected={aba === k} onClick={() => trocar(k)}
+            className={`px-5 h-12 text-sm -mb-px border-b-2 whitespace-nowrap transition-colors ${aba === k ? 'border-cafe text-texto' : 'border-transparent text-apoio hover:text-texto'}`}>{r}</button>
         ))}
       </div>
 
-      {aba === 'questionarios'
-        ? <AbaQuestionarios pid={p.id} podeEnviar={can(profile, perms, 'can_manage_patients')} />
-        : <AbaBio pid={p.id} podeLancar={can(profile, perms, 'can_upload_measurements')} />}
+      {aba === 'atendimento' && (clinico ? <AbaAtendimento pid={p.id} nascimento={p.birth_date} /> : <SemAcesso />)}
+      {aba === 'exames' && <AbaExames pid={p.id} nascimento={p.birth_date} podeLancar={podeLancar} bio={<AbaBio pid={p.id} podeLancar={podeLancar} />} />}
+      {aba === 'estilo' && <AbaEstilo pid={p.id} questionarios={<AbaQuestionarios pid={p.id} podeEnviar={can(profile, perms, 'can_manage_patients')} />} />}
+      {aba === 'mapa' && (clinico ? <AbaMapa pid={p.id} /> : <SemAcesso />)}
     </div>
   )
 }
 
-function AbaQuestionarios({ pid, podeEnviar }: { pid: string; podeEnviar: boolean }) {
+export function AbaQuestionarios({ pid, podeEnviar }: { pid: string; podeEnviar: boolean }) {
   const { session } = useAuth()
   const [todos, setTodos] = useState<Questionario[]>([])
   const [envios, setEnvios] = useState<Envio[]>([])
@@ -90,7 +110,7 @@ function AbaQuestionarios({ pid, podeEnviar }: { pid: string; podeEnviar: boolea
   return (
     <div className="grid xl:grid-cols-[1.5fr_1fr] gap-6 items-start">
       <section className="cartao">
-        <div className="px-6 h-16 flex items-center border-b border-areia/70"><h2 className="font-display text-2xl">Resultados</h2></div>
+        <div className="px-6 h-16 flex items-center border-b border-areia/70"><h2 className="font-display text-2xl">Histórico de respostas</h2></div>
         {porQ.size === 0 ? (
           <p className="p-6 text-sm text-apoio">Nenhum questionário respondido ainda.</p>
         ) : (
@@ -166,7 +186,7 @@ const CAMPOS: Array<[string, string, string]> = [
 const SEG: Array<[string, string]> = [['braco_d', 'Braço direito'], ['braco_e', 'Braço esquerdo'], ['tronco', 'Tronco'], ['perna_d', 'Perna direita'], ['perna_e', 'Perna esquerda']]
 const DESTAQUE = ['weight', 'smm', 'fat_mass', 'pbf', 'visceral_level', 'inbody_score']
 
-function AbaBio({ pid, podeLancar }: { pid: string; podeLancar: boolean }) {
+export function AbaBio({ pid, podeLancar }: { pid: string; podeLancar: boolean }) {
   const { session } = useAuth()
   const [lista, setLista] = useState<Bio[]>([])
   const [abrir, setAbrir] = useState(false)

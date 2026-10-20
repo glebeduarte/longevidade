@@ -1,5 +1,5 @@
 import { Navigate, NavLink, Outlet } from 'react-router-dom'
-import { CalendarDays, ClipboardList, Home, LineChart, LogOut, MessageCircle, Sun, Users, UserCog } from 'lucide-react'
+import { CalendarDays, ClipboardList, SlidersHorizontal, Home, LineChart, LogOut, MessageCircle, Sun, Users, UserCog } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { can, useAuth, type Perms } from '../auth/AuthProvider'
 import { Consentimento } from '../pages/auth'
@@ -62,6 +62,7 @@ const itensPainel: Array<{ to: string; rotulo: string; icone: LucideIcon; precis
   { to: '/painel', rotulo: 'Hoje', icone: Sun, grupo: 'Rotina' },
   { to: '/painel/pacientes', rotulo: 'Pacientes', icone: Users, precisa: 'can_manage_patients', grupo: 'Rotina' },
   { to: '/painel/agenda', rotulo: 'Encontros', icone: CalendarDays, precisa: 'can_manage_patients', grupo: 'Rotina' },
+  { to: '/painel/faixas', rotulo: 'Faixas dos indicadores', icone: SlidersHorizontal, precisa: 'medica', grupo: 'Gestão' },
   { to: '/painel/equipe', rotulo: 'Equipe e acessos', icone: UserCog, precisa: 'medica', grupo: 'Gestão' },
 ]
 
