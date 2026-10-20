@@ -69,6 +69,7 @@ export function Hoje() {
   const [fila, setFila] = useState<Checkin[]>([])
   const [agenda, setAgenda] = useState<Encontro[]>([])
   const [turma, setTurma] = useState<Acompanhada[] | null>(null)
+  const [todas, setTodas] = useState(false)
 
   const carregar = () => {
     supabase.from('clinical_alerts').select('id, message, created_at, patient_id, patients(full_name)').is('resolved_at', null).order('created_at')
@@ -107,6 +108,13 @@ export function Hoje() {
     quest: envios.filter(e => e.patient_id === pid).length,
     encontro: agenda.find(e => e.patient_id === pid),
   })
+
+  // Pacientes com pendência primeiro; com muitas, mostra só as que pedem ação até abrir "Ver todas"
+  const LIMITE = 6
+  const pend = (pid: string) => { const x = porPaciente(pid); return (x.reacao ? 8 : 0) + (x.checkin ? 4 : 0) + (x.mapa ? 2 : 0) + (x.quest ? 1 : 0) }
+  const ativasT = (turma ?? []).filter(t => t.patients?.status === 'ativa').sort((a, b) => pend(b.patient_id) - pend(a.patient_id))
+  const comPendencia = ativasT.filter(t => pend(t.patient_id) > 0)
+  const visiveis = todas || ativasT.length <= LIMITE ? ativasT : comPendencia.slice(0, LIMITE)
 
   return (
     <div className="flex flex-col gap-7">
@@ -147,12 +155,17 @@ export function Hoje() {
       <section aria-labelledby="t-turma" className="flex flex-col gap-3">
         <div className="flex items-center gap-2.5">
           <Icone tema="pessoas" fundo tamanho={36} />
-          <h2 id="t-turma" className="titulo-bloco flex-1">Pacientes em acompanhamento</h2>
-          <Link to="/painel/pacientes" className="text-meta link">Ver todas</Link>
+          <h2 id="t-turma" className="titulo-bloco flex-1">Pacientes em acompanhamento <span className="text-apoio font-normal">{ativasT.length}</span></h2>
+          {ativasT.length > LIMITE && (
+            <button onClick={() => setTodas(!todas)} className="text-meta link">{todas ? 'Mostrar só pendências' : `Ver todas (${ativasT.length})`}</button>
+          )}
         </div>
         {turma && turma.length === 0 && <Vazio titulo="Nenhuma paciente matriculada" texto="Matricule pela aba Programa da ficha." />}
+        {!todas && ativasT.length > LIMITE && (
+          <p className="text-meta text-apoio -mt-1">{comPendencia.length ? `Mostrando ${Math.min(comPendencia.length, LIMITE)} com pendência. ${ativasT.length - comPendencia.length} estão em dia.` : 'Todas em dia.'}</p>
+        )}
         <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
-          {(turma ?? []).filter(t => t.patients?.status === 'ativa').map(t => {
+          {visiveis.map(t => {
             const total = t.programs?.duration_months ?? 6
             const mes = Math.min(total, Math.max(1, Math.ceil((Date.now() - new Date(`${t.start_date}T12:00`).getTime()) / (30.44 * 864e5))))
             const st = porPaciente(t.patient_id)
