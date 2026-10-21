@@ -144,7 +144,7 @@ export function Vazio({ titulo, texto, acao }: { titulo: string; texto?: string;
 /** Abas de seção: sublinhado café, rolam de lado no celular. */
 export function Abas<K extends string>({ itens, atual, aoTrocar, rotulo }: { itens: Array<[K, string, ReactNode?]>; atual: K; aoTrocar: (k: K) => void; rotulo: string }) {
   return (
-    <div role="tablist" aria-label={rotulo} className="flex gap-6 border-b border-borda overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+    <div role="tablist" aria-label={rotulo} className="flex flex-wrap gap-x-6 gap-y-1 border-b border-borda">
       {itens.map(([k, r, extra]) => (
         <button key={k} role="tab" aria-selected={atual === k} onClick={() => aoTrocar(k)}
           className={`relative h-11 text-corpo whitespace-nowrap inline-flex items-center gap-2 transition-colors ${atual === k ? 'text-texto font-medium' : 'text-apoio hover:text-texto'}`}>

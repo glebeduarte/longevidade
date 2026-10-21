@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, LogOut, X } from 'lucide-react'
 import { useAuth } from '../../auth/AuthProvider'
@@ -51,6 +51,7 @@ export function Inicio() {
   const { m, aberto, proximoCheckin, proximo } = usePrograma()
   const [videos, setVideos] = useState<Video[]>([])
   const [tocando, setTocando] = useState<Video | null>(null)
+  const trilho = useRef<HTMLDivElement>(null)
   useEffect(() => { supabase.from('videos').select('*').eq('active', true).order('sort').then(({ data }) => setVideos((data as Video[]) ?? [])) }, [])
 
   const nome = (vista ? vista.nome : profile?.full_name)?.split(' ')[0]
@@ -99,11 +100,19 @@ export function Inicio() {
 
       {videos.length > 0 && (
         <section className="flex flex-col gap-3" aria-labelledby="t-videos">
-          <div className="flex items-baseline justify-between">
-            <h2 id="t-videos" className="titulo-bloco">Vídeos para lembrar</h2>
-            <span className="text-meta text-apoio">{videos.length} vídeos curtos</span>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 id="t-videos" className="titulo-bloco">Vídeos para lembrar</h2>
+              <span className="text-meta text-apoio">{videos.length} vídeos curtos</span>
+            </div>
+            {videos.length > 1 && (
+              <div className="flex gap-2">
+                <button aria-label="Vídeos anteriores" onClick={() => trilho.current?.scrollBy({ left: -200, behavior: 'smooth' })} className="w-12 h-12 rounded-full border border-borda bg-folha grid place-items-center hover:bg-tom"><ArrowLeft className="w-5 h-5" /></button>
+                <button aria-label="Próximos vídeos" onClick={() => trilho.current?.scrollBy({ left: 200, behavior: 'smooth' })} className="w-12 h-12 rounded-full border border-borda bg-folha grid place-items-center hover:bg-tom"><ArrowRight className="w-5 h-5" /></button>
+              </div>
+            )}
           </div>
-          <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-2 snap-x">
+          <div ref={trilho} className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth touch-pan-x">
             {videos.map((v, i) => (
               <button key={v.id} onClick={() => setTocando(v)} style={{ background: CORES_VIDEO[i % CORES_VIDEO.length] }} className="snap-start shrink-0 w-44 aspect-[4/5] max-w-full rounded-xl p-4 flex flex-col justify-between text-left hover:brightness-[.97] active:scale-[.99] transition">
                 <Icone tema="video" fundo tamanho={44} />
@@ -159,20 +168,25 @@ function Cabecalho({ titulo, sub }: { titulo: string; sub?: string }) {
   )
 }
 
+const CHAVE_RASCUNHO = 'longevidade:rascunho-checkin'
+
 /** Check-in da paciente: 4 escalas, adesão, reação e recado. */
 export function CheckinPaciente() {
   const { aberto, proximoCheckin, checkins, carregar } = usePrograma()
   const [a, setA] = useState<RespostasCheckin>({ adesao: undefined, reacao: false })
   const [fase, setFase] = useState<'form' | 'enviando' | 'ok' | 'erro'>('form')
+  const [erro, setErro] = useState('')
+  useEffect(() => { try { const r = localStorage.getItem(CHAVE_RASCUNHO); if (r) setA(JSON.parse(r)) } catch { /* sem rascunho */ } }, [])
+  useEffect(() => { try { localStorage.setItem(CHAVE_RASCUNHO, JSON.stringify(a)) } catch { /* sem armazenamento */ } }, [a])
   const historico = checkins.filter(c => c.status === 'respondido' || c.status === 'atendido').reverse().slice(0, 6)
   const completo = SINTOMAS.every(([k]) => a[k] != null) && a.adesao && (!a.reacao || (a.reacao_texto ?? '').trim())
 
   const vista = useVista()
   async function enviar() {
-    if (!aberto || vista) return
     setFase('enviando')
-    const { error } = await supabase.rpc('responder_checkin', { cid: aberto.id, p_answers: a })
-    if (error) return setFase('erro')
+    const { error } = await supabase.rpc('salvar_checkin', { cid: aberto?.id ?? null, p_answers: a, pid: vista?.pid ?? null })
+    if (error) { setErro(error.message); return setFase('erro') }
+    try { localStorage.removeItem(CHAVE_RASCUNHO) } catch { /* sem armazenamento */ }
     setFase('ok'); carregar()
   }
 
@@ -189,9 +203,9 @@ export function CheckinPaciente() {
 
   return (
     <div className="px-4 pt-6 flex flex-col gap-5">
-      <Cabecalho titulo="Check-in" sub={aberto ? `Como você esteve nos últimos dias? Referente a ${dataLonga(aberto.due_date)}.` : proximoCheckin ? `O próximo abre em ${dataLonga(proximoCheckin.due_date)}.` : 'Nenhum check-in aberto agora.'} />
+      <Cabecalho titulo="Check-in" sub={aberto ? `Como você esteve nos últimos dias? Referente a ${dataLonga(aberto.due_date)}.` : `Conte como você está hoje.${proximoCheckin ? ` O próximo agendado abre em ${dataLonga(proximoCheckin.due_date)}.` : ''}`} />
 
-      {aberto && (
+      {(
         <div className="flex flex-col gap-4">
           {SINTOMAS.map(([k, rotulo, min, max]) => {
             const tema = TEMA_SINTOMA[k as string], [claro, forte] = COR[tema], v = a[k] as number | undefined
@@ -246,9 +260,10 @@ export function CheckinPaciente() {
             <textarea id="msg" rows={3} value={a.mensagem ?? ''} onChange={e => setA({ ...a, mensagem: e.target.value })} className="campo !h-auto py-2.5 text-[15px]" />
           </div>
 
-          {fase === 'erro' && <Aviso tipo="erro">Não foi possível enviar. Confira sua conexão e tente de novo.</Aviso>}
-          {vista ? <Aviso>Modo visualização: o envio fica desativado para não registrar respostas no lugar da paciente.</Aviso>
-            : <Botao className="w-full !h-12" disabled={!completo || fase === 'enviando'} onClick={enviar}>{fase === 'enviando' ? 'Enviando' : 'Enviar check-in'}</Botao>}
+          {fase === 'erro' && <Aviso tipo="erro">Não foi possível salvar{erro ? ` (${erro})` : ''}. Suas respostas continuam guardadas neste aparelho, tente de novo.</Aviso>}
+          {vista && <Aviso>Modo visualização: ao salvar, o check-in fica registrado na ficha desta paciente.</Aviso>}
+          {!completo && <p className="text-meta text-apoio">Responda as notas e a pergunta do protocolo para liberar o botão.</p>}
+          <Botao className="w-full !h-12" disabled={!completo || fase === 'enviando'} onClick={enviar}>{fase === 'enviando' ? 'Salvando' : 'Salvar check-in'}</Botao>
         </div>
       )}
 

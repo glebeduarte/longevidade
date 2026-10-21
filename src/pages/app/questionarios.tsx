@@ -59,6 +59,7 @@ export function Responder() {
   const [resp, setResp] = useState<Record<string, number>>({})
   const [numero, setNumero] = useState('')
   const vistaAtiva = !!useVista()
+  const [erro, setErro] = useState('')
   const [fase, setFase] = useState<'respondendo' | 'enviando' | 'fim' | 'apoio' | 'erro'>('respondendo')
 
   useEffect(() => {
@@ -77,12 +78,11 @@ export function Responder() {
   const total = perguntas.length
 
   async function enviar(final: Record<string, number>) {
-    if (vistaAtiva) { setFase('fim'); return }
     setFase('enviando')
     const { error } = await supabase.from('questionnaire_responses').insert({
       assignment_id: envio!.id, patient_id: pacienteId, questionnaire_id: envio!.questionnaire_id, answers: final,
     })
-    if (error) return setFase('erro')
+    if (error) { setErro(error.message); return setFase('erro') }
     const alerta = perguntas.some(p => p.alert_if_gt != null && (final[p.id] ?? 0) > p.alert_if_gt)
     setFase(alerta ? 'apoio' : 'fim')
   }
@@ -115,7 +115,7 @@ export function Responder() {
       <div className="px-4 pt-8 flex flex-col gap-6 items-start">
         <Check className={`w-7 h-7 ${fase === 'fim' ? 'text-oliva' : 'text-terracota'}`} />
         <h1 className="titulo-pagina !text-[28px] leading-tight">{fase === 'fim' ? 'Respostas enviadas' : 'Não foi possível enviar'}</h1>
-        <p className="text-apoio">{fase === 'fim' ? 'A Dra. Bartira vai analisar junto com seus exames no encontro.' : 'Confira sua conexão e tente de novo.'}</p>
+        <p className="text-apoio">{fase === 'fim' ? 'A Dra. Bartira vai analisar junto com seus exames no encontro.' : `Confira sua conexão e tente de novo.${erro ? ` (${erro})` : ''}`}</p>
         <Botao onClick={() => nav('/app/questionarios')}>{fase === 'fim' ? 'Continuar' : 'Voltar'}</Botao>
       </div>
     )
@@ -130,7 +130,7 @@ export function Responder() {
           <div className="mt-2 h-1.5 rounded-full bg-tom overflow-hidden"><div className="h-1.5 rounded-full bg-cafe transition-all" style={{ width: `${((i + 1) / total) * 100}%` }} /></div>
         </div>
       </div>
-      {vistaAtiva && <Aviso>Modo visualização: as respostas não são gravadas.</Aviso>}
+      {vistaAtiva && <Aviso>Modo visualização: as respostas ficam registradas na ficha desta paciente.</Aviso>}
       {i === 0 && envio.questionnaires?.instructions && <p className="text-corpo text-apoio leading-relaxed -mb-2">{envio.questionnaires.instructions}</p>}
       <h1 key={q.id} className="text-[22px] leading-snug font-medium entra">{q.text}</h1>
       {q.kind === 'numero' ? (
