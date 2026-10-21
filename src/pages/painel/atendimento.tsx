@@ -1,3 +1,4 @@
+import { ReceitasEquipe } from '../../components/receitas'
 import { useEffect, useMemo, useState } from 'react'
 import { Check, Copy, Plus, Search, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
@@ -9,7 +10,7 @@ import { calculados, idadeEm, nivelDe, ultimas, type Indicador, type Medida } fr
 
 type Nota = { id: string; kind: 'evolucao' | 'anotacao'; noted_at: string; body: string; author: string | null; profiles: { full_name: string | null } | null }
 type Problema = { id: string; title: string; detail: string | null; active: boolean; created_at: string; resolved_at: string | null }
-type Conduta = { id: string; kind: 'medicacao' | 'plano'; title: string; detail: string | null; active: boolean; started_at: string; ended_at: string | null }
+type Conduta = { id: string; kind: 'medicacao' | 'plano'; title: string; detail: string | null; active: boolean; started_at: string; ended_at: string | null; prescription_id?: string | null }
 
 const MODELOS: Record<string, string> = {
   'Primeiro encontro': `Queixa principal:
@@ -215,7 +216,7 @@ function Condutas({ pid }: { pid: string }) {
                   <li key={c.id} className={`group py-2.5 border-b border-regra last:border-0 flex gap-3 ${c.active ? '' : 'opacity-55'}`}>
                     <div className="flex-1 min-w-0">
                       <p className="text-[15px]">{c.title}</p>
-                      <p className="text-meta text-apoio">{c.detail ? `${c.detail} · ` : ''}desde {dataBR(c.started_at)}{c.ended_at ? ` até ${dataBR(c.ended_at)}` : ''}</p>
+                      <p className="text-meta text-apoio">{c.prescription_id ? 'Com receita · ' : ''}{c.detail ? `${c.detail} · ` : ''}desde {dataBR(c.started_at)}{c.ended_at ? ` até ${dataBR(c.ended_at)}` : ''}</p>
                     </div>
                     {c.active && (
                       <button onClick={() => encerrar(c)} aria-label={`Encerrar ${c.title}`}
@@ -247,6 +248,7 @@ function Condutas({ pid }: { pid: string }) {
           )
         })}
       </div>
+      <ReceitasEquipe pid={pid} aoMudar={carregar} />
     </section>
   )
 }

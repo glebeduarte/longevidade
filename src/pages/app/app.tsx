@@ -1,3 +1,4 @@
+import { ReceitasPaciente } from '../../components/receitas'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, LogOut, X } from 'lucide-react'
@@ -319,6 +320,7 @@ export function MeuProtocolo() {
   return (
     <div className="px-4 pt-6 flex flex-col gap-5">
       <Cabecalho titulo="Meu protocolo" sub={atual ? `Versão ${atual.version}, atualizada em ${dataLonga(atual.published_at!)}.` : undefined} />
+      <ReceitasPaciente />
       {lista === null ? <p className="text-corpo text-apoio">Carregando</p> : !atual ? (
         <div className="cartao p-6 text-center flex flex-col items-center gap-2"><Borboleta className="w-10 h-7 text-cobre" /><p className="text-corpo text-apoio">Seu protocolo aparece aqui depois do primeiro encontro.</p></div>
       ) : (<>
