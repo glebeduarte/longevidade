@@ -14,6 +14,8 @@ type Body = {
   redirect_to: string
   patient?: { phone?: string; birth_date?: string; location?: 'equilibre' | 'spinel' }
   perms?: Record<string, boolean | string | null>
+  /** Cadastro manual: cria o acesso já confirmado, com esta senha, sem e-mail de convite. Só para equipe. */
+  senha?: string
 }
 
 const json = (b: unknown, status = 200) =>
@@ -48,17 +50,29 @@ Deno.serve(async (req) => {
       if (error) return json({ erro: 'Não foi possível cadastrar a paciente.' }, 400)
     }
 
-    const { data: inv, error: invErr } = await admin.auth.admin.inviteUserByEmail(email, {
-      data: { full_name: b.full_name.trim() },
-      redirectTo: b.redirect_to,
-    })
-    if (invErr || !inv.user) return json({ erro: 'Não foi possível enviar o convite. Confira o e-mail.' }, 400)
+    let inv: { user: { id: string } | null }
+    if (b.senha) {
+      if (b.role !== 'equipe') return json({ erro: 'Cadastro com senha é só para a equipe.' }, 400)
+      if (b.senha.length < 8) return json({ erro: 'A senha precisa ter pelo menos 8 caracteres.' }, 400)
+      const { data, error } = await admin.auth.admin.createUser({
+        email, password: b.senha, email_confirm: true, user_metadata: { full_name: b.full_name.trim() },
+      })
+      if (error || !data.user) return json({ erro: error?.message?.includes('already') ? 'Já existe um acesso com este e-mail.' : 'Não foi possível criar o acesso.' }, 400)
+      inv = data
+    } else {
+      const { data, error: invErr } = await admin.auth.admin.inviteUserByEmail(email, {
+        data: { full_name: b.full_name.trim() },
+        redirectTo: b.redirect_to,
+      })
+      if (invErr || !data.user) return json({ erro: 'Não foi possível enviar o convite. Confira o e-mail.' }, 400)
+      inv = data
+    }
 
     if (b.role === 'equipe') {
-      await admin.from('profiles').update({ role: 'equipe' }).eq('id', inv.user.id)
+      await admin.from('profiles').update({ role: 'equipe', full_name: b.full_name.trim() }).eq('id', inv.user!.id)
       const p = b.perms ?? {}
       await admin.from('team_permissions').upsert({
-        user_id: inv.user.id,
+        user_id: inv.user!.id,
         can_manage_patients: !!p.can_manage_patients,
         can_upload_measurements: !!p.can_upload_measurements,
         can_answer_checkins: !!p.can_answer_checkins,

@@ -433,7 +433,7 @@ function Chave({ ligado, aoTrocar, rotulo }: { ligado: boolean; aoTrocar: () => 
 export function Equipe() {
   const [lista, setLista] = useState<Membro[] | null>(null)
   const [abrir, setAbrir] = useState(false)
-  const vazio = { full_name: '', email: '', perms: {} as Record<string, boolean>, partner_specialty: '' }
+  const vazio = { full_name: '', email: '', perms: {} as Record<string, boolean>, partner_specialty: '', modo: 'convite' as 'convite' | 'manual', senha: '' }
   const [f, setF] = useState(vazio)
   const [msg, setMsg] = useState<{ t: 'ok' | 'erro'; m: string } | null>(null)
 
@@ -444,8 +444,10 @@ export function Equipe() {
   async function enviar(e: FormEvent) {
     e.preventDefault(); setMsg(null)
     try {
-      await convidar({ role: 'equipe', full_name: f.full_name, email: f.email, perms: { ...f.perms, partner_specialty: f.partner_specialty } })
-      setMsg({ t: 'ok', m: `Convite enviado para ${f.email}.` })
+      const manual = f.modo === 'manual'
+      if (manual && f.senha.length < 8) throw new Error('A senha precisa ter pelo menos 8 caracteres.')
+      await convidar({ role: 'equipe', full_name: f.full_name, email: f.email, perms: { ...f.perms, partner_specialty: f.partner_specialty }, ...(manual ? { senha: f.senha } : {}) })
+      setMsg({ t: 'ok', m: manual ? `Acesso criado para ${f.email}. Passe a senha à pessoa pessoalmente; ela já pode entrar.` : `Convite enviado para ${f.email}.` })
       setF(vazio); setAbrir(false); carregar()
     } catch (err) { setMsg({ t: 'erro', m: (err as Error).message }) }
   }
@@ -459,7 +461,7 @@ export function Equipe() {
   return (
     <div className="flex flex-col gap-6">
       <Titulo sub="Cada pessoa vê apenas o que a função dela exige. Toda abertura de ficha fica registrada."
-        acao={<Botao onClick={() => setAbrir(true)}><Plus className="w-4 h-4" strokeWidth={1.8} />Convidar pessoa</Botao>}>Equipe e acessos</Titulo>
+        acao={<Botao onClick={() => setAbrir(true)}><Plus className="w-4 h-4" strokeWidth={1.8} />Adicionar pessoa</Botao>}>Equipe e acessos</Titulo>
       {msg && <Aviso tipo={msg.t}>{msg.m}</Aviso>}
 
       {lista && lista.length === 0 && (
@@ -503,10 +505,20 @@ export function Equipe() {
         </div>
       )}
 
-      <Folha aberto={abrir} titulo="Convidar pessoa" sub="O convite chega por e-mail." onFechar={() => setAbrir(false)}>
+      <Folha aberto={abrir} titulo="Adicionar pessoa" sub={f.modo === 'manual' ? 'O acesso é criado na hora, sem e-mail.' : 'O convite chega por e-mail.'} onFechar={() => setAbrir(false)}>
         <form onSubmit={enviar} className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Forma de cadastro">
+            {([['convite', 'Enviar convite'], ['manual', 'Cadastrar com senha']] as const).map(([k, r]) => (
+              <button key={k} type="button" role="radio" aria-checked={f.modo === k} onClick={() => setF({ ...f, modo: k })}
+                className={`min-h-[44px] rounded-lg border text-corpo ${f.modo === k ? 'bg-cafe text-creme border-cafe' : 'bg-folha border-borda hover:border-controle'}`}>{r}</button>
+            ))}
+          </div>
           <Campo id="e-nome" label="Nome" required value={f.full_name} onChange={e => setF({ ...f, full_name: e.target.value })} />
           <Campo id="e-email" label="E-mail" type="email" required value={f.email} onChange={e => setF({ ...f, email: e.target.value })} />
+          {f.modo === 'manual' && (<>
+            <Campo id="e-senha" label="Senha inicial" type="text" autoComplete="new-password" minLength={8} required value={f.senha} onChange={e => setF({ ...f, senha: e.target.value })} />
+            <p className="text-meta text-apoio -mt-2">Mínimo de 8 caracteres. A pessoa entra com este e-mail e esta senha e pode trocar depois em "Esqueci a senha".</p>
+          </>)}
           <fieldset className="flex flex-col gap-2 mt-1">
             <legend className="text-corpo font-medium mb-2">O que pode fazer</legend>
             {PERMS.map(([k, r, d]) => (
@@ -518,7 +530,7 @@ export function Equipe() {
           </fieldset>
           {f.perms.is_partner && <Campo id="e-esp" label="Especialidade" placeholder="Ex.: nutricionista" value={f.partner_specialty} onChange={e => setF({ ...f, partner_specialty: e.target.value })} />}
           {msg?.t === 'erro' && <Aviso tipo="erro">{msg.m}</Aviso>}
-          <Botao type="submit" className="w-full mt-2"><Send className="w-4 h-4" strokeWidth={1.8} />Enviar convite</Botao>
+          <Botao type="submit" className="w-full mt-2">{f.modo === 'manual' ? <><Plus className="w-4 h-4" strokeWidth={1.8} />Criar acesso</> : <><Send className="w-4 h-4" strokeWidth={1.8} />Enviar convite</>}</Botao>
         </form>
       </Folha>
     </div>
