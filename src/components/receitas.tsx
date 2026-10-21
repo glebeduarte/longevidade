@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, Download, FileText, Upload, X } from 'lucide-react'
+import { Download, FileText, Upload, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
 import { Aviso, Botao } from './ui'
@@ -146,7 +146,7 @@ export function ReceitasEquipe({ pid, aoMudar }: { pid: string; aoMudar: () => v
             <button onClick={() => { setD(null); setArquivo(null); setErro('') }} aria-label="Cancelar" className="w-8 h-8 grid place-items-center rounded hover:bg-tom"><X className="w-4 h-4" /></button>
           </div>
           <p className="text-meta text-apoio">Confira o que foi lido do PDF antes de salvar.</p>
-          {nomeDiferente && <Aviso tipo="erro"><span className="inline-flex gap-2"><AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />A receita está em nome de {d.paciente_nome}, e esta ficha é de {nome}. Confira se é o arquivo certo.</span></Aviso>}
+          {nomeDiferente && <Aviso tipo="erro">A receita está em nome de {d.paciente_nome}, e esta ficha é de {nome}. Confira se é o arquivo certo.</Aviso>}
 
           {d.itens.map((i, k) => (
             <div key={k} className="painel-tom p-3 flex flex-col gap-2">
