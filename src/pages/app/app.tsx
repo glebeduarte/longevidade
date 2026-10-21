@@ -48,7 +48,8 @@ export function Inicio() {
   const { profile, signOut } = useAuth()
   const vista = useVista()
   const pend = usePendentes()
-  const { m, aberto, proximoCheckin, proximo } = usePrograma()
+  const { m, aberto, proximoCheckin, proximo, checkins, carregar } = usePrograma()
+  const novas = checkins.filter(c => c.reply && !c.reply_seen_at).sort((x, y) => (y.replied_at ?? '').localeCompare(x.replied_at ?? ''))
   const [videos, setVideos] = useState<Video[]>([])
   const [tocando, setTocando] = useState<Video | null>(null)
   const trilho = useRef<HTMLDivElement>(null)
@@ -63,6 +64,8 @@ export function Inicio() {
         <h1 className="titulo-pagina !text-[30px]">{saudacao()}{nome ? `, ${nome}` : ''}.</h1>
         <p className="mt-1 text-corpo text-apoio first-letter:uppercase">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
       </header>
+
+      {novas.map(c => <AvisoResposta key={c.id} c={c} vista={!!vista} aoLer={carregar} />)}
 
       <section className="relative overflow-hidden rounded-xl bg-cafe text-creme p-5">
         <Borboleta className="absolute -right-10 -top-6 w-48 h-36 text-areia/[0.1]" />
@@ -127,6 +130,29 @@ export function Inicio() {
 
       {!vista && <button onClick={signOut} className="self-start inline-flex items-center gap-2 text-corpo text-apoio hover:text-texto"><LogOut className="w-4 h-4" />Sair</button>}
     </div>
+  )
+}
+
+/** Resposta da equipe ao check-in, em destaque até a paciente marcar como lida. */
+function AvisoResposta({ c, vista, aoLer }: { c: Checkin; vista: boolean; aoLer: () => void }) {
+  const [saindo, setSaindo] = useState(false)
+  async function ler() {
+    setSaindo(true)
+    if (!vista) await supabase.rpc('marcar_resposta_lida', { cid: c.id })
+    aoLer()
+  }
+  return (
+    <section role="status" aria-labelledby={`r-${c.id}`} className={`rounded-xl border-2 p-5 flex flex-col gap-3 transition-opacity ${saindo ? 'opacity-50' : ''}`} style={{ borderColor: COR.checkin[1], background: COR.checkin[0] }}>
+      <div className="flex items-center gap-3">
+        <Icone tema="checkin" fundo tamanho={44} className="!bg-folha" />
+        <div className="flex-1 min-w-0">
+          <h2 id={`r-${c.id}`} className="titulo-bloco">A equipe respondeu seu check-in</h2>
+          <p className="text-meta text-apoio">Check-in de {dataLonga(c.due_date)}{c.replied_at ? ` · respondido em ${dataBR(c.replied_at)}` : ''}</p>
+        </div>
+      </div>
+      <p className="text-[17px] leading-relaxed bg-folha rounded-lg px-4 py-3 whitespace-pre-line">{c.reply}</p>
+      <Botao variante="linha" className="self-start !h-12" onClick={ler} disabled={saindo}><Check className="w-4 h-4" />Li a mensagem</Botao>
+    </section>
   )
 }
 

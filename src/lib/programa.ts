@@ -12,7 +12,7 @@ export type RespostasCheckin = {
 }
 export type Checkin = {
   id: string; patient_id: string; due_date: string; status: 'aberto' | 'respondido' | 'atendido' | 'perdido'
-  answers: RespostasCheckin | null; reaction: boolean; submitted_at: string | null; reply: string | null; replied_at: string | null
+  answers: RespostasCheckin | null; reaction: boolean; submitted_at: string | null; reply: string | null; replied_at: string | null; reply_seen_at?: string | null
   patients?: { full_name: string } | null
 }
 export type ItemProtocolo = { tipo: 'medicacao' | 'habito' | 'exame' | 'orientacao'; titulo: string; detalhe?: string }

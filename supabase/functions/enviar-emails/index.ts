@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${chave}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: de, to: e.to_email, subject: e.subject, html: html(e.subject, e.body), text: e.body }),
+      body: JSON.stringify({ from: de, to: e.to_email, subject: e.subject, html: html(e.subject, e.body), text: e.body.replace(/<br>/g, '\n').replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') }),
     })
     if (r.ok) { enviados++; await admin.from('email_outbox').update({ sent_at: new Date().toISOString(), error: null }).eq('id', e.id) }
     else await admin.from('email_outbox').update({ error: (await r.text()).slice(0, 300) }).eq('id', e.id)
