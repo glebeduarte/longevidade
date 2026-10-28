@@ -65,7 +65,7 @@ export function Inicio() {
         <p className="mt-1 text-corpo text-apoio first-letter:uppercase">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
       </header>
 
-      {novas.map(c => <AvisoResposta key={c.id} c={c} vista={!!vista} aoLer={carregar} />)}
+      {novas.slice(0, 1).map(c => <AvisoResposta key={c.id} c={c} vista={!!vista} aoLer={carregar} />)}
 
       <section className="relative overflow-hidden rounded-xl bg-cafe text-creme p-5">
         <Borboleta className="absolute -right-10 -top-6 w-48 h-36 text-areia/[0.1]" />
@@ -142,9 +142,11 @@ export function Inicio() {
 /** Resposta da equipe ao check-in, em destaque até a paciente marcar como lida. */
 function AvisoResposta({ c, vista, aoLer }: { c: Checkin; vista: boolean; aoLer: () => void }) {
   const [saindo, setSaindo] = useState(false)
+  const [erro, setErro] = useState(false)
   async function ler() {
     setSaindo(true)
-    if (!vista) await supabase.rpc('marcar_resposta_lida', { cid: c.id })
+    const { error } = await supabase.rpc('marcar_resposta_lida', { cid: c.id })
+    if (error) { setSaindo(false); setErro(true); return }
     aoLer()
   }
   return (
@@ -158,6 +160,8 @@ function AvisoResposta({ c, vista, aoLer }: { c: Checkin; vista: boolean; aoLer:
       </div>
       <p className="text-[17px] leading-relaxed bg-folha rounded-lg px-4 py-3 whitespace-pre-line">{c.reply}</p>
       <Botao variante="linha" className="self-start !h-12" onClick={ler} disabled={saindo}><Check className="w-4 h-4" />Li a mensagem</Botao>
+      {erro && <p className="text-meta text-terracota">Não foi possível confirmar a leitura. Tente de novo.</p>}
+      {vista && <p className="text-meta text-apoio">Modo visualização: a confirmação fica registrada para esta paciente.</p>}
     </section>
   )
 }

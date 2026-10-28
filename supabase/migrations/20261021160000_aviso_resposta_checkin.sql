@@ -51,3 +51,15 @@ begin
   end if;
   return new;
 end $$;
+
+-- 28/10: a médica também confirma no modo "Ver como paciente"; confirmar marca as anteriores não lidas
+create or replace function public.marcar_resposta_lida(cid uuid) returns void
+language plpgsql security definer set search_path = public as $$
+declare alvo uuid; quando timestamptz;
+begin
+  select patient_id, replied_at into alvo, quando from public.checkins where id = cid and reply is not null;
+  if alvo is null or not (public.is_my_patient(alvo) or public.is_medica()) then return; end if;
+  update public.checkins set reply_seen_at = now()
+  where patient_id = alvo and reply is not null and reply_seen_at is null
+    and (id = cid or coalesce(replied_at, 'epoch') <= coalesce(quando, now()));
+end $$;
