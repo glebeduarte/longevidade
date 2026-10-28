@@ -51,7 +51,7 @@ end $$;
 insert into public.questionnaires (slug, name, domain, instructions, scored, sort, source) values
  ('menod', 'Meno-D', 'Humor', 'Pense nas últimas 2 semanas. Em cada tema, escolha a opção que mais combina com você.', true, 2,
   'Kulkarni et al., 2018 (PMC6023883). Soma de 0 a 48, sem pontos de corte validados: acompanhar total, itens e evolução.'),
- ('brainfog', 'Memória e concentração', 'Cognição', 'Responda sim ou não. Não existe resposta certa: isso ajuda a Dra. Bartira a entender suas queixas.', false, 12,
+ ('brainfog', 'Brain Fog', 'Cognição', 'Responda sim ou não. Não existe resposta certa: isso ajuda a Dra. Bartira a entender suas queixas.', false, 12,
   'British Menopause Society, 2026. Triagem clínica sem pontuação; não faz diagnóstico.')
 on conflict (slug) do nothing;
 
