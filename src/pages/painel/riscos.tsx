@@ -14,7 +14,19 @@ import { ETNIAS_GAIL, LIMIAR_GAIL_5, SUBGRUPOS_GAIL, gail, type EntradaGail, typ
 
 type Tipo = 'prevent' | 'frax' | 'tev' | 'preensao' | 'calcio' | 'gail'
 type Avaliacao = { id: string; kind: Tipo; inputs: Record<string, unknown>; result: Record<string, unknown>; resumo: string | null; nivel: Nivel | null; created_at: string }
-type Contexto = { idade: number | null; sexo: 'F' | 'M'; v: (c: string) => number | undefined; imc?: number; tfg?: number; f: Fatores }
+type Contexto = { idade: number | null; sexo: 'F' | 'M'; v: (c: string) => number | undefined; imc?: number; tfg?: number; f: Fatores; ant?: Record<string, unknown> }
+
+/** Junta o último cálculo salvo com os dados atuais da ficha. Exames mais recentes da ficha prevalecem. */
+function comAnterior<T extends object>(base: T, ant: Record<string, unknown> | undefined, daFicha: Array<keyof T> = []): T {
+  if (!ant) return base
+  const r = { ...base } as Record<string, unknown>
+  for (const [k, v] of Object.entries(ant)) if (v !== undefined && v !== null) r[k] = v
+  for (const k of daFicha) if ((base as Record<string, unknown>)[k as string] !== undefined) r[k as string] = (base as Record<string, unknown>)[k as string]
+  return r as T
+}
+
+/** Exames digitados nos cálculos que vão para a ficha quando diferem do último registro. */
+const EXAMES_DOS_CALCULOS: Array<[string, string]> = [['pas', 'pas'], ['ct', 'ct'], ['hdl', 'hdl'], ['peso', 'peso'], ['altura', 'altura']]
 
 const campo = 'w-full rounded-md border border-controle bg-folha px-3 text-corpo focus:outline-none focus:border-cafe min-h-[40px]'
 const pct = (x: number, casas = 1) => `${fmt(x * 100, casas)}%`
@@ -49,11 +61,20 @@ export function AbaRiscos({ pid, nascimento }: { pid: string; nascimento: string
     const calc = calculados(ult, idade, sexo)
     return { idade, sexo, f, v: c => ult.get(c)?.[0]?.value, imc: calc.find(c => c.code === 'imc')?.value, tfg: calc.find(c => c.code === 'tfg')?.value }
   }, [med, f, nascimento])
+  const ctxBase = ctx
 
   async function salvar(kind: Tipo, inputs: object, result: object, resumo: string, nivel: Nivel | null) {
     const { error } = await supabase.from('risk_assessments').insert({ patient_id: pid, kind, inputs, result, resumo, nivel, created_by: session?.user.id })
-    if (!error) { setAberto(null); carregar() }
-    return error
+    if (error) return error
+    const ent = inputs as Record<string, unknown>
+    const novas = EXAMES_DOS_CALCULOS
+      .map(([campo, code]) => ({ code, value: ent[campo] }))
+      .filter((m): m is { code: string; value: number } => typeof m.value === 'number' && Number.isFinite(m.value) && m.value !== ctx.v(m.code))
+      .map(m => ({ patient_id: pid, code: m.code, value: m.value, note: 'Registrado no cálculo de risco', created_by: session?.user.id }))
+    if (novas.length) await supabase.from('measurements').insert(novas)
+    setAberto(null); carregar()
+    supabase.from('measurements').select('id, code, value, measured_at, note').eq('patient_id', pid).then(({ data }) => setMed((data as Medida[]) ?? []))
+    return null
   }
   async function apagar(id: string) { await supabase.from('risk_assessments').delete().eq('id', id); carregar() }
 
@@ -75,7 +96,7 @@ export function AbaRiscos({ pid, nascimento }: { pid: string; nascimento: string
                 {aberto !== m.k && <Botao variante="linha" tamanho="sm" onClick={() => setAberto(m.k)}><Plus className="w-4 h-4" />{ultimo ? 'Novo' : 'Calcular'}</Botao>}
               </div>
               <div className="p-5 flex flex-col gap-4">
-                {aberto === m.k && (
+                {aberto === m.k && (() => { const ctx = { ...ctxBase, ant: ultimo?.inputs }; return (
                   <div className="flex flex-col gap-3">
                     {m.k === 'prevent' && <FormPrevent ctx={ctx} salvar={salvar} />}
                     {m.k === 'frax' && <FormFrax ctx={ctx} salvar={salvar} />}
@@ -90,7 +111,7 @@ export function AbaRiscos({ pid, nascimento }: { pid: string; nascimento: string
                     {m.k === 'gail' && <FormGail ctx={ctx} salvar={salvar} />}
                     <Botao variante="texto" onClick={() => setAberto(null)} className="self-start"><X className="w-4 h-4" />Cancelar</Botao>
                   </div>
-                )}
+                ) })()}
                 {aberto !== m.k && !ultimo && <p className="text-corpo text-apoio">Nenhum cálculo registrado.</p>}
                 {aberto !== m.k && hist.slice(0, 4).map((a, i) => (
                   <div key={a.id} className={`group flex items-start gap-3 ${i ? 'opacity-70' : ''}`}>
@@ -158,12 +179,12 @@ function BotaoSalvar({ onClick, disabled }: { onClick: () => Promise<unknown>; d
 // ---------- PREVENT ----------
 function FormPrevent({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
   const fumaRegistro = /leve|moderada|pesada/i.test(ctx.f.smoking ?? '')
-  const [e, setE] = useState<Partial<EntradaPrevent>>({
+  const [e, setE] = useState<Partial<EntradaPrevent>>(() => comAnterior<Partial<EntradaPrevent>>({
     sexo: ctx.sexo, idade: ctx.idade ?? undefined, pas: ctx.v('pas'), ct: ctx.v('ct'), hdl: ctx.v('hdl'),
     tfg: ctx.tfg ? Math.round(ctx.tfg) : undefined, imc: ctx.imc ? Math.round(ctx.imc * 10) / 10 : undefined,
     diabetes: ctx.f.diseases.includes('Diabetes'), fuma: fumaRegistro,
     antiHas: ctx.f.meds.includes('Pressão alta'), estatina: ctx.f.meds.includes('Colesterol ou triglicerídeos'),
-  })
+  }, ctx.ant, ['idade', 'pas', 'ct', 'hdl', 'tfg', 'imc']))
   const faltam = foraDosLimites(e)
   const r = faltam.length ? null : prevent(e as EntradaPrevent)
   const cls = r ? classeAscvd(r.dez.ascvd) : null
@@ -201,11 +222,11 @@ function FormPrevent({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
 
 // ---------- FRAX ----------
 function FormFrax({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
-  const [e, setE] = useState({
+  const [e, setE] = useState(() => comAnterior({
     idade: ctx.idade ?? undefined as number | undefined, peso: ctx.v('peso'), altura: ctx.v('altura'),
     fratura: false, paiMae: false, fuma: /leve|moderada|pesada/i.test(ctx.f.smoking ?? ''), glico: false, ar: false, secundaria: false, alcool: false,
     dmo: undefined as number | undefined, fom: undefined as number | undefined, fq: undefined as number | undefined, ajuste: 'nenhum', pontosT: 1, classe: '',
-  })
+  }, ctx.ant, ['idade', 'peso', 'altura']))
   const set = (k: keyof typeof e) => (v: unknown) => setE({ ...e, [k]: v })
   const r = e.fom != null && e.fq != null ? ajustarFrax(e.fom, e.fq, e.ajuste, e.pontosT) : null
   const nivel: Nivel | null = e.classe === 'Alto' ? 'ruim' : e.classe === 'Intermediário' ? 'atencao' : e.classe === 'Baixo' ? 'bom' : null
@@ -253,11 +274,11 @@ function FormFrax({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
 // ---------- TEV ----------
 function FormTev({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
   const s = ctx.f.smoking ?? ''
-  const [e, setE] = useState<EntradaTev>({
+  const [e, setE] = useState<EntradaTev>(() => comAnterior<EntradaTev>({
     previo: 'nao', familiar: 'nao', trombofilia: 'nao', idade: ctx.idade ?? undefined, imc: ctx.imc ? Math.round(ctx.imc * 10) / 10 : undefined,
     tabagismo: /leve|moderada|pesada/i.test(s) ? 'atual' : /ex/i.test(s) ? 'ex' : 'nunca', cancer: ctx.f.diseases.includes('Câncer em tratamento'),
     cirurgia: false, estrogeno: 'nenhum',
-  })
+  }, ctx.ant, ['idade', 'imc']))
   const set = (k: keyof EntradaTev) => (v: unknown) => setE({ ...e, [k]: v })
   const t = triagemTev(e)
   const txt = (k: keyof EntradaTev, ph: string) => <input value={(e[k] as string) ?? ''} onChange={ev => set(k)(ev.target.value)} placeholder={ph} className={campo} />
@@ -294,10 +315,10 @@ function FormTev({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
 
 // ---------- Preensão ----------
 function FormPreensao({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
-  const [sexo, setSexo] = useState<'F' | 'M'>(ctx.sexo)
-  const [mao, setMao] = useState<'direita' | 'esquerda'>('direita')
+  const [sexo, setSexo] = useState<'F' | 'M'>((ctx.ant?.sexo as 'F' | 'M') ?? ctx.sexo)
+  const [mao, setMao] = useState<'direita' | 'esquerda'>((ctx.ant?.mao as 'direita' | 'esquerda') ?? 'direita')
   const [t, setT] = useState<Array<number | undefined>>([undefined, undefined, undefined])
-  const [protocolo, setProtocolo] = useState('')
+  const [protocolo, setProtocolo] = useState((ctx.ant?.protocolo as string) ?? '')
   const r = preensao(sexo, t.filter((x): x is number => x != null))
   const nivel: Nivel | null = r.max == null ? null : r.baixa ? 'ruim' : 'normal'
   return (<>
@@ -325,8 +346,8 @@ function FormPreensao({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
 
 // ---------- Cálcio ----------
 function FormCalcio({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
-  const [itens, setItens] = useState<Array<ItemCalcio & { porcaoTxt: string }>>([])
-  const [meta, setMeta] = useState(metaCalcio(ctx.sexo, ctx.idade))
+  const [itens, setItens] = useState<Array<ItemCalcio & { porcaoTxt: string }>>((ctx.ant?.itens as Array<ItemCalcio & { porcaoTxt: string }>) ?? [])
+  const [meta, setMeta] = useState((ctx.ant?.meta as number) ?? metaCalcio(ctx.sexo, ctx.idade))
   const r = calcio(itens, meta)
   const add = (a: { nome: string; mg: number; porcao: string }) => setItens([...itens, { nome: a.nome, mg: a.mg, porcaoTxt: a.porcao, porcoes: 1, vezes: 1, por: 'dia' }])
   const mud = (i: number, k: string, v: unknown) => setItens(itens.map((x, j) => (j === i ? { ...x, [k]: v } : x)))
@@ -373,7 +394,7 @@ type FormaGail = { idade?: number; etnia?: EtniaGail; sub: SubGail; historico?: 
   parto?: '98' | '0' | '1' | '2' | '3' | 'ns'; parentes?: '0' | '1' | '2' | 'ns' }
 
 function FormGail({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
-  const [e, setE] = useState<FormaGail>({ idade: ctx.idade ?? undefined, etnia: ETNIA_DO_CADASTRO[ctx.f.ethnicity ?? ''], sub: '' })
+  const [e, setE] = useState<FormaGail>(() => { const { entrada: _e, ...ant } = (ctx.ant ?? {}) as Record<string, unknown>; void _e; return comAnterior<FormaGail>({ idade: ctx.idade ?? undefined, etnia: ETNIA_DO_CADASTRO[ctx.f.ethnicity ?? ''], sub: '' }, ctx.ant ? ant : undefined, ['idade']) })
   const set = <K extends keyof FormaGail>(k: K) => (v: FormaGail[K]) => setE(x => ({ ...x, [k]: v }))
   const subs = e.etnia ? SUBGRUPOS_GAIL[e.etnia] : undefined
   const fezBiopsia = e.biopsia === '1'
