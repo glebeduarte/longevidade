@@ -10,8 +10,9 @@ import {
   AJUSTES_FRAX, ALIMENTOS, CORTE_PREENSAO, ROTULO_TEV, ajustarFrax, calcio, classeAscvd, foraDosLimites, metaCalcio, mgDia, preensao, prevent, triagemTev,
   type EntradaPrevent, type EntradaTev, type ItemCalcio, type NivelTev,
 } from '../../lib/riscos'
+import { ETNIAS_GAIL, LIMIAR_GAIL_5, SUBGRUPOS_GAIL, gail, type EntradaGail, type EtniaGail, type SubGail } from '../../lib/gail'
 
-type Tipo = 'prevent' | 'frax' | 'tev' | 'preensao' | 'calcio'
+type Tipo = 'prevent' | 'frax' | 'tev' | 'preensao' | 'calcio' | 'gail'
 type Avaliacao = { id: string; kind: Tipo; inputs: Record<string, unknown>; result: Record<string, unknown>; resumo: string | null; nivel: Nivel | null; created_at: string }
 type Contexto = { idade: number | null; sexo: 'F' | 'M'; v: (c: string) => number | undefined; imc?: number; tfg?: number; f: Fatores }
 
@@ -24,6 +25,7 @@ const MODULOS: Array<{ k: Tipo; titulo: string; sub: string; tema: Tema }> = [
   { k: 'frax', titulo: 'Risco de fratura · FRAX Brasil 2.0', sub: 'Resultado oficial com ajuste ABRASSO', tema: 'exame' },
   { k: 'tev', titulo: 'Tromboembolismo venoso', sub: 'Triagem antes da terapia hormonal', tema: 'alerta' },
   { k: 'preensao', titulo: 'Força de preensão palmar', sub: 'EWGSOP2', tema: 'forca' },
+  { k: 'gail', titulo: 'Risco de câncer de mama · Gail', sub: 'BCRAT (NCI), risco em 5 anos e até os 90', tema: 'alerta' },
   { k: 'calcio', titulo: 'Cálcio na alimentação', sub: 'Consumo habitual em mg por dia', tema: 'alimentacao' },
 ]
 
@@ -85,6 +87,7 @@ export function AbaRiscos({ pid, nascimento }: { pid: string; nascimento: string
                       return e
                     }} />}
                     {m.k === 'calcio' && <FormCalcio ctx={ctx} salvar={salvar} />}
+                    {m.k === 'gail' && <FormGail ctx={ctx} salvar={salvar} />}
                     <Botao variante="texto" onClick={() => setAberto(null)} className="self-start"><X className="w-4 h-4" />Cancelar</Botao>
                   </div>
                 )}
@@ -360,5 +363,69 @@ function FormCalcio({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
     )}
     <BotaoSalvar disabled={!itens.length} onClick={() => salvar('calcio', { itens, meta }, r,
       `Cálcio ${fmt(r.total, 0)} mg/dia, ${fmt(r.pct, 0)}% da meta de ${fmt(meta, 0)} · ${r.atingiu ? 'atingiu' : 'abaixo da meta'}`, r.atingiu ? 'bom' : 'atencao')} />
+  </>)
+}
+
+// ---------- Câncer de mama (Gail / BCRAT) ----------
+const ETNIA_DO_CADASTRO: Record<string, EtniaGail> = { Branca: 'White', Preta: 'Black', 'Asiática': 'Asian', 'Não declarada': 'Unknown' }
+type FormaGail = { idade?: number; etnia?: EtniaGail; sub: SubGail; historico?: 'nao' | 'sim'; genetica?: 'nao' | 'sim' | 'nao_sei'
+  biopsia?: '0' | '1' | '99'; nBiopsias?: '1' | '2'; atipia?: '0.93' | '1.82' | '1'; menarca?: '0' | '1' | '2'
+  parto?: '98' | '0' | '1' | '2' | '3' | 'ns'; parentes?: '0' | '1' | '2' | 'ns' }
+
+function FormGail({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
+  const [e, setE] = useState<FormaGail>({ idade: ctx.idade ?? undefined, etnia: ETNIA_DO_CADASTRO[ctx.f.ethnicity ?? ''], sub: '' })
+  const set = <K extends keyof FormaGail>(k: K) => (v: FormaGail[K]) => setE(x => ({ ...x, [k]: v }))
+  const subs = e.etnia ? SUBGRUPOS_GAIL[e.etnia] : undefined
+  const fezBiopsia = e.biopsia === '1'
+  const bloqueio = e.historico === 'sim' ? 'historico' : e.genetica === 'sim' ? 'genetica' : null
+  const idadeOk = e.idade != null && e.idade >= 35 && e.idade <= 85
+  const completo = !bloqueio && e.historico && e.genetica && idadeOk && e.etnia && (!subs || e.sub) && e.biopsia
+    && (!fezBiopsia || (e.nBiopsias && e.atipia)) && e.menarca && e.parto && e.parentes
+  const entrada: EntradaGail | null = completo ? {
+    idade: e.idade!, etnia: e.etnia!, sub: e.sub, biopsia: Number(e.biopsia) as 0 | 1 | 99,
+    nBiopsias: Number(e.nBiopsias ?? 1) as 1 | 2, atipia: Number(e.atipia ?? 1) as 0.93 | 1 | 1.82,
+    menarca: Number(e.menarca) as 0 | 1 | 2, primeiroParto: (e.parto === 'ns' ? 0 : Number(e.parto)) as EntradaGail['primeiroParto'],
+    parentes: (e.parentes === 'ns' ? 0 : Number(e.parentes)) as 0 | 1 | 2,
+  } : null
+  const r = entrada ? gail(entrada) : null
+  const p = (x: number) => `${fmt(x, 1)}%`
+  const nivel: Nivel | null = !r ? null : r.cinco >= LIMIAR_GAIL_5 || r.vida >= 20 ? 'ruim' : r.cinco > r.cincoMedia ? 'atencao' : 'normal'
+  const comp = (a: number, b: number) => (a > b ? 'acima' : a < b ? 'abaixo' : 'igual')
+  return (<>
+    <Opcoes rotulo="Já teve câncer de mama, CDIS, CLIS ou radioterapia torácica para linfoma de Hodgkin?" valor={e.historico ?? '' as 'nao'} opcoes={[['nao', 'Não'], ['sim', 'Sim']]} onChange={set('historico')} />
+    <Opcoes rotulo="Tem mutação BRCA1/BRCA2 ou síndrome genética que eleve o risco?" valor={e.genetica ?? '' as 'nao'} opcoes={[['nao', 'Não'], ['sim', 'Sim'], ['nao_sei', 'Não sei']]} onChange={set('genetica')} />
+    {bloqueio === 'historico' && <Aviso>O modelo de Gail não estima o risco com precisão para quem já teve câncer de mama, CDIS, CLIS ou radioterapia torácica. Siga o protocolo específico de seguimento.</Aviso>}
+    {bloqueio === 'genetica' && <Aviso>Para portadoras de BRCA1, BRCA2 ou síndromes hereditárias, use modelos que consideram genética, como CanRisk (BOADICEA) ou Tyrer-Cuzick.</Aviso>}
+    {!bloqueio && (<>
+      <div className="grid sm:grid-cols-2 gap-3">
+        <Num rotulo="Idade (35 a 85)" valor={e.idade} onChange={set('idade')} sufixo="anos" passo="1" />
+        <label className="flex flex-col gap-1 text-meta text-apoio">Raça ou etnia (categorias do modelo)
+          <select value={e.etnia ?? ''} onChange={ev => setE(x => ({ ...x, etnia: (ev.target.value || undefined) as EtniaGail | undefined, sub: '' }))} className={campo}>
+            <option value="">Selecione</option>
+            {ETNIAS_GAIL.map(([k, t]) => <option key={k} value={k}>{t}</option>)}
+          </select>
+        </label>
+      </div>
+      {ctx.f.ethnicity === 'Parda' && !e.etnia && <p className="text-meta text-apoio">No cadastro consta parda. O modelo não tem essa categoria: escolha a que melhor representa a paciente.</p>}
+      {subs && <Opcoes rotulo={e.etnia === 'Hispanic' ? 'Local de nascimento' : 'Subgrupo'} valor={e.sub} opcoes={subs} onChange={set('sub')} />}
+      {e.idade != null && !idadeOk && <p className="text-meta text-terracota">O modelo só calcula de 35 a 85 anos.</p>}
+      <Opcoes rotulo="Já fez biópsia de mama com resultado benigno?" valor={e.biopsia ?? '' as '0'} opcoes={[['0', 'Não'], ['1', 'Sim'], ['99', 'Não sei']]} onChange={set('biopsia')} />
+      {fezBiopsia && (<>
+        <Opcoes rotulo="Quantas biópsias?" valor={e.nBiopsias ?? '' as '1'} opcoes={[['1', '1'], ['2', '2 ou mais']]} onChange={set('nBiopsias')} />
+        <Opcoes rotulo="Alguma com hiperplasia atípica?" valor={e.atipia ?? '' as '1'} opcoes={[['0.93', 'Não'], ['1.82', 'Sim'], ['1', 'Não sei']]} onChange={set('atipia')} />
+      </>)}
+      <Opcoes rotulo="Idade da primeira menstruação" valor={e.menarca ?? '' as '0'} opcoes={[['2', '7 a 11'], ['1', '12 a 13'], ['0', '14 ou mais']]} onChange={set('menarca')} />
+      <Opcoes rotulo="Idade no primeiro parto de nascido vivo" valor={e.parto ?? '' as '98'} opcoes={[['98', 'Sem filhos'], ['0', 'Antes dos 20'], ['1', '20 a 24'], ['2', '25 a 29'], ['3', '30 ou mais'], ['ns', 'Não sei']]} onChange={set('parto')} />
+      <Opcoes rotulo="Parentes de 1º grau (mãe, irmãs, filhas) com câncer de mama" valor={e.parentes ?? '' as '0'} opcoes={[['0', 'Nenhum'], ['1', 'Um'], ['2', 'Mais de um'], ['ns', 'Não sei']]} onChange={set('parentes')} />
+    </>)}
+    {r && (
+      <Resultado nivel={nivel}>
+        <p className="text-[15px]"><b>Em 5 anos: {p(r.cinco)}</b> · média {p(r.cincoMedia)} ({comp(r.cinco, r.cincoMedia)} da média)</p>
+        <p className="text-[15px]"><b>Até os 90 anos: {p(r.vida)}</b> · média {p(r.vidaMedia)} ({comp(r.vida, r.vidaMedia)} da média)</p>
+        <p className="text-meta text-apoio mt-2">Risco de câncer de mama invasivo, comparado com mulheres da mesma idade e etnia nos EUA. Referências usuais: 5 anos ≥1,67% para discutir quimioprevenção; vida ≥20% para rastreio ampliado. Taxas de base norte-americanas (SEER); não considera densidade mamária nem genética.</p>
+      </Resultado>
+    )}
+    <BotaoSalvar disabled={!r} onClick={() => salvar('gail', { ...e, entrada }, r!,
+      `Mama (Gail): 5 anos ${p(r!.cinco)} (média ${p(r!.cincoMedia)}) · até 90 anos ${p(r!.vida)} (média ${p(r!.vidaMedia)})`, nivel)} />
   </>)
 }
