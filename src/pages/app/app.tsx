@@ -67,11 +67,11 @@ export function Inicio() {
 
       {novas.slice(0, 1).map(c => <AvisoResposta key={c.id} c={c} vista={!!vista} aoLer={carregar} />)}
 
-      <section className="relative overflow-hidden rounded-xl bg-cafe text-creme p-5 pt-56">
-        <img src="/dra-bartira.jpg" alt="Dra. Bartira Rebouças" className="absolute inset-0 w-full h-full object-cover object-[50%_25%]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-cafe from-30% via-cafe/60 via-55% to-transparent" />
+      <section className="relative overflow-hidden rounded-xl bg-cafe text-creme p-5">
+        <Borboleta className="absolute -right-10 -top-6 w-48 h-36 text-areia/[0.1]" />
         <div className="relative flex flex-col gap-4">
           <div className="flex items-center gap-3">
+            <img src="/dra-bartira-rosto.jpg" alt="" className="w-12 h-12 rounded-full object-cover ring-2 ring-areia/40" />
             <div className="leading-tight">
               <p className="text-corpo text-areia">{m?.programs?.name ?? 'Programa Longevidade'}</p>
               <p className="text-meta text-areia/75">com a Dra. Bartira Rebouças</p>
