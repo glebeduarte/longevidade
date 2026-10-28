@@ -4,17 +4,16 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, LogOut, X } from 'lucide-react'
 import { useAuth } from '../../auth/AuthProvider'
 import { supabase } from '../../lib/supabase'
-import { Aviso, Borboleta, Botao } from '../../components/ui'
+import { Borboleta, Botao } from '../../components/ui'
 import { usePendentes } from './questionarios'
 import { dataBR } from '../../lib/faixas'
 import { fmt, type Medida } from '../../lib/clinica'
 import {
-  ADESAO, LOCAL, SINTOMAS, dataHora, dataLonga, embed, hojeISO, mesDoPrograma,
-  type Checkin, type Encontro, type Matricula, type Protocolo, type RespostasCheckin, type Video,
+  LOCAL, dataHora, dataLonga, embed, hojeISO, mesDoPrograma,
+  type Checkin, type Encontro, type Matricula, type Protocolo, type Video,
 } from '../../lib/programa'
 import { ListaProtocolo } from '../painel/programa'
-import { COR, Icone, Rosto, type Tema } from '../../components/icones'
-const TEMA_SINTOMA: Record<string, Tema> = { fogachos: 'fogacho', sono: 'sono', humor: 'humor', energia: 'metabolismo' }
+import { COR, Icone, type Tema } from '../../components/icones'
 const CORES_VIDEO = [COR.humor[0], COR.alimentacao[0], COR.video[0], COR.sono[0]]
 import { RelatorioMapa } from '../painel/mapa'
 import type { Relatorio } from '../../lib/mapa'
@@ -26,7 +25,7 @@ function saudacao() {
 }
 
 /** Dados do programa da paciente logada (o banco só devolve os dela). */
-function usePrograma() {
+export function usePrograma() {
   const [m, setM] = useState<Matricula | null | undefined>(undefined)
   const [encontros, setEncontros] = useState<Encontro[]>([])
   const [checkins, setCheckins] = useState<Checkin[]>([])
@@ -71,7 +70,13 @@ export function Inicio() {
       <section className="relative overflow-hidden rounded-xl bg-cafe text-creme p-5">
         <Borboleta className="absolute -right-10 -top-6 w-48 h-36 text-areia/[0.1]" />
         <div className="relative flex flex-col gap-4">
-          <p className="text-corpo text-areia">{m?.programs?.name ?? 'Programa Longevidade'}</p>
+          <div className="flex items-center gap-3">
+            <img src="/dra-bartira-rosto.jpg" alt="" className="w-12 h-12 rounded-full object-cover ring-2 ring-areia/40" />
+            <div className="leading-tight">
+              <p className="text-corpo text-areia">{m?.programs?.name ?? 'Programa Longevidade'}</p>
+              <p className="text-meta text-areia/75">com a Dra. Bartira Rebouças</p>
+            </div>
+          </div>
           {m && prog ? (
             <>
               <p className="text-[30px] leading-none tabular-nums">Mês {prog.mes} <span className="text-areia/80 text-bloco">de {prog.total}</span></p>
@@ -87,7 +92,7 @@ export function Inicio() {
       </section>
 
       <div className="cartao divide-y divide-regra overflow-hidden">
-        {aberto && <Atalho to="/app/checkin" destaque icone={<Icone tema="checkin" fundo tamanho={44} />} titulo="Seu check-in está aberto" texto="Dois minutos para contar como você está" />}
+        {aberto && <Atalho to="/app/checkin" destaque icone={<Icone tema="checkin" fundo tamanho={44} />} titulo="Seu check-in da semana está aberto" texto="Conte como foram os últimos sete dias" />}
         {!!pend?.length && <Atalho to="/app/questionarios" destaque icone={<Icone tema="questionario" fundo tamanho={44} />} titulo={`${pend.length} questionário${pend.length > 1 ? 's' : ''} para responder`} texto="Leva poucos minutos e prepara seu encontro" />}
         {!aberto && <Atalho to="/app/checkin" icone={<Icone tema="checkin" fundo tamanho={44} />} titulo="Check-in" texto={proximoCheckin ? `Próximo em ${dataLonga(proximoCheckin.due_date)}` : 'Nenhum pendente agora'} />}
         <Atalho to="/app/protocolo" icone={<Icone tema="protocolo" fundo tamanho={44} />} titulo="Meu protocolo" texto="Tudo o que foi orientado no encontro" />
@@ -186,129 +191,12 @@ function Atalho({ to, icone, titulo, texto, destaque }: { to: string; icone: Rea
   )
 }
 
-function Cabecalho({ titulo, sub }: { titulo: string; sub?: string }) {
+export function Cabecalho({ titulo, sub }: { titulo: string; sub?: string }) {
   return (
     <header>
       <h1 className="titulo-pagina !text-[30px]">{titulo}</h1>
       {sub && <p className="mt-1.5 text-corpo text-apoio leading-relaxed">{sub}</p>}
     </header>
-  )
-}
-
-const CHAVE_RASCUNHO = 'longevidade:rascunho-checkin'
-
-/** Check-in da paciente: 4 escalas, adesão, reação e recado. */
-export function CheckinPaciente() {
-  const { aberto, proximoCheckin, checkins, carregar } = usePrograma()
-  const [a, setA] = useState<RespostasCheckin>({ adesao: undefined, reacao: false })
-  const [fase, setFase] = useState<'form' | 'enviando' | 'ok' | 'erro'>('form')
-  const [erro, setErro] = useState('')
-  useEffect(() => { try { const r = localStorage.getItem(CHAVE_RASCUNHO); if (r) setA(JSON.parse(r)) } catch { /* sem rascunho */ } }, [])
-  useEffect(() => { try { localStorage.setItem(CHAVE_RASCUNHO, JSON.stringify(a)) } catch { /* sem armazenamento */ } }, [a])
-  const historico = checkins.filter(c => c.status === 'respondido' || c.status === 'atendido').reverse().slice(0, 6)
-  const completo = SINTOMAS.every(([k]) => a[k] != null) && a.adesao && (!a.reacao || (a.reacao_texto ?? '').trim())
-
-  const vista = useVista()
-  async function enviar() {
-    setFase('enviando')
-    const { error } = await supabase.rpc('salvar_checkin', { cid: aberto?.id ?? null, p_answers: a, pid: vista?.pid ?? null })
-    if (error) { setErro(error.message); return setFase('erro') }
-    try { localStorage.removeItem(CHAVE_RASCUNHO) } catch { /* sem armazenamento */ }
-    setFase('ok'); carregar()
-  }
-
-  if (fase === 'ok') {
-    return (
-      <div className="px-4 pt-8 flex flex-col gap-4 items-start">
-        <Check className="w-7 h-7 text-oliva" />
-        <h1 className="titulo-pagina !text-[28px] leading-tight">Check-in enviado</h1>
-        <p className="text-corpo text-apoio">{a.reacao ? 'Você relatou um efeito diferente. A Dra. Bartira foi avisada e a equipe entra em contato hoje.' : 'A equipe responde em até 3 dias úteis. A resposta aparece aqui e no seu e-mail.'}</p>
-        <Link to="/app"><Botao>Voltar ao início</Botao></Link>
-      </div>
-    )
-  }
-
-  return (
-    <div className="px-4 pt-6 flex flex-col gap-5">
-      <Cabecalho titulo="Check-in" sub={aberto ? `Como você esteve nos últimos dias? Referente a ${dataLonga(aberto.due_date)}.` : `Conte como você está hoje.${proximoCheckin ? ` O próximo agendado abre em ${dataLonga(proximoCheckin.due_date)}.` : ''}`} />
-
-      {(
-        <div className="flex flex-col gap-4">
-          {SINTOMAS.map(([k, rotulo, min, max]) => {
-            const tema = TEMA_SINTOMA[k as string], [claro, forte] = COR[tema], v = a[k] as number | undefined
-            return (
-              <fieldset key={k} className="cartao p-4">
-                <legend className="sr-only">{rotulo}</legend>
-                <div className="flex items-center gap-3">
-                  <Icone tema={tema} fundo tamanho={44} />
-                  <p className="titulo-bloco flex-1">{rotulo}</p>
-                  {v != null && <span className="flex items-center gap-2"><span className="text-corpo tabular-nums">{v} de 10</span><Rosto valor={v} inverso={k === 'fogachos'} tamanho={32} /></span>}
-                </div>
-                <div className="mt-3 grid grid-cols-6 sm:grid-cols-11 gap-1.5" role="radiogroup" aria-label={rotulo}>
-                  {Array.from({ length: 11 }, (_, n) => (
-                    <button key={n} role="radio" aria-checked={v === n} aria-label={`${n} de 10`} onClick={() => setA({ ...a, [k]: n })}
-                      style={v === n ? { background: forte, color: '#fffdfa' } : { background: claro }}
-                      className="h-12 rounded-lg text-[17px] font-medium tabular-nums transition active:scale-95 text-texto">{n}</button>
-                  ))}
-                </div>
-                <div className="mt-2 flex justify-between text-meta text-apoio"><span>0 · {min}</span><span>{max} · 10</span></div>
-              </fieldset>
-            )
-          })}
-
-          <fieldset className="cartao p-4 flex flex-col gap-2">
-            <legend className="text-bloco font-medium float-left w-full mb-2">Conseguiu seguir o protocolo?</legend>
-            {(['sim', 'parcial', 'nao'] as const).map(k => (
-              <button key={k} role="radio" aria-checked={a.adesao === k} onClick={() => setA({ ...a, adesao: k })}
-                className={`text-left min-h-[48px] px-4 rounded-lg border text-[15px] ${a.adesao === k ? 'bg-cafe text-creme border-cafe' : 'bg-folha border-borda'}`}>{ADESAO[k]}</button>
-            ))}
-          </fieldset>
-
-          <fieldset className="cartao p-4 flex flex-col gap-3">
-            <legend className="text-bloco font-medium float-left w-full">Sentiu algum efeito diferente desde que começou ou mudou o protocolo?</legend>
-            <p className="text-meta text-apoio">Por exemplo sangramento, dor nas mamas, inchaço, dor de cabeça forte, falta de ar.</p>
-            <div className="grid grid-cols-2 gap-2">
-              {[false, true].map(v => (
-                <button key={String(v)} role="radio" aria-checked={a.reacao === v} onClick={() => setA({ ...a, reacao: v })}
-                  className={`min-h-[48px] rounded-lg border text-[15px] ${a.reacao === v ? 'bg-cafe text-creme border-cafe' : 'bg-folha border-borda'}`}>{v ? 'Sim' : 'Não'}</button>
-              ))}
-            </div>
-            {a.reacao && (<>
-              <label htmlFor="rx" className="text-corpo font-medium">O que você sentiu e desde quando?</label>
-              <textarea id="rx" rows={3} value={a.reacao_texto ?? ''} onChange={e => setA({ ...a, reacao_texto: e.target.value })} className="campo !h-auto py-2.5 text-[15px]" />
-              <Aviso tipo="erro">Se for algo forte ou que não melhora, procure atendimento agora. Emergência: SAMU 192.</Aviso>
-            </>)}
-          </fieldset>
-
-          <div className="cartao p-4 flex flex-col gap-3">
-            <label htmlFor="peso" className="text-bloco font-medium">Peso em casa <span className="text-corpo text-apoio font-normal">(opcional)</span></label>
-            <input id="peso" inputMode="decimal" placeholder="kg" value={a.peso ?? ''} onChange={e => setA({ ...a, peso: e.target.value ? Number(e.target.value.replace(',', '.')) : null })} className="campo text-[15px] w-40" />
-            <label htmlFor="msg" className="text-bloco font-medium mt-1">Quer contar algo para a equipe?</label>
-            <textarea id="msg" rows={3} value={a.mensagem ?? ''} onChange={e => setA({ ...a, mensagem: e.target.value })} className="campo !h-auto py-2.5 text-[15px]" />
-          </div>
-
-          {fase === 'erro' && <Aviso tipo="erro">Não foi possível salvar{erro ? ` (${erro})` : ''}. Suas respostas continuam guardadas neste aparelho, tente de novo.</Aviso>}
-          {vista && <Aviso>Modo visualização: ao salvar, o check-in fica registrado na ficha desta paciente.</Aviso>}
-          {!completo && <p className="text-meta text-apoio">Responda as notas e a pergunta do protocolo para liberar o botão.</p>}
-          <Botao className="w-full !h-12" disabled={!completo || fase === 'enviando'} onClick={enviar}>{fase === 'enviando' ? 'Salvando' : 'Salvar check-in'}</Botao>
-        </div>
-      )}
-
-      {historico.length > 0 && (
-        <section className="flex flex-col gap-3" aria-labelledby="t-hist">
-          <h2 id="t-hist" className="titulo-bloco">Check-ins anteriores</h2>
-          <ul className="cartao divide-y divide-regra overflow-hidden">
-            {historico.map(c => (
-              <li key={c.id} className="px-4 py-3">
-                <div className="flex items-baseline justify-between"><p className="text-corpo font-medium">{dataLonga(c.due_date)}</p><p className="text-meta text-apoio">{c.status === 'atendido' ? 'Respondido' : 'Aguardando resposta'}</p></div>
-                {c.answers?.mensagem && <p className="text-meta text-apoio mt-0.5">Você: {c.answers.mensagem}</p>}
-                {c.reply && <p className="text-corpo mt-2 pl-3 border-l-2 border-cobre">{c.reply}</p>}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-    </div>
   )
 }
 

@@ -185,7 +185,7 @@ export function Icone({ tema, tamanho = 32, fundo = false, className = '' }: { t
 
 /** Tema de um domínio de estilo de vida pelo nome. */
 export const temaDoDominio = (nome: string): Tema =>
-  ({ Humor: 'humor', Sono: 'sono', 'Alimentação': 'alimentacao', 'Álcool': 'alcool', Cigarro: 'cigarro', 'Atividade física': 'atividade' } as Record<string, Tema>)[nome] ?? 'questionario'
+  ({ Humor: 'humor', Sono: 'sono', 'Alimentação': 'alimentacao', 'Álcool': 'alcool', Cigarro: 'cigarro', 'Atividade física': 'atividade', 'Cognição': 'mapa' } as Record<string, Tema>)[nome] ?? 'questionario'
 
 export const temaDoSistema = (grp: string): Tema =>
   ({ metabolismo: 'metabolismo', cardiovascular: 'coracao', figado: 'figado', rins: 'rins', fisico: 'forca', hormonios: 'humor', outros: 'questionario' } as Record<string, Tema>)[grp] ?? 'questionario'

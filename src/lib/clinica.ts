@@ -98,12 +98,13 @@ export const respondido = (f: Fatores, campo: keyof Fatores) => {
 
 // Estilo de vida: questionários por domínio, como no relatório do Life Up
 export const DOMINIOS: Array<{ nome: string; slugs: string[] }> = [
-  { nome: 'Humor', slugs: ['phq9', 'gad7'] },
+  { nome: 'Humor', slugs: ['phq9', 'gad7', 'menod'] },
   { nome: 'Sono', slugs: ['isi', 'stopbang'] },
   { nome: 'Alimentação', slugs: ['dst', 'integrais', 'ultraprocessados'] },
   { nome: 'Álcool', slugs: ['auditc'] },
   { nome: 'Cigarro', slugs: ['cigarro'] },
   { nome: 'Atividade física', slugs: ['atividade'] },
+  { nome: 'Cognição', slugs: ['brainfog'] },
 ]
 
 export const pior = (niveis: Array<Nivel | null | undefined>): Nivel | null => {

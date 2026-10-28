@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
+import { FOME, GERAL, HIDRATACAO, MEDICACAO, MOTIVO_THM, PROTEINA, SANGRAMENTO, rotulo, type CheckinV2 } from '../../lib/checkin'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Check, ChevronDown, Plus, Trash2, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../auth/AuthProvider'
@@ -177,7 +178,7 @@ function LinhaCheckins({ lista }: { lista: Checkin[] }) {
             <button className="w-full text-left px-5 py-2.5 flex items-center gap-3 hover:bg-tom/50" onClick={() => setAberto(aberto === c.id ? null : c.id)} aria-expanded={aberto === c.id} disabled={!c.answers}>
               <span className={`w-2 h-2 rounded-full shrink-0 ${cor(c)}`} />
               <span className="text-corpo tabular-nums w-24">{dataBR(c.due_date)}</span>
-              <span className="text-meta text-apoio flex-1 truncate">{c.answers?.mensagem || (c.status === 'perdido' ? 'Não respondido' : c.status === 'aberto' ? 'Aberto' : 'Sem mensagem')}</span>
+              <span className="text-meta text-apoio flex-1 truncate">{c.answers?.duvida || c.answers?.dificuldade || c.answers?.mensagem || (c.status === 'perdido' ? 'Não respondido' : c.status === 'aberto' ? 'Aberto' : 'Sem mensagem')}</span>
             </button>
             {aberto === c.id && c.answers && <DetalheCheckin c={c} />}
           </li>
@@ -189,6 +190,7 @@ function LinhaCheckins({ lista }: { lista: Checkin[] }) {
 
 export function DetalheCheckin({ c }: { c: Checkin }) {
   const a = c.answers!
+  if (a.v === 2) return <DetalheV2 c={c} />
   return (
     <div className="px-5 pb-4 flex flex-col gap-2">
       <div className="grid grid-cols-4 gap-2">
@@ -317,5 +319,63 @@ function Encerrar({ pid, nome, mat, aoEncerrar }: { pid: string; nome: string; m
         </div>
       )}
     </section>
+  )
+}
+
+function Linha({ r, children }: { r: string; children: ReactNode }) {
+  return <div className="flex gap-3 py-1"><span className="text-meta text-apoio w-36 shrink-0">{r}</span><span className="text-corpo flex-1">{children}</span></div>
+}
+
+/** Check-in semanal (versão de 28/10/2026). */
+function DetalheV2({ c }: { c: Checkin }) {
+  const a = c.answers as unknown as CheckinV2
+  const g = a.glp1, t = a.thm
+  const dias = (n?: number | 'sem_meta') => n === 'sem_meta' ? 'sem meta definida' : n == null ? '·' : `${n} de 7 dias`
+  return (
+    <div className="px-5 pb-4 flex flex-col gap-3">
+      {a.alertas?.length > 0 && <div className="rounded-lg bg-[#fbeee9] border border-terracota/40 px-3 py-2 text-corpo text-[#7c3f29]"><b>Sinal de alerta marcado:</b> {a.alertas.join('; ')}</div>}
+      <div className="grid grid-cols-4 gap-2">
+        <div className="painel-tom px-3 py-2"><p className="text-meta text-apoio">Geral</p><p className="text-corpo font-medium">{rotulo(GERAL, a.geral)}</p></div>
+        {(['energia', 'sono', 'humor'] as const).map(k => (
+          <div key={k} className="painel-tom px-3 py-2"><p className="text-meta text-apoio capitalize">{k}</p><p className="text-bloco tabular-nums">{a[k] ?? '·'}<span className="text-meta text-apoio">/10</span></p></div>
+        ))}
+      </div>
+      <div className="flex flex-col">
+        <Linha r="Alimentação">{dias(a.dias_alimentacao)}</Linha>
+        <Linha r="Atividade física">{dias(a.dias_atividade)}{a.dias_forca ? `, ${a.dias_forca} com força` : ''}</Linha>
+        <Linha r="Hidratação">{rotulo(HIDRATACAO, a.hidratacao)}{a.hidratacao_dificuldade ? ` · ${a.hidratacao_dificuldade}` : ''}</Linha>
+        <Linha r="Medicamentos">{rotulo(MEDICACAO, a.medicacao)}{a.medicacao_detalhe ? ` · ${a.medicacao_detalhe}` : ''}</Linha>
+        {a.peso ? <Linha r="Peso">{a.peso} kg</Linha> : null}
+        <Linha r="Sintoma novo">{a.sintoma_novo ? 'Sim' : 'Não'}</Linha>
+        {a.sintoma_novo && a.sintomas.map((s, i) => <Linha key={i} r={`Sintoma ${i + 1}`}><b>{s.qual}</b>{s.inicio ? ` · desde ${s.inicio}` : ''}{s.relato ? ` · ${s.relato}` : ''}</Linha>)}
+        {a.mudancas?.length > 0 && <Linha r="Mudanças">{a.mudancas.join(', ')}</Linha>}
+      </div>
+      {g && (
+        <div className="painel-tom px-3 py-2 flex flex-col">
+          <p className="rotulo mb-1">GLP-1 / tirzepatida</p>
+          <Linha r="Fome">{rotulo(FOME, g.fome)}</Linha>
+          <Linha r="Refeições e proteína">{rotulo(PROTEINA, g.proteina)}</Linha>
+          <Linha r="Sintomas">{g.sintomas.length ? g.sintomas.join(', ') : 'Nenhum'}</Linha>
+          {(g.dv_episodios != null || g.dv_dias != null) && <Linha r="Diarreia ou vômitos">{g.dv_episodios ?? '·'} episódios no pior dia, há {g.dv_dias ?? '·'} dias · bebe líquidos: {g.dv_liquidos ? 'sim' : 'não'} · urina normal: {g.dv_urina ? 'sim' : 'não'}</Linha>}
+          {g.constipacao_dias != null && <Linha r="Sem evacuar">{g.constipacao_dias} dias</Linha>}
+        </div>
+      )}
+      {t && (
+        <div className="painel-tom px-3 py-2 flex flex-col">
+          <p className="rotulo mb-1">Terapia hormonal</p>
+          <Linha r="Sintomas do motivo">{rotulo(MOTIVO_THM, t.motivo)}{t.quais.length || t.quais_outro ? ` · ${[...t.quais, t.quais_outro].filter(Boolean).join(', ')}` : ''}</Linha>
+          <Linha r="Sangramento">{rotulo(SANGRAMENTO, t.sangramento)}{t.sangramento && t.sangramento !== 'nao' ? ` · início ${t.sang_inicio || '·'}, ${t.sang_dias ?? '·'} dias, ${t.sang_qtd ?? '·'}${t.sang_coagulos ? ', coágulos' : ''}${t.sang_dor ? ', dor' : ''}${t.sang_pos_relacao ? ', após relação' : ''}` : ''}</Linha>
+          <Linha r="Efeitos">{t.efeitos.length ? t.efeitos.join(', ') : 'Nenhum'}</Linha>
+        </div>
+      )}
+      {(a.conquista || a.dificuldade || a.duvida) && (
+        <div className="flex flex-col">
+          {a.conquista && <Linha r="Conquista">“{a.conquista}”</Linha>}
+          {a.dificuldade && <Linha r="Dificuldade">“{a.dificuldade}”</Linha>}
+          {a.duvida && <Linha r="Dúvida para o contato">“{a.duvida}”</Linha>}
+        </div>
+      )}
+      {c.reply && <p className="text-corpo text-apoio border-l-2 border-areia pl-3">Resposta: {c.reply}</p>}
+    </div>
   )
 }

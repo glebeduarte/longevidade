@@ -12,14 +12,15 @@ import { AbaExames } from './exames'
 import { AbaEstilo } from './estilo'
 import { AbaMapa } from './mapa'
 import { AbaPrograma } from './programa'
+import { AbaRiscos } from './riscos'
 
 type Paciente = { id: string; full_name: string; email: string; phone: string | null; birth_date: string | null; location: string | null; status: string; user_id: string | null }
 type Questionario = { id: string; name: string; domain: string; sort: number }
 type Envio = { id: string; status: string; created_at: string; questionnaire_id: string; questionnaires: { name: string; domain: string } | null }
 type Resposta = { id: string; questionnaire_id: string; score: number | null; band_label: string | null; band_level: Nivel | null; flagged: boolean; submitted_at: string; questionnaires: { name: string; domain: string } | null }
 
-type Aba = 'atendimento' | 'programa' | 'exames' | 'estilo' | 'mapa'
-const ABAS: Array<[Aba, string]> = [['atendimento', 'Atendimento'], ['programa', 'Programa'], ['exames', 'Exames e medidas'], ['estilo', 'Estilo de vida'], ['mapa', 'Mapa da saúde']]
+type Aba = 'atendimento' | 'programa' | 'exames' | 'estilo' | 'riscos' | 'mapa'
+const ABAS: Array<[Aba, string]> = [['atendimento', 'Atendimento'], ['programa', 'Programa'], ['exames', 'Exames e medidas'], ['estilo', 'Estilo de vida'], ['riscos', 'Riscos e cálculos'], ['mapa', 'Mapa da saúde']]
 
 function SemAcesso() {
   return <Aviso>Esta parte do prontuário fica visível para a médica e para quem tem acesso clínico.</Aviso>
@@ -76,6 +77,7 @@ export function FichaPaciente() {
       {aba === 'programa' && <AbaPrograma pid={p.id} nome={p.full_name} podeGerir={can(profile, perms, 'can_manage_patients')} clinico={clinico} aoEncerrar={() => supabase.from('patients').select('*').eq('id', p.id).maybeSingle().then(({ data }) => setP(data))} />}
       {aba === 'exames' && <AbaExames pid={p.id} nascimento={p.birth_date} podeLancar={podeLancar} bio={<AbaBio pid={p.id} podeLancar={podeLancar} />} />}
       {aba === 'estilo' && <AbaEstilo pid={p.id} questionarios={<AbaQuestionarios pid={p.id} podeEnviar={can(profile, perms, 'can_manage_patients')} />} />}
+      {aba === 'riscos' && (clinico ? <AbaRiscos pid={p.id} nascimento={p.birth_date} /> : <SemAcesso />)}
       {aba === 'mapa' && (clinico ? <AbaMapa pid={p.id} /> : <SemAcesso />)}
     </div>
   )

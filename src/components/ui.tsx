@@ -14,7 +14,7 @@ export function Borboleta({ className = 'w-7 h-7' }: { className?: string }) {
 export function Marca({ claro = false }: { claro?: boolean }) {
   return (
     <div className={`flex items-center gap-2.5 ${claro ? 'text-creme' : 'text-texto'}`}>
-      <Borboleta className={`w-7 h-5 ${claro ? 'text-areia' : 'text-cobre'}`} />
+      <img src="/marca-bartira.svg" alt="" className={`w-8 h-8 ${claro ? 'rounded-full bg-creme p-1' : ''}`} />
       <div className="leading-none">
         <span className="font-display text-[21px]">Longevidade</span>
         <span className={`block mt-0.5 text-[11px] ${claro ? 'text-areia/80' : 'text-apoio'}`}>Dra. Bartira Rebouças</span>

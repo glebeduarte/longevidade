@@ -2,13 +2,14 @@ import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
-import { Aviso, Borboleta, Botao, Campo, Marca, Titulo } from '../components/ui'
+import { Aviso, Botao, Campo, Marca, Titulo } from '../components/ui'
 
 function Moldura({ children }: { children: ReactNode }) {
   return (
     <main className="min-h-screen grid grid-rows-[auto_1fr] lg:grid-rows-1 lg:grid-cols-[1.05fr_1fr]">
       <section className="relative overflow-hidden bg-cafe text-creme px-5 sm:px-10 lg:px-16 py-5 lg:py-14 flex flex-col">
-                <Borboleta className="absolute -right-24 -bottom-16 w-[520px] h-[364px] text-areia/[0.08] hidden lg:block" />
+        <img src="/dra-bartira.jpg" alt="" className="absolute inset-0 w-full h-full object-cover object-[65%_30%] hidden lg:block" />
+        <div className="absolute inset-0 hidden lg:block bg-gradient-to-t from-cafe via-cafe/70 to-cafe/45" />
         <div className="relative"><Marca claro /></div>
         <div className="relative mt-auto hidden lg:block max-w-md">
           <p className="text-corpo text-areia">Climatério e longevidade feminina</p>
@@ -18,7 +19,10 @@ function Moldura({ children }: { children: ReactNode }) {
         </div>
       </section>
       <section className="flex items-center px-5 sm:px-10 py-10 lg:py-16 bg-fundo">
-        <div className="w-full max-w-[380px] mx-auto flex flex-col gap-6">{children}</div>
+        <div className="w-full max-w-[380px] mx-auto flex flex-col gap-6">
+          <img src="/logo-bartira.svg" alt="Bartira Rebouças, Endocrinologia" className="w-48 self-center" />
+          {children}
+        </div>
       </section>
     </main>
   )

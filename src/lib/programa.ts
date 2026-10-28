@@ -1,3 +1,4 @@
+import type { CheckinV2 } from './checkin'
 export type Programa = { id: string; slug: string; name: string; duration_months: number; encounters: number; price_cents: number }
 export type Matricula = { id: string; patient_id: string; program_id: string; start_date: string; end_date: string; status: 'ativa' | 'concluida' | 'cancelada'; programs?: Programa | null }
 export type Encontro = {
@@ -12,7 +13,7 @@ export type RespostasCheckin = {
 }
 export type Checkin = {
   id: string; patient_id: string; due_date: string; status: 'aberto' | 'respondido' | 'atendido' | 'perdido'
-  answers: RespostasCheckin | null; reaction: boolean; submitted_at: string | null; reply: string | null; replied_at: string | null; reply_seen_at?: string | null
+  answers: (RespostasCheckin & Partial<Omit<CheckinV2, 'sono' | 'humor' | 'energia' | 'peso' | 'reacao' | 'reacao_texto'>>) | null; reaction: boolean; submitted_at: string | null; reply: string | null; replied_at: string | null; reply_seen_at?: string | null
   patients?: { full_name: string } | null
 }
 export type ItemProtocolo = { tipo: 'medicacao' | 'habito' | 'exame' | 'orientacao'; titulo: string; detalhe?: string }
