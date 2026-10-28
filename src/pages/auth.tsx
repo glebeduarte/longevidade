@@ -8,7 +8,7 @@ function Moldura({ children }: { children: ReactNode }) {
   return (
     <main className="min-h-screen grid grid-rows-[auto_1fr] lg:grid-rows-1 lg:grid-cols-[1.05fr_1fr]">
       <section className="relative overflow-hidden bg-cafe text-creme px-5 sm:px-10 lg:px-16 py-5 lg:py-14 flex flex-col">
-        <img src="/dra-bartira.jpg" alt="" className="absolute inset-0 w-full h-full object-cover object-[65%_30%] hidden lg:block" />
+        <img src="/dra-bartira.jpg" alt="" className="absolute inset-0 w-full h-full object-cover object-[55%_35%] hidden lg:block" />
         <div className="absolute inset-0 hidden lg:block bg-gradient-to-t from-cafe via-cafe/70 to-cafe/45" />
         <div className="relative"><Marca claro /></div>
         <div className="relative mt-auto hidden lg:block max-w-md">
