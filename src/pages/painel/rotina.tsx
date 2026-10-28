@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { entrarVista } from '../../lib/vista'
-import { ExternalLink, Eye, Plus, Send } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, ExternalLink, Eye, ImagePlus, Pencil, Plus, Send, Trash2, Upload } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { Icone } from '../../components/icones'
 import { can, useAuth } from '../../auth/AuthProvider'
 import { Aviso, Bloco, Botao, Campo, Iniciais, Selo, Titulo, Vazio } from '../../components/ui'
 import { dataBR } from '../../lib/faixas'
-import { LOCAL, dataHora, hojeISO, prazoTexto, type Checkin, type Encontro, type Video } from '../../lib/programa'
+import { LOCAL, dataHora, hojeISO, prazoTexto, capa, type Checkin, type Encontro, type Video } from '../../lib/programa'
 import { DetalheCheckin } from './programa'
 
 const limpo = (n?: string | null) => (n ?? '').replace(/\s*\(teste\)/, '')
@@ -163,39 +163,134 @@ export function Agenda() {
   )
 }
 
-/** Biblioteca de vídeos da paciente. */
+/** Biblioteca de vídeos da paciente: criar, editar, capa, ordem, ativar e excluir. */
+type FormVideo = { id?: string; title: string; description: string; url: string; duration_min: string; thumbnail_url: string }
+const VAZIO: FormVideo = { title: '', description: '', url: '', duration_min: '', thumbnail_url: '' }
+
+async function enviarArquivo(arquivo: File, pasta: 'capas' | 'arquivos') {
+  const ext = (arquivo.name.split('.').pop() || 'bin').toLowerCase()
+  const caminho = `${pasta}/${crypto.randomUUID()}.${ext}`
+  const { error } = await supabase.storage.from('videos').upload(caminho, arquivo, { contentType: arquivo.type, upsert: false })
+  if (error) throw error
+  return supabase.storage.from('videos').getPublicUrl(caminho).data.publicUrl
+}
+
 export function Videos() {
   const [lista, setLista] = useState<Video[]>([])
-  const [novo, setNovo] = useState({ title: '', description: '', url: '', duration_min: '' })
+  const [form, setForm] = useState<FormVideo>(VAZIO)
+  const [enviando, setEnviando] = useState<'' | 'capa' | 'video'>('')
+  const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState('')
   const carregar = () => supabase.from('videos').select('*').order('sort').then(({ data }) => setLista((data as Video[]) ?? []))
   useEffect(() => { carregar() }, [])
-  async function salvar() {
-    await supabase.from('videos').insert({ title: novo.title, description: novo.description || null, url: novo.url, duration_min: Number(novo.duration_min) || null, sort: lista.length + 1 })
-    setNovo({ title: '', description: '', url: '', duration_min: '' }); carregar()
+
+  const editando = Boolean(form.id)
+  const previa = capa({ url: form.url, thumbnail_url: form.thumbnail_url || null })
+
+  function editar(v: Video) {
+    setErro('')
+    setForm({ id: v.id, title: v.title, description: v.description ?? '', url: v.url, duration_min: v.duration_min ? String(v.duration_min) : '', thumbnail_url: v.thumbnail_url ?? '' })
+    document.getElementById('v-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+
+  async function subir(arquivo: File | undefined, tipo: 'capa' | 'video') {
+    if (!arquivo) return
+    setErro(''); setEnviando(tipo)
+    try {
+      const url = await enviarArquivo(arquivo, tipo === 'capa' ? 'capas' : 'arquivos')
+      setForm(f => tipo === 'capa' ? { ...f, thumbnail_url: url } : { ...f, url })
+    } catch { setErro(tipo === 'capa' ? 'Não foi possível enviar a capa. Use JPG, PNG ou WebP.' : 'Não foi possível enviar o vídeo. Use MP4, WebM ou MOV com até 500 MB.') }
+    setEnviando('')
+  }
+
+  async function salvar() {
+    setSalvando(true); setErro('')
+    const dados = { title: form.title.trim(), description: form.description.trim() || null, url: form.url.trim(), duration_min: Number(form.duration_min) || null, thumbnail_url: form.thumbnail_url.trim() || null, updated_at: new Date().toISOString() }
+    const { error } = form.id
+      ? await supabase.from('videos').update(dados).eq('id', form.id)
+      : await supabase.from('videos').insert({ ...dados, sort: lista.length + 1 })
+    setSalvando(false)
+    if (error) { setErro('Não foi possível salvar. Tente de novo.'); return }
+    setForm(VAZIO); carregar()
+  }
+
   async function alternar(v: Video) { await supabase.from('videos').update({ active: !v.active }).eq('id', v.id); carregar() }
+
+  async function mover(i: number, d: -1 | 1) {
+    const nova = [...lista]
+    ;[nova[i], nova[i + d]] = [nova[i + d], nova[i]]
+    setLista(nova)
+    await Promise.all(nova.map((v, k) => v.sort === k + 1 ? null : supabase.from('videos').update({ sort: k + 1 }).eq('id', v.id)))
+    carregar()
+  }
+
+  async function excluir(v: Video) {
+    if (!window.confirm(`Excluir o vídeo "${v.title}"? As pacientes deixam de ver na hora.`)) return
+    await supabase.from('videos').delete().eq('id', v.id)
+    if (form.id === v.id) setForm(VAZIO)
+    carregar()
+  }
 
   return (
     <div className="flex flex-col gap-6">
-      <Titulo sub="Os vídeos ativos aparecem no início do app da paciente. Aceita links do YouTube, Vimeo ou arquivo de vídeo.">Vídeos de orientação</Titulo>
-      {lista.some(v => v.url.includes('exemplo.com')) && <Aviso>Os vídeos com endereço exemplo.com são de demonstração. Troque pelos links reais.</Aviso>}
+      <Titulo sub="Os vídeos ativos aparecem no início do app da paciente, com a capa. Aceita links do YouTube, Vimeo ou arquivo de vídeo enviado aqui.">Vídeos de orientação</Titulo>
+      {lista.some(v => v.url.includes('exemplo.com')) && <Aviso>Os vídeos com endereço exemplo.com são de demonstração. Clique em Editar para trocar pelo link real e pela capa.</Aviso>}
       <div className="grid lg:grid-cols-12 gap-4 items-start">
-        <Bloco className="lg:col-span-7" icone={<Icone tema="video" fundo tamanho={36} />} titulo="Biblioteca" sub={`${lista.filter(v => v.active).length} ativos`} semPad>
-          <ul className="pb-2">{lista.map(v => (
-            <li key={v.id} className={`px-5 py-3 border-t border-regra flex items-center gap-3 ${v.active ? '' : 'opacity-55'}`}>
-              <div className="flex-1 min-w-0"><p className="text-corpo font-medium">{v.title}</p><p className="text-meta text-apoio truncate">{v.description}{v.duration_min ? ` · ${v.duration_min} min` : ''}</p></div>
+        <Bloco className="lg:col-span-7" icone={<Icone tema="video" fundo tamanho={36} />} titulo="Biblioteca" sub={`${lista.filter(v => v.active).length} ativos de ${lista.length}`} semPad>
+          {lista.length === 0 ? <div className="p-5"><Vazio titulo="Nenhum vídeo cadastrado" /></div> : (
+          <ul className="pb-2">{lista.map((v, i) => {
+            const c = capa(v)
+            return (
+            <li key={v.id} className={`px-5 py-3 border-t border-regra flex items-center gap-3 ${form.id === v.id ? 'bg-tom/60' : ''}`}>
+              <div className={`w-20 aspect-video shrink-0 rounded overflow-hidden bg-tom grid place-items-center ${v.active ? '' : 'opacity-55'}`}>
+                {c ? <img src={c} alt="" className="w-full h-full object-cover" /> : <Icone tema="video" tamanho={22} />}
+              </div>
+              <div className={`flex-1 min-w-0 ${v.active ? '' : 'opacity-55'}`}>
+                <p className="text-corpo font-medium truncate">{v.title}</p>
+                <p className="text-meta text-apoio truncate">{v.active ? '' : 'Desativado · '}{v.description}{v.duration_min ? ` · ${v.duration_min} min` : ''}</p>
+              </div>
+              <div className="flex flex-col">
+                <button onClick={() => mover(i, -1)} disabled={i === 0} aria-label={`Subir ${v.title}`} className="w-7 h-6 grid place-items-center rounded text-apoio hover:bg-tom disabled:opacity-30"><ChevronUp className="w-4 h-4" /></button>
+                <button onClick={() => mover(i, 1)} disabled={i === lista.length - 1} aria-label={`Descer ${v.title}`} className="w-7 h-6 grid place-items-center rounded text-apoio hover:bg-tom disabled:opacity-30"><ChevronDown className="w-4 h-4" /></button>
+              </div>
               <a href={v.url} target="_blank" rel="noopener noreferrer" className="w-8 h-8 grid place-items-center rounded text-apoio hover:bg-tom" aria-label={`Abrir ${v.title}`}><ExternalLink className="w-4 h-4" /></a>
+              <Botao tamanho="sm" variante="linha" onClick={() => editar(v)}><Pencil className="w-4 h-4" />Editar</Botao>
               <Botao tamanho="sm" variante="suave" onClick={() => alternar(v)}>{v.active ? 'Desativar' : 'Ativar'}</Botao>
-            </li>))}
-          </ul>
+              <button onClick={() => excluir(v)} aria-label={`Excluir ${v.title}`} className="w-8 h-8 grid place-items-center rounded text-apoio hover:bg-tom hover:text-terracota"><Trash2 className="w-4 h-4" /></button>
+            </li>)
+          })}
+          </ul>)}
         </Bloco>
-        <Bloco className="lg:col-span-5" icone={<Icone tema="video" fundo tamanho={36} />} titulo="Novo vídeo">
+
+        <Bloco id="v-form" className="lg:col-span-5 lg:sticky lg:top-4" icone={<Icone tema="video" fundo tamanho={36} />} titulo={editando ? 'Editar vídeo' : 'Novo vídeo'}>
           <div className="flex flex-col gap-3">
-            <Campo id="v-t" label="Título" value={novo.title} onChange={e => setNovo({ ...novo, title: e.target.value })} />
-            <Campo id="v-u" label="Link" placeholder="https://youtube.com/..." value={novo.url} onChange={e => setNovo({ ...novo, url: e.target.value })} />
-            <Campo id="v-d" label="Descrição curta" value={novo.description} onChange={e => setNovo({ ...novo, description: e.target.value })} />
-            <Campo id="v-m" label="Duração em minutos" inputMode="numeric" value={novo.duration_min} onChange={e => setNovo({ ...novo, duration_min: e.target.value })} />
-            <Botao onClick={salvar} disabled={!novo.title.trim() || !novo.url.trim()}><Plus className="w-4 h-4" />Adicionar</Botao>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-corpo font-medium">Capa</span>
+              <div className="aspect-video rounded-lg overflow-hidden bg-tom grid place-items-center border border-regra">
+                {previa ? <img src={previa} alt="Prévia da capa" className="w-full h-full object-cover" /> : <span className="text-meta text-apoio px-6 text-center">Sem capa. Envie uma imagem ou use um link do YouTube, que traz a capa do próprio vídeo.</span>}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <label className="inline-flex items-center gap-2 h-9 px-3.5 rounded border border-borda text-[13px] font-medium cursor-pointer hover:bg-tom">
+                  <ImagePlus className="w-4 h-4" />{enviando === 'capa' ? 'Enviando' : form.thumbnail_url ? 'Trocar capa' : 'Enviar capa'}
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={!!enviando} onChange={e => { subir(e.target.files?.[0], 'capa'); e.target.value = '' }} />
+                </label>
+                {form.thumbnail_url && <Botao tamanho="sm" variante="texto" onClick={() => setForm({ ...form, thumbnail_url: '' })}>Remover capa</Botao>}
+              </div>
+              <p className="text-meta text-apoio">Formato horizontal 16:9, por exemplo 1280 × 720.</p>
+            </div>
+            <Campo id="v-t" label="Título" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} />
+            <Campo id="v-u" label="Link do vídeo" placeholder="https://youtube.com/..." value={form.url} onChange={e => setForm({ ...form, url: e.target.value })} />
+            <label className="self-start inline-flex items-center gap-2 h-9 px-3.5 rounded border border-borda text-[13px] font-medium cursor-pointer hover:bg-tom">
+              <Upload className="w-4 h-4" />{enviando === 'video' ? 'Enviando o vídeo' : 'Ou enviar arquivo de vídeo'}
+              <input type="file" accept="video/mp4,video/webm,video/quicktime" className="sr-only" disabled={!!enviando} onChange={e => { subir(e.target.files?.[0], 'video'); e.target.value = '' }} />
+            </label>
+            <Campo id="v-d" label="Descrição curta" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+            <Campo id="v-m" label="Duração em minutos" inputMode="numeric" value={form.duration_min} onChange={e => setForm({ ...form, duration_min: e.target.value.replace(/\D/g, '') })} />
+            {erro && <p className="text-meta text-terracota">{erro}</p>}
+            <div className="flex gap-2">
+              <Botao onClick={salvar} disabled={salvando || !!enviando || !form.title.trim() || !form.url.trim()}>{editando ? <><Check className="w-4 h-4" />Salvar alterações</> : <><Plus className="w-4 h-4" />Adicionar</>}</Botao>
+              {editando && <Botao variante="suave" onClick={() => { setForm(VAZIO); setErro('') }}>Cancelar</Botao>}
+            </div>
           </div>
         </Bloco>
       </div>

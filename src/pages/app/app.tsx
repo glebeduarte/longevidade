@@ -1,7 +1,7 @@
 import { ReceitasPaciente } from '../../components/receitas'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Check, LogOut, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, LogOut, Play, X } from 'lucide-react'
 import { useAuth } from '../../auth/AuthProvider'
 import { supabase } from '../../lib/supabase'
 import { Borboleta, Botao } from '../../components/ui'
@@ -10,7 +10,7 @@ import { dataBR } from '../../lib/faixas'
 import { fmt, type Medida } from '../../lib/clinica'
 import {
   LOCAL, dataHora, dataLonga, embed, hojeISO, mesDoPrograma,
-  type Checkin, type Encontro, type Matricula, type Protocolo, type Video,
+  type Checkin, type Encontro, type Matricula, type Protocolo, type Video, capa,
 } from '../../lib/programa'
 import { ListaProtocolo } from '../painel/programa'
 import { COR, Icone, type Tema } from '../../components/icones'
@@ -124,7 +124,9 @@ export function Inicio() {
           <div ref={trilho} className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth touch-pan-x">
             {videos.map((v, i) => (
               <button key={v.id} onClick={() => setTocando(v)} style={{ background: CORES_VIDEO[i % CORES_VIDEO.length] }} className="snap-start shrink-0 w-44 aspect-[4/5] max-w-full rounded-xl p-4 flex flex-col justify-between text-left hover:brightness-[.97] active:scale-[.99] transition">
-                <Icone tema="video" fundo tamanho={44} />
+                {capa(v)
+                  ? <span className="relative -mx-4 -mt-4 mb-3 block aspect-video overflow-hidden rounded-t-xl bg-texto/10"><img src={capa(v)!} alt="" loading="lazy" className="w-full h-full object-cover" /><span className="absolute inset-0 grid place-items-center"><span className="w-11 h-11 rounded-full bg-folha/90 grid place-items-center"><Play className="w-5 h-5 ml-0.5 text-texto" fill="currentColor" /></span></span></span>
+                  : <Icone tema="video" fundo tamanho={44} />}
                 <span><span className="block text-bloco font-medium leading-snug">{v.title}</span>{v.duration_min && <span className="block text-meta text-apoio mt-1">{v.duration_min} min</span>}</span>
               </button>
             ))}
@@ -177,7 +179,7 @@ function Player({ v, aoFechar }: { v: Video; aoFechar: () => void }) {
         </div>
         <div className="aspect-video bg-texto">
           {src ? <iframe src={src} title={v.title} className="w-full h-full" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />
-            : /\.(mp4|webm|mov)(\?|$)/i.test(v.url) ? <video src={v.url} controls className="w-full h-full" />
+            : /\.(mp4|webm|mov)(\?|$)/i.test(v.url) ? <video src={v.url} poster={capa(v) ?? undefined} controls playsInline className="w-full h-full" />
             : <div className="w-full h-full grid place-items-center p-6 text-center"><a href={v.url} target="_blank" rel="noopener noreferrer" className="text-creme underline underline-offset-4">Abrir o vídeo</a></div>}
         </div>
       </div>

@@ -18,7 +18,7 @@ export type Checkin = {
 }
 export type ItemProtocolo = { tipo: 'medicacao' | 'habito' | 'exame' | 'orientacao'; titulo: string; detalhe?: string }
 export type Protocolo = { id: string; patient_id: string; version: number; intro: string | null; items: ItemProtocolo[]; published_at: string | null; created_at: string }
-export type Video = { id: string; title: string; description: string | null; url: string; duration_min: number | null; sort: number; active: boolean }
+export type Video = { id: string; title: string; description: string | null; url: string; thumbnail_url: string | null; duration_min: number | null; sort: number; active: boolean }
 
 export const TIPO_ITEM: Record<ItemProtocolo['tipo'], string> = {
   medicacao: 'Medicações', habito: 'Hábitos', exame: 'Exames e medidas', orientacao: 'Orientações',
@@ -68,4 +68,11 @@ export function embed(url: string) {
   const vm = url.match(/vimeo\.com\/(\d+)/)
   if (vm) return `https://player.vimeo.com/video/${vm[1]}`
   return null
+}
+
+/** Capa do vídeo: a enviada pela equipe ou, no YouTube, a imagem do próprio vídeo. */
+export function capa(v: Pick<Video, 'url' | 'thumbnail_url'>) {
+  if (v.thumbnail_url) return v.thumbnail_url
+  const yt = v.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([\w-]{6,})/)
+  return yt ? `https://i.ytimg.com/vi/${yt[1]}/hqdefault.jpg` : null
 }
