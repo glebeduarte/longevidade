@@ -256,7 +256,7 @@ export function Hoje() {
 }
 
 /** Folha lateral para formulários curtos. */
-function Folha({ aberto, titulo, sub, onFechar, children }: { aberto: boolean; titulo: string; sub?: string; onFechar: () => void; children: ReactNode }) {
+export function Folha({ aberto, titulo, sub, onFechar, children }: { aberto: boolean; titulo: string; sub?: string; onFechar: () => void; children: ReactNode }) {
   useEffect(() => {
     if (!aberto) return
     const esc = (e: KeyboardEvent) => e.key === 'Escape' && onFechar()
@@ -421,7 +421,7 @@ const PERMS: Array<[string, string, string]> = [
 
 type Membro = { id: string; full_name: string | null; email: string | null; active: boolean; team_permissions: Record<string, boolean | string | null> | null }
 
-function Chave({ ligado, aoTrocar, rotulo }: { ligado: boolean; aoTrocar: () => void; rotulo: string }) {
+export function Chave({ ligado, aoTrocar, rotulo }: { ligado: boolean; aoTrocar: () => void; rotulo: string }) {
   return (
     <button role="switch" aria-checked={ligado} aria-label={rotulo} onClick={aoTrocar}
       className={`relative w-9 h-5 rounded-full shrink-0 transition-colors ${ligado ? 'bg-oliva' : 'bg-controle'}`}>

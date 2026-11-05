@@ -127,8 +127,3 @@ export const TEMAS: TemaSite[] = [
       'O diagnóstico é feito com exames e o tratamento é acompanhado de perto.',
     ] },
 ]
-
-export const MATERIAIS = [
-  { titulo: 'Mulheres em Transformação', tipo: 'Guia', texto: 'Os 6 pilares para atravessar o climatério com saúde.' },
-  { titulo: 'Climatério sem Tabu', tipo: 'E-book', texto: 'Respostas claras para as dúvidas mais comuns sobre essa fase.' },
-]

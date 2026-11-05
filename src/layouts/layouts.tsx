@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { sairVista, useVista, vistaAtual } from '../lib/vista'
-import { CalendarDays, Eye, ClipboardList, MessagesSquare, PlayCircle, SlidersHorizontal, Home, LineChart, LogOut, Menu, MessageCircle, Sun, Users, UserCog, X } from 'lucide-react'
+import { Globe, CalendarDays, Eye, ClipboardList, MessagesSquare, PlayCircle, SlidersHorizontal, Home, LineChart, LogOut, Menu, MessageCircle, Sun, Users, UserCog, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { can, useAuth, type Perms } from '../auth/AuthProvider'
 import { Consentimento } from '../pages/auth'
@@ -77,6 +77,7 @@ const itensPainel: Array<{ to: string; rotulo: string; icone: LucideIcon; precis
   { to: '/painel/pacientes', rotulo: 'Pacientes', icone: Users, precisa: 'can_manage_patients', grupo: 'Rotina' },
   { to: '/painel/checkins', rotulo: 'Check-ins', icone: MessagesSquare, precisa: 'can_answer_checkins', grupo: 'Rotina' },
   { to: '/painel/agenda', rotulo: 'Encontros', icone: CalendarDays, precisa: 'can_manage_patients', grupo: 'Rotina' },
+  { to: '/painel/site', rotulo: 'Site e leads', icone: Globe, precisa: 'can_manage_patients', grupo: 'Site' },
   { to: '/painel/ver-como', rotulo: 'Ver como paciente', icone: Eye, precisa: 'medica', grupo: 'Configurações' },
   { to: '/painel/videos', rotulo: 'Vídeos', icone: PlayCircle, precisa: 'medica', grupo: 'Configurações' },
   { to: '/painel/faixas', rotulo: 'Faixas dos indicadores', icone: SlidersHorizontal, precisa: 'medica', grupo: 'Configurações' },

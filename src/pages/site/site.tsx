@@ -4,8 +4,9 @@ import { ArrowRight, Check, ChevronDown, Clock, Instagram, MapPin, Menu, Message
 import { useAuth } from '../../auth/AuthProvider'
 import { Icone, degrade } from '../../components/icones'
 import {
-  APP_PACIENTE, CONTATO, INICIO, LOCAIS, MATERIAIS, NAV, PARA_QUEM, PASSOS, PERGUNTAS, PLANOS, SOBRE, TEMAS, linkAgendar,
+  APP_PACIENTE, CONTATO, INICIO, LOCAIS, NAV, PARA_QUEM, PASSOS, PERGUNTAS, PLANOS, SOBRE, TEMAS, linkAgendar,
 } from '../../lib/site'
+import { CartaoMaterial, useMateriais } from './material'
 
 /** Título e descrição da aba do navegador e das buscas. */
 function usePagina(titulo: string, descricao: string) {
@@ -197,25 +198,22 @@ export function SiteInicio() {
       </div>
     </Secao>
 
-    <Secao>
-      <Titulo sobre="Materiais" sub="Conteúdos escritos pela Dra. Bartira para quem quer entender melhor essa fase.">Informação clara, sem tabu</Titulo>
-      <div className="mt-10 grid md:grid-cols-2 gap-5">
-        {MATERIAIS.map(m => (
-          <div key={m.titulo} className="cartao p-6 flex gap-5 items-start">
-            <div className="w-20 h-28 shrink-0 rounded-lg bg-cafe text-creme p-2.5 flex flex-col justify-between"><img src="/marca-bartira.svg" alt="" className="w-6 h-6 bg-creme rounded-full p-0.5" /><span className="font-display text-[13px] leading-tight">{m.titulo}</span></div>
-            <div>
-              <p className="text-[12px] tracking-[0.18em] uppercase text-cobre">{m.tipo}</p>
-              <h3 className="font-display text-[26px] leading-tight mt-1">{m.titulo}</h3>
-              <p className="mt-2 text-[16px] text-apoio">{m.texto}</p>
-              <Link to="/conteudos" className="mt-3 inline-flex items-center gap-2 text-[15px] text-cafe hover:underline underline-offset-4">Saiba como receber<ArrowRight className="w-4 h-4" /></Link>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Secao>
+    <MateriaisHome />
 
     <ChamadaFinal />
   </>)
+}
+
+/** Materiais marcados com estrela no painel. Sem nenhum, a seção some. */
+function MateriaisHome() {
+  const lista = useMateriais(true)
+  if (!lista?.length) return null
+  return (
+    <Secao>
+      <Titulo sobre="Materiais gratuitos" sub="Conteúdos escritos pela Dra. Bartira para quem quer entender melhor essa fase.">Informação clara, sem tabu</Titulo>
+      <div className="mt-10 grid md:grid-cols-2 gap-5">{lista.map(m => <CartaoMaterial key={m.id} m={m} />)}</div>
+    </Secao>
+  )
 }
 
 function ChamadaFinal() {
@@ -404,22 +402,13 @@ export function SiteTema() {
 // ---------- Conteúdos ----------
 export function SiteConteudos() {
   usePagina('Conteúdos', 'Guia, e-book e conteúdos da Dra. Bartira sobre climatério e longevidade feminina.')
+  const materiais = useMateriais()
   return (<>
     <Cabeca sobre="Conteúdos" titulo="Para entender melhor essa fase" texto="Materiais escritos pela Dra. Bartira e conteúdos sobre climatério, menopausa e longevidade." />
     <Secao>
-      <div className="grid md:grid-cols-2 gap-6">
-        {MATERIAIS.map(m => (
-          <div key={m.titulo} className="cartao p-7 flex flex-col gap-4">
-            <div className="w-full aspect-[16/9] rounded-xl bg-cafe text-creme p-6 flex flex-col justify-between">
-              <img src="/marca-bartira.svg" alt="" className="w-10 h-10 bg-creme rounded-full p-1.5" />
-              <div><p className="text-[11px] tracking-[0.2em] uppercase text-areia">{m.tipo}</p><p className="font-display text-[32px] leading-tight">{m.titulo}</p></div>
-            </div>
-            <p className="text-[17px] text-apoio">{m.texto}</p>
-            {/* CONFIRMAR: gratuito com e-mail, vendido ou só para pacientes */}
-            <p className="text-[15px]">Disponível para pacientes. Peça o seu no agendamento.</p>
-          </div>
-        ))}
-      </div>
+      {materiais === null ? <p className="text-apoio">Carregando</p> : materiais.length === 0 ? <p className="text-[17px] text-apoio">Novos materiais em breve.</p> : (
+        <div className="grid md:grid-cols-2 gap-6">{materiais.map(m => <CartaoMaterial key={m.id} m={m} />)}</div>
+      )}
     </Secao>
     <Secao tom>
       <Titulo sobre="Temas" sub="Textos curtos sobre os assuntos mais comuns no consultório.">Leia por assunto</Titulo>

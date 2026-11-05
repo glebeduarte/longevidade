@@ -11,6 +11,8 @@ import { ImprimirMapa } from './pages/painel/mapa'
 import { Faixas } from './pages/painel/faixas'
 import { Questionarios, Responder } from './pages/app/questionarios'
 import Placeholder from './pages/Placeholder'
+import { SiteGestao } from './pages/painel/site'
+import { LandingMaterial } from './pages/site/material'
 import { LayoutSite, SiteContato, SiteConteudos, SiteInicio, SitePrivacidade, SitePrograma, SiteSobre, SiteTema, SiteTemas } from './pages/site/site'
 
 export default function App() {
@@ -27,6 +29,7 @@ export default function App() {
             <Route path="/conteudos" element={<SiteConteudos />} />
             <Route path="/contato" element={<SiteContato />} />
             <Route path="/privacidade" element={<SitePrivacidade />} />
+            <Route path="/material/:slug" element={<LandingMaterial />} />
           </Route>
           <Route path="/entrar" element={<Entrar />} />
           <Route path="/esqueci" element={<Esqueci />} />
@@ -54,6 +57,7 @@ export default function App() {
               <Route path="videos" element={<Videos />} />
               <Route path="ver-como" element={<VerComo />} />
               <Route path="faixas" element={<Faixas />} />
+              <Route path="site" element={<SiteGestao />} />
             </Route>
             <Route path="/painel/pacientes/:id/mapa/:mapaId" element={<ImprimirMapa />} />
           </Route>
