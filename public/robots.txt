@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /painel
+Disallow: /app
+Disallow: /entrar
+Disallow: /esqueci
+Disallow: /definir-senha

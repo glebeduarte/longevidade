@@ -1,7 +1,7 @@
 {
   "name": "Longevidade · Dra. Bartira Rebouças",
   "short_name": "Longevidade",
-  "start_url": "/",
+  "start_url": "/entrar",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f5f1eb",

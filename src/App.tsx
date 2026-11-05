@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthProvider'
 import { LayoutApp, LayoutPainel, Protegido } from './layouts/layouts'
 import { DefinirSenha, Entrar, Esqueci } from './pages/auth'
@@ -11,13 +11,23 @@ import { ImprimirMapa } from './pages/painel/mapa'
 import { Faixas } from './pages/painel/faixas'
 import { Questionarios, Responder } from './pages/app/questionarios'
 import Placeholder from './pages/Placeholder'
+import { LayoutSite, SiteContato, SiteConteudos, SiteInicio, SitePrivacidade, SitePrograma, SiteSobre, SiteTema, SiteTemas } from './pages/site/site'
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/entrar" replace />} />
+          <Route element={<LayoutSite />}>
+            <Route path="/" element={<SiteInicio />} />
+            <Route path="/sobre" element={<SiteSobre />} />
+            <Route path="/programa" element={<SitePrograma />} />
+            <Route path="/temas" element={<SiteTemas />} />
+            <Route path="/temas/:slug" element={<SiteTema />} />
+            <Route path="/conteudos" element={<SiteConteudos />} />
+            <Route path="/contato" element={<SiteContato />} />
+            <Route path="/privacidade" element={<SitePrivacidade />} />
+          </Route>
           <Route path="/entrar" element={<Entrar />} />
           <Route path="/esqueci" element={<Esqueci />} />
           <Route path="/definir-senha" element={<DefinirSenha />} />
