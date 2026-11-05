@@ -27,10 +27,38 @@ export const NAV: Array<[string, string]> = [
 ]
 
 export const INICIO = {
-  sobretitulo: 'Endocrinologia · Climatério e longevidade feminina',
-  titulo: 'Seu corpo mudou. Te ajudo a entender e a cuidar dele.',
-  texto: 'Acompanho mulheres na perimenopausa, na menopausa e depois dela, com exames, escuta e um plano feito para a sua rotina. Ciência e acolhimento na mesma consulta.',
+  titulo: 'Ciência e acolhimento',
+  texto: 'Climatério e longevidade feminina com a Dra. Bartira Rebouças, endocrinologista em Natal. Exames, escuta e um plano por escrito para cada fase.',
+  intro: [
+    'Calorões que acordam no meio da noite. Um cansaço que não passa com descanso. O peso que muda de lugar, o humor que oscila sem motivo aparente.',
+    'Essas mudanças têm nome, têm explicação e têm tratamento. O climatério é uma transição, como a da lagarta para a borboleta: o corpo se reorganiza, e cada fase pede um cuidado diferente.',
+    'Meu trabalho é atravessar essa fase com você, com decisões explicadas e um acompanhamento que não termina na saída do consultório.',
+  ],
 }
+
+/** "Em que fase você está?": orientação geral, não diagnóstico. */
+export const FASES: Array<{ id: string; pergunta: string; fase: string; texto: string; cuidado: string }> = [
+  { id: 'regular', pergunta: 'Menstruo todo mês, como sempre', fase: 'Antes da transição',
+    texto: 'Os ciclos ainda são regulares, mas a partir dos 40 anos algumas mudanças podem começar antes de a menstruação mudar: sono mais leve, TPM mais forte, ganho de peso.',
+    cuidado: 'É o melhor momento para uma avaliação de base: exames, composição corporal, força e hábitos.' },
+  { id: 'irregular', pergunta: 'Meus ciclos mudaram: atrasam, adiantam ou falham', fase: 'Perimenopausa',
+    texto: 'É a fase de transição. Os hormônios oscilam bastante e os sintomas costumam aparecer: calorões, insônia, irritabilidade, alterações na libido.',
+    cuidado: 'Os sintomas têm tratamento, com ou sem hormônios. Vale avaliar agora, antes que eles tomem conta da rotina.' },
+  { id: 'menopausa', pergunta: 'Estou há 12 meses ou mais sem menstruar', fase: 'Pós-menopausa',
+    texto: 'A menopausa já aconteceu. Alguns sintomas podem continuar por anos, e o cuidado com ossos, coração, músculos e metabolismo ganha importância.',
+    cuidado: 'Avaliamos riscos e escolhemos o que proteger primeiro: saúde óssea, cardiovascular e muscular.' },
+  { id: 'outro', pergunta: 'Não menstruo por outro motivo (cirurgia, DIU, medicação)', fase: 'Precisa de avaliação',
+    texto: 'Sem a menstruação como referência, a fase é identificada pelos sintomas, pela idade e, quando necessário, por exames.',
+    cuidado: 'Na consulta, conversamos sobre seu histórico para entender em que momento você está.' },
+]
+
+/** O programa como um roteiro impresso. */
+export const ROTEIRO: Array<{ quando: string; itens: Array<[string, string]> }> = [
+  { quando: 'Primeiro mês', itens: [['Encontro inicial, com tempo para ouvir', '1ª semana'], ['Exames, bioimpedância e força', 'até a 2ª semana'], ['Questionários de sono, humor e hábitos', 'pelo app'], ['Seu protocolo por escrito', 'no app']] },
+  { quando: 'Toda semana', itens: [['Check-in sobre sintomas, hábitos e medicamentos', 'quinta-feira'], ['Resposta da equipe', 'sexta-feira']] },
+  { quando: 'Ao longo do programa', itens: [['Encontro de seguimento e ajustes', '3º mês'], ['Encontro de encerramento', '6º mês']] },
+]
+export const ROTEIRO_FIM: [string, string] = ['Seu Mapa da Saúde e um plano para seguir', '6 meses']
 
 export const PARA_QUEM: Array<{ tema: Tema; titulo: string; texto: string }> = [
   { tema: 'fogacho', titulo: 'Calorões, sono e humor', texto: 'Sintomas do climatério que atrapalham o dia e a noite, e as opções seguras para cada caso.' },
@@ -79,11 +107,15 @@ export const APP_PACIENTE = [
 ]
 
 export const PERGUNTAS: Array<[string, string]> = [
+  ['Com que idade começa o climatério?', 'Costuma começar entre os 40 e os 50 anos, alguns anos antes da última menstruação. Cada mulher tem seu tempo.'],
+  ['Os sintomas passam sozinhos?', 'Alguns diminuem com os anos, outros persistem por muito tempo. Não é preciso esperar: existem tratamentos para cada caso.'],
   ['Preciso estar na menopausa para participar?', 'Não. O programa atende mulheres na perimenopausa, quando os ciclos começam a mudar, e depois da menopausa.'],
   ['O programa inclui terapia hormonal?', 'Só quando for indicada e segura para você. Essa decisão é tomada na consulta, depois da avaliação completa.'],
   ['Atende por plano de saúde?', 'A confirmar.'], // CONFIRMAR
   ['Posso fazer as consultas on-line?', 'A confirmar.'], // CONFIRMAR
   ['Como funciona o check-in semanal?', 'Toda semana você responde algumas perguntas pelo app sobre sintomas, sono, hábitos e medicamentos. A equipe lê e responde às sextas-feiras.'],
+  ['Preciso levar exames na primeira consulta?', 'Se tiver exames recentes, traga. Os que faltarem são pedidos no encontro inicial.'],
+  ['E se eu tiver um sintoma forte entre os encontros?', 'O app tem uma lista de sinais que não esperam a sexta-feira. Nesses casos, procure atendimento imediato e a equipe é avisada.'],
 ]
 
 export type TemaSite = { slug: string; tema: Tema; titulo: string; resumo: string; corpo: string[] }
