@@ -131,20 +131,20 @@ export function LayoutPainel() {
     <div className="min-h-screen bg-fundo lg:grid lg:grid-cols-[240px_1fr]">
       {/* Desktop: barra lateral no próprio chão da tela, separada por uma linha */}
       <aside className="hidden lg:flex sticky top-0 h-screen flex-col gap-8 px-3 py-5 border-r border-borda">
-        <div className="px-3"><Marca /></div>
+        <div className="px-3"><Marca oficial /></div>
         <Navegacao />
         <div className="mt-auto"><Usuario /></div>
       </aside>
 
       {/* Celular e tablet: barra de 56px com o menu em folha inteira */}
       <header className="lg:hidden sticky top-0 z-30 h-14 px-4 flex items-center justify-between bg-fundo border-b border-borda">
-        <Marca />
+        <Marca oficial />
         <button onClick={() => setMenu(true)} aria-label="Abrir menu" aria-expanded={menu} className="w-11 h-11 -mr-2 grid place-items-center rounded text-texto hover:bg-tom"><Menu className="w-5 h-5" strokeWidth={1.6} /></button>
       </header>
       {menu && (
         <div className="lg:hidden fixed inset-0 z-40 bg-fundo flex flex-col px-3 py-3 entra" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="h-12 px-3 flex items-center justify-between">
-            <Marca />
+            <Marca oficial />
             <button onClick={() => setMenu(false)} aria-label="Fechar menu" className="w-11 h-11 -mr-2 grid place-items-center rounded hover:bg-tom"><X className="w-5 h-5" strokeWidth={1.6} /></button>
           </div>
           <div className="mt-6 flex-1"><Navegacao aoEscolher={() => setMenu(false)} /></div>

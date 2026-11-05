@@ -11,7 +11,8 @@ export function Borboleta({ className = 'w-7 h-7' }: { className?: string }) {
   )
 }
 
-export function Marca({ claro = false }: { claro?: boolean }) {
+export function Marca({ claro = false, oficial = false }: { claro?: boolean; oficial?: boolean }) {
+  if (oficial) return <img src="/marca/logo-escuro.png" alt="Dra. Bartira Rebouças, Endocrinologista" className="h-12 w-auto" />
   return (
     <div className={`flex items-center gap-2.5 ${claro ? 'text-creme' : 'text-texto'}`}>
       <img src="/marca-bartira.svg" alt="" className={`w-8 h-8 ${claro ? 'rounded-full bg-creme p-1' : ''}`} />
