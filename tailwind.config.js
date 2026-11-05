@@ -6,17 +6,17 @@ export default {
     extend: {
       colors: {
         // marca
-        creme: '#f3eee7', areia: '#d8cbb9', cafe: '#4a382d', oliva: '#4e5839', terracota: '#9a5a42', cobre: '#a26b55',
+        creme: 'rgb(var(--c-creme, 243 238 231) / <alpha-value>)', areia: 'rgb(var(--c-areia, 216 203 185) / <alpha-value>)', cafe: 'rgb(var(--c-cafe, 74 56 45) / <alpha-value>)', oliva: 'rgb(var(--c-oliva, 78 88 57) / <alpha-value>)', terracota: 'rgb(var(--c-terracota, 154 90 66) / <alpha-value>)', cobre: 'rgb(var(--c-cobre, 162 107 85) / <alpha-value>)',
         // papéis
-        fundo: '#f5f1eb',      // chão da tela
-        folha: '#fffdfa',      // cartões e campos
-        tom: '#efe8de',        // painel tonal, um passo abaixo do fundo
-        ativo: '#e7dfd3',      // item ativo da navegação
+        fundo: 'rgb(var(--c-fundo, 245 241 235) / <alpha-value>)',      // chão da tela
+        folha: 'rgb(var(--c-folha, 255 253 250) / <alpha-value>)',      // cartões e campos
+        tom: 'rgb(var(--c-tom, 239 232 222) / <alpha-value>)',        // painel tonal, um passo abaixo do fundo
+        ativo: 'rgb(var(--c-ativo, 231 223 211) / <alpha-value>)',      // item ativo da navegação
         borda: '#e6ddd1',      // borda de cartão
         regra: '#efe8de',      // divisória de linha
         controle: '#cfc1b0',   // borda de campo
-        texto: '#2e221b',
-        apoio: '#6b5a4d',      // texto secundário, 5,9:1 sobre folha
+        texto: 'rgb(var(--c-texto, 46 34 27) / <alpha-value>)',
+        apoio: 'rgb(var(--c-apoio, 107 90 77) / <alpha-value>)',      // texto secundário, 5,9:1 sobre folha
         atencao: '#8a5232',    // texto de atenção, 5,6:1
         positivo: '#45512f',
       },

@@ -28,9 +28,9 @@ export function Capa({ m, className = '', grande = false }: { m: Pick<Landing, '
   if (m.capa_path) return <img src={urlMaterial(m.capa_path)} alt={`Capa: ${m.titulo}`} className={`object-cover aspect-[3/4] h-auto self-start rounded-[4px] ${className}`} />
   return (
     <div lang="pt-BR" className={`rounded-[4px] bg-cafe text-creme ${grande ? 'p-5' : 'p-2.5'} flex flex-col justify-between aspect-[3/4] h-auto self-start overflow-hidden break-words [hyphens:auto] ${className}`} role="img" aria-label={`Capa: ${m.titulo}`}>
-      <img src="/marca-bartira.svg" alt="" className={`${grande ? 'w-9 p-1.5' : 'w-5 p-0.5'} bg-creme rounded-full`} />
+      <img src="/marca/simbolo-claro.png" alt="" className={grande ? 'w-12' : 'w-6'} />
       <div>
-        <p className={`${grande ? 'text-[11px]' : 'text-[8px]'} tracking-[0.2em] uppercase text-areia`}>{m.tipo}</p>
+        <p className={`${grande ? 'text-[11px]' : 'text-[8px]'} text-areia`}>{m.tipo}</p>
         <p className={`font-display leading-[1.05] mt-1 ${grande ? 'text-[18px] sm:text-[24px]' : 'text-[12px]'}`}>{m.titulo}</p>
         {grande && <><p className="mt-2 text-[11px] text-areia/80">Dra. Bartira Rebouças</p></>}
       </div>
