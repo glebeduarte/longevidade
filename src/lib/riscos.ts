@@ -153,3 +153,27 @@ export function calcio(itens: ItemCalcio[], meta: number) {
   const total = itens.reduce((t, i) => t + mgDia(i), 0)
   return { total, meta, diferenca: total - meta, pct: (total / meta) * 100, atingiu: total >= meta }
 }
+
+/** FIB-4 (Sterling 2006): idade × AST ÷ (plaquetas [10⁹/L] × √ALT).
+ *  Cortes para fibrose avançada: <1,30 baixo (≥65 anos: <2,0), 1,30 a 2,67 indeterminado, >2,67 alto. */
+export function fib4(idade: number, ast: number, alt: number, plaquetas: number) {
+  const valor = (idade * ast) / (plaquetas * Math.sqrt(alt))
+  const corteBaixo = idade >= 65 ? 2.0 : 1.3
+  const classe: { rotulo: string; nivel: 'otimo' | 'atencao' | 'ruim'; texto: string } =
+    valor < corteBaixo ? { rotulo: 'Baixo risco de fibrose avançada', nivel: 'otimo', texto: 'Valor preditivo negativo alto. Repetir em 2 a 3 anos se houver fator de risco.' }
+    : valor <= 2.67 ? { rotulo: 'Indeterminado', nivel: 'atencao', texto: 'Considerar elastografia hepática (ou ELF) para definir o risco.' }
+    : { rotulo: 'Alto risco de fibrose avançada', nivel: 'ruim', texto: 'Considerar elastografia e encaminhamento à hepatologia.' }
+  return { valor, corteBaixo, ...classe }
+}
+
+/** CKD-EPI 2021 sem raça (Inker 2021), creatinina em mg/dL. Estágio G pela KDIGO. */
+export function ckdEpi2021(sexo: 'F' | 'M', idade: number, creatinina: number) {
+  const k = sexo === 'F' ? 0.7 : 0.9, a = sexo === 'F' ? -0.241 : -0.302
+  const tfg = 142 * Math.min(creatinina / k, 1) ** a * Math.max(creatinina / k, 1) ** -1.2 * 0.9938 ** idade * (sexo === 'F' ? 1.012 : 1)
+  const G: Array<[number, string, string, 'otimo' | 'normal' | 'atencao' | 'ruim']> = [
+    [90, 'G1', 'Normal ou alta', 'otimo'], [60, 'G2', 'Levemente diminuída', 'normal'], [45, 'G3a', 'Leve a moderadamente diminuída', 'atencao'],
+    [30, 'G3b', 'Moderada a gravemente diminuída', 'ruim'], [15, 'G4', 'Gravemente diminuída', 'ruim'], [0, 'G5', 'Falência renal', 'ruim'],
+  ]
+  const [, estagio, rotulo, nivel] = G.find(([c]) => tfg >= c) ?? G[5]
+  return { tfg, estagio, rotulo, nivel }
+}

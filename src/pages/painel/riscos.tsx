@@ -7,12 +7,12 @@ import { Icone, degrade, type Tema } from '../../components/icones'
 import { NIVEL, dataBR, type Nivel } from '../../lib/faixas'
 import { FATORES_VAZIO, calculados, fmt, idadeEm, ultimas, type Fatores, type Medida } from '../../lib/clinica'
 import {
-  AJUSTES_FRAX, ALIMENTOS, CORTE_PREENSAO, ROTULO_TEV, ajustarFrax, calcio, classeAscvd, foraDosLimites, metaCalcio, mgDia, preensao, prevent, triagemTev,
+  AJUSTES_FRAX, ALIMENTOS, CORTE_PREENSAO, ROTULO_TEV, ajustarFrax, ckdEpi2021, fib4, calcio, classeAscvd, foraDosLimites, metaCalcio, mgDia, preensao, prevent, triagemTev,
   type EntradaPrevent, type EntradaTev, type ItemCalcio, type NivelTev,
 } from '../../lib/riscos'
 import { ETNIAS_GAIL, LIMIAR_GAIL_5, SUBGRUPOS_GAIL, gail, type EntradaGail, type EtniaGail, type SubGail } from '../../lib/gail'
 
-type Tipo = 'prevent' | 'frax' | 'tev' | 'preensao' | 'calcio' | 'gail'
+type Tipo = 'prevent' | 'frax' | 'tev' | 'preensao' | 'calcio' | 'gail' | 'fib4' | 'ckd'
 type Avaliacao = { id: string; kind: Tipo; inputs: Record<string, unknown>; result: Record<string, unknown>; resumo: string | null; nivel: Nivel | null; created_at: string }
 type Contexto = { idade: number | null; sexo: 'F' | 'M'; v: (c: string) => number | undefined; imc?: number; tfg?: number; f: Fatores; ant?: Record<string, unknown> }
 
@@ -26,7 +26,7 @@ function comAnterior<T extends object>(base: T, ant: Record<string, unknown> | u
 }
 
 /** Exames digitados nos cálculos que vão para a ficha quando diferem do último registro. */
-const EXAMES_DOS_CALCULOS: Array<[string, string]> = [['pas', 'pas'], ['ct', 'ct'], ['hdl', 'hdl'], ['peso', 'peso'], ['altura', 'altura']]
+const EXAMES_DOS_CALCULOS: Array<[string, string]> = [['pas', 'pas'], ['ct', 'ct'], ['hdl', 'hdl'], ['peso', 'peso'], ['altura', 'altura'], ['tgo', 'tgo'], ['tgp', 'tgp'], ['plaquetas', 'plaquetas'], ['creatinina', 'creatinina']]
 
 const campo = 'w-full rounded-md border border-controle bg-folha px-3 text-corpo focus:outline-none focus:border-cafe min-h-[40px]'
 const pct = (x: number, casas = 1) => `${fmt(x * 100, casas)}%`
@@ -38,6 +38,8 @@ const MODULOS: Array<{ k: Tipo; titulo: string; sub: string; tema: Tema }> = [
   { k: 'tev', titulo: 'Tromboembolismo venoso', sub: 'Triagem antes da terapia hormonal', tema: 'alerta' },
   { k: 'preensao', titulo: 'Força de preensão palmar', sub: 'EWGSOP2', tema: 'forca' },
   { k: 'gail', titulo: 'Risco de câncer de mama · Gail', sub: 'BCRAT (NCI), risco em 5 anos e até os 90', tema: 'alerta' },
+  { k: 'fib4', titulo: 'Fibrose hepática · FIB-4', sub: 'Idade, TGO, TGP e plaquetas', tema: 'figado' },
+  { k: 'ckd', titulo: 'Função renal · CKD-EPI 2021', sub: 'TFG estimada pela creatinina, sem raça', tema: 'rins' },
   { k: 'calcio', titulo: 'Cálcio na alimentação', sub: 'Consumo habitual em mg por dia', tema: 'alimentacao' },
 ]
 
@@ -109,6 +111,8 @@ export function AbaRiscos({ pid, nascimento }: { pid: string; nascimento: string
                     }} />}
                     {m.k === 'calcio' && <FormCalcio ctx={ctx} salvar={salvar} />}
                     {m.k === 'gail' && <FormGail ctx={ctx} salvar={salvar} />}
+                    {m.k === 'fib4' && <FormFib4 ctx={ctx} salvar={salvar} />}
+                    {m.k === 'ckd' && <FormCkd ctx={ctx} salvar={salvar} />}
                     <Botao variante="texto" onClick={() => setAberto(null)} className="self-start"><X className="w-4 h-4" />Cancelar</Botao>
                   </div>
                 ) })()}
@@ -217,6 +221,55 @@ function FormPrevent({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
     )}
     <BotaoSalvar disabled={!r} onClick={() => salvar('prevent', e, r!,
       `ASCVD 10 anos ${pct(r!.dez.ascvd)} (${cls!.rotulo.toLowerCase()}) · DCV ${pct(r!.dez.cvd)} · IC ${pct(r!.dez.ic)}`, cls!.nivel)} />
+  </>)
+}
+
+// ---------- FIB-4 ----------
+function FormFib4({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
+  const [e, setE] = useState(() => comAnterior({ idade: ctx.idade ?? undefined as number | undefined, tgo: ctx.v('tgo'), tgp: ctx.v('tgp'), plaquetas: ctx.v('plaquetas') },
+    ctx.ant, ['idade', 'tgo', 'tgp', 'plaquetas']))
+  const set = (k: keyof typeof e) => (v: number | undefined) => setE({ ...e, [k]: v })
+  const ok = !!(e.idade && e.tgo && e.tgp && e.plaquetas)
+  const r = ok ? fib4(e.idade!, e.tgo!, e.tgp!, e.plaquetas!) : null
+  return (<>
+    <p className="text-meta text-apoio">Preenchido com os últimos exames. Plaquetas em mil/mm³ (10⁹/L). Para doença hepática gordurosa e hepatites virais; não use em hepatite aguda.</p>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <Num rotulo="Idade" valor={e.idade} onChange={set('idade')} sufixo="anos" />
+      <Num rotulo="TGO (AST)" valor={e.tgo} onChange={set('tgo')} sufixo="U/L" />
+      <Num rotulo="TGP (ALT)" valor={e.tgp} onChange={set('tgp')} sufixo="U/L" />
+      <Num rotulo="Plaquetas" valor={e.plaquetas} onChange={set('plaquetas')} sufixo="mil" />
+    </div>
+    {r && (
+      <Resultado nivel={r.nivel}>
+        <p className="text-[15px]"><b>FIB-4 {fmt(r.valor, 2)}</b> · {r.rotulo}</p>
+        <p className="text-corpo text-apoio mt-1">{r.texto}</p>
+        <p className="text-meta text-apoio mt-2">Cortes: abaixo de {fmt(r.corteBaixo, 2)} baixo{e.idade! >= 65 ? ' (corte de 2,0 a partir de 65 anos)' : ''}, até 2,67 indeterminado, acima de 2,67 alto. Sterling 2006; McPherson 2017.</p>
+      </Resultado>
+    )}
+    <BotaoSalvar disabled={!r} onClick={() => salvar('fib4', e, r!, `FIB-4 ${fmt(r!.valor, 2)} · ${r!.rotulo.toLowerCase()}`, r!.nivel)} />
+  </>)
+}
+
+// ---------- CKD-EPI 2021 ----------
+function FormCkd({ ctx, salvar }: { ctx: Contexto; salvar: Salvar }) {
+  const [e, setE] = useState(() => comAnterior({ sexo: ctx.sexo as 'F' | 'M', idade: ctx.idade ?? undefined as number | undefined, creatinina: ctx.v('creatinina') },
+    ctx.ant, ['idade', 'creatinina']))
+  const ok = !!(e.idade && e.creatinina)
+  const r = ok ? ckdEpi2021(e.sexo, e.idade!, e.creatinina!) : null
+  return (<>
+    <p className="text-meta text-apoio">Equação CKD-EPI 2021, sem o fator raça, como recomenda a SBN. Creatinina sérica em mg/dL. Não vale para insuficiência renal aguda, gestação ou massa muscular muito fora do habitual.</p>
+    <div className="grid grid-cols-2 gap-3">
+      <Num rotulo="Idade" valor={e.idade} onChange={v => setE({ ...e, idade: v })} sufixo="anos" />
+      <Num rotulo="Creatinina" valor={e.creatinina} onChange={v => setE({ ...e, creatinina: v })} sufixo="mg/dL" />
+    </div>
+    <Opcoes rotulo="Sexo" valor={e.sexo} opcoes={[['F', 'Feminino'], ['M', 'Masculino']]} onChange={v => setE({ ...e, sexo: v })} />
+    {r && (
+      <Resultado nivel={r.nivel}>
+        <p className="text-[15px]"><b>TFG {fmt(r.tfg, 0)} mL/min/1,73m²</b> · {r.estagio}, {r.rotulo.toLowerCase()}</p>
+        <p className="text-meta text-apoio mt-2">Estágios KDIGO: G1 ≥90, G2 60 a 89, G3a 45 a 59, G3b 30 a 44, G4 15 a 29, G5 &lt;15. Classificar doença renal crônica pede alteração por mais de 3 meses e, abaixo de 60, vale considerar albuminúria e cistatina C.</p>
+      </Resultado>
+    )}
+    <BotaoSalvar disabled={!r} onClick={() => salvar('ckd', e, r!, `TFG ${fmt(r!.tfg, 0)} mL/min/1,73m² · ${r!.estagio}, ${r!.rotulo.toLowerCase()}`, r!.nivel)} />
   </>)
 }
 
