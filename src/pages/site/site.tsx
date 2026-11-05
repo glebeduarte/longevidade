@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState, type ReactNode } from 'react'
 import { Link, NavLink, Outlet, useLocation, useParams } from 'react-router-dom'
-import { ArrowRight, Check, Clock, MapPin, Menu, MessageCircle, X } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Check, Clock, MapPin, Menu, MessageCircle, X } from 'lucide-react'
 import { useAuth } from '../../auth/AuthProvider'
 import {
   CONTATO, FASES, INICIO, LOCAIS, NAV, PERGUNTAS, PROGRAMA, SOBRE, TEMAS, linkAgendar,
@@ -130,7 +130,7 @@ export function LayoutSite() {
             <Link to="/privacidade" className="hover:text-texto transition-colors">Privacidade</Link>
           </nav>
         </div>
-        <p className="mt-4 text-[13px] leading-relaxed text-apoio max-w-[75ch]">
+        <p className="mt-4 text-[14px] leading-relaxed text-apoio max-w-[75ch]">
           © {new Date().getFullYear()} · As informações deste site não substituem a consulta médica.
           Vídeo: <a className="underline" href="https://commons.wikimedia.org/wiki/File:Monarch_Butterfly_Emerging_from_Chrysalis.webm">"Monarch Butterfly Emerging from Chrysalis"</a>, Danmation, <a className="underline" href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>, recortado e acelerado.
           Foto: <a className="underline" href="https://commons.wikimedia.org/wiki/File:Vista_do_Morro_do_Careca_em_Ponta_Negra_pela_manh%C3%A3.jpg">"Vista do Morro do Careca em Ponta Negra pela manhã"</a>, Ppulbatu, <a className="underline" href="https://creativecommons.org/licenses/by/4.0">CC BY 4.0</a>.
@@ -148,22 +148,33 @@ export function LayoutSite() {
 }
 
 // ---------- Blocos ----------
-/** Foto que se revela ao entrar na tela. */
-function Quadro({ f, className = '', video }: { f: Foto; className?: string; video?: string }) {
+/* O motivo da página: a volta oval da asa da borboleta. Ela vira a máscara de toda foto,
+   o botão, o marcador das listas e a curva da faixa final. */
+
+/** Foto dentro da asa. `abre` dá a ela a entrada de obturador (só na foto principal). */
+function Asa({ f, className = '', video, abre = false }: { f: Foto; className?: string; video?: string; abre?: boolean }) {
   return (
-    <div className={`foto ${className}`}>
+    <div className={`asa-foto ${abre ? 'obturador' : ''} ${className}`}>
       {video
         ? <video src={video} poster={f.src} muted loop playsInline autoPlay aria-hidden="true" style={{ objectPosition: f.foco }} />
-        : <img src={f.src} alt={f.alt} loading="lazy" style={{ objectPosition: f.foco }} />}
+        : <img src={f.src} alt={f.alt} loading={abre ? 'eager' : 'lazy'} style={{ objectPosition: f.foco }} />}
     </div>
   )
 }
 
-/** Texto e foto lado a lado, sem nada fixo na tela. No celular o texto vem primeiro. */
+/** Marcador de lista: a asa em tamanho de texto. */
+const Ponto = ({ claro = false }: { claro?: boolean }) => <span aria-hidden="true" className={`inline-block w-[0.62em] h-[0.95em] rounded-[50%] rotate-[-24deg] shrink-0 mt-[0.32em] ${claro ? 'bg-areia' : 'bg-areia'}`} />
+
+/** Foto em miniatura dentro da linha de texto. */
+const Mini = ({ f, largo = false }: { f: Foto; largo?: boolean }) => (
+  <span className={`mini ${largo ? 'w-[1.6em]' : 'w-[1em]'}`} aria-hidden="true"><img src={f.src} alt="" loading="lazy" style={{ objectPosition: f.foco }} /></span>
+)
+
+/** Texto e foto lado a lado. A foto vem dentro da asa. No celular o texto vem primeiro. */
 function Duo({ f, video, inverso = false, id, rotulo, className = '', children }: { f: Foto; video?: string; inverso?: boolean; id?: string; rotulo?: string; className?: string; children: ReactNode }) {
   return (
-    <section id={id} aria-labelledby={rotulo} className={`site-wrap grid lg:grid-cols-2 gap-x-[clamp(40px,6vw,120px)] gap-y-10 items-center py-[clamp(64px,8vw,140px)] ${className}`}>
-      <div className={`rv order-2 ${inverso ? 'lg:order-2' : 'lg:order-1'}`}><Quadro f={f} video={video} className="aspect-[4/5] max-h-[78svh] w-full" /></div>
+    <section id={id} aria-labelledby={rotulo} className={`site-wrap grid lg:grid-cols-2 gap-x-[clamp(40px,6vw,120px)] gap-y-12 items-center py-[clamp(64px,8vw,140px)] ${className}`}>
+      <div className={`rv order-2 flex justify-center ${inverso ? 'lg:order-2' : 'lg:order-1'}`}><Asa f={f} video={video} className="w-[min(100%,460px)] aspect-[3/4]" /></div>
       <div className={`min-w-0 order-1 ${inverso ? 'lg:order-1' : 'lg:order-2'}`}>{children}</div>
     </section>
   )
@@ -173,43 +184,183 @@ function Duo({ f, video, inverso = false, id, rotulo, className = '', children }
 export function SiteInicio() {
   usePagina('', INICIO.texto)
   return (<>
-    <section className="relative overflow-hidden">
-      <img src="/marca/simbolo.png" alt="" aria-hidden="true" className="asa pointer-events-none absolute -left-[8vw] top-[6%] w-[min(760px,70vw)] opacity-[0.22] hidden lg:block" />
-      <div className="site-wrap relative grid lg:grid-cols-[1.1fr_1fr] gap-x-[clamp(40px,6vw,120px)] gap-y-10 items-center pt-6 pb-[clamp(64px,8vw,120px)] lg:min-h-[calc(100svh-80px)]">
-        <div className="rv flex flex-col">
-          <h1 className="site-display text-[clamp(50px,6vw,96px)] max-w-[10ch]">{INICIO.titulo}</h1>
-          <p className="mt-6 lg:mt-8 text-[clamp(17px,1.3vw,20px)] leading-relaxed max-w-[38ch]">{INICIO.texto}</p>
-          <div className="mt-8 lg:mt-10 flex flex-wrap items-center gap-x-7 gap-y-4">
+    {/* Abertura: a asa gigante entra pela direita, com a doutora dentro */}
+    <section className="relative overflow-hidden lg:h-[calc(100svh-80px)] min-h-[620px]">
+      <Asa f={FOTOS.retrato} abre className="hidden lg:block absolute w-[78svh] h-[118svh] left-[58%] top-[-12svh] rotate-[-14deg] !rounded-[50%]" />
+      <div className="site-wrap relative h-full flex items-center py-14">
+        <div className="rv flex flex-col lg:w-[50%]">
+          <h1 className="site-display text-[clamp(52px,6.4vw,100px)] max-w-[9ch]">{INICIO.titulo}</h1>
+          <p className="mt-7 text-[clamp(17px,1.3vw,19px)] leading-relaxed max-w-[36ch]">{INICIO.texto}</p>
+          <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
             <Agendar />
             <Link to="/programa" className="site-link text-[17px]">Conheça o programa Longevidade</Link>
           </div>
-          <p className="mt-10 text-[14px] text-apoio">{CONTATO.crm} · {CONTATO.rqe} · Clínica Equilibre e Instituto Spinel, Natal</p>
+          <p className="mt-10 text-[14px] text-apoio">{CONTATO.crm} · {CONTATO.rqe} · Natal</p>
         </div>
-        <div className="rv"><Quadro f={FOTOS.retrato} className="aspect-[4/5] max-h-[80svh] w-full" /></div>
+      </div>
+      <div className="lg:hidden relative h-[78vw] overflow-hidden">
+        <Asa f={FOTOS.retrato} abre className="absolute w-[92vw] h-[130vw] left-[4vw] top-0 !rounded-[50%]" />
       </div>
     </section>
 
-    <section className="bg-cafe text-creme" aria-labelledby="t-intro">
-      <div className="site-wrap grid lg:grid-cols-2 gap-x-[clamp(40px,6vw,120px)] gap-y-10 items-center py-[clamp(72px,9vw,160px)]">
-        <div className="rv flex flex-col gap-6 max-w-[40ch] text-[17px] leading-[1.7]">
-          <h2 id="t-intro" className="site-h2">O corpo muda de fase</h2>
-          {INICIO.intro.map((p, i) => <p key={i} className={i === 0 ? 'font-medium' : 'text-creme/85'}>{p}</p>)}
-        </div>
-        <figure className="rv">
-          <Quadro f={{ src: VIDEO.src, alt: '' }} video={VIDEO.video} className="aspect-[4/3] w-full" />
-          <figcaption className="mt-3 text-[13px] text-areia">{VIDEO.legenda}</figcaption>
-        </figure>
-      </div>
+    {/* Uma frase, com as fotos dentro da linha */}
+    <section className="site-wrap py-[clamp(96px,18vh,200px)]" aria-label="O climatério">
+      <p className="rv mx-auto max-w-[28ch] lg:max-w-[34ch] lg:text-center site-display text-[clamp(22px,2.5vw,36px)] leading-[1.25]">
+        <span>Calorões à noite <Mini f={QUADRO_VIDEO} largo />, cansaço que não passa <Mini f={FOTOS.xicara} />, peso e humor que mudam <Mini f={FOTOS.natal} largo />: tudo isso tem nome, explicação e tratamento.</span>
+      </p>
     </section>
 
-    <Duo f={FOTOS.xicara} rotulo="t-fase" inverso><QualFase /></Duo>
-    <Duo f={FOTOS.cartao} rotulo="t-carta" className="!pt-0"><Carta /></Duo>
-
-    <TemasMenu />
+    <Etapas />
+    <Duo f={QUADRO_VIDEO} video={VIDEO.video} rotulo="t-fase" inverso className="!pt-0"><QualFase /></Duo>
+    <Painel />
+    <TemasFrase />
     <MateriaisHome />
     <Perguntas />
     <Fechamento />
   </>)
+}
+
+/** Como funciona: três etapas, cada uma maior que a anterior. */
+function Etapas() {
+  const e: Array<[string, string, Foto, string, string]> = [
+    ['Primeiro, escutar', 'Consulta longa, com sua história, seus sintomas e seus exames.', FOTOS.cartao, 'bg-tom', 'lg:h-[34svh]'],
+    ['Depois, um plano', 'Protocolo por escrito, com o porquê de cada escolha.', FOTOS.pasta, 'bg-areia', 'lg:h-[48svh]'],
+    ['Então, acompanhar', 'Retornos e check-ins até ver a mudança nos exames e no dia a dia.', FOTOS.xicara, 'bg-cafe', 'lg:h-[64svh]'],
+  ]
+  return (
+    <section className="site-wrap pb-[clamp(90px,10vw,170px)]" aria-labelledby="t-etapas">
+      <div className="grid lg:grid-cols-12 gap-[10px] items-end">
+        {e.map(([t, x, f, cor, h], i) => (
+          <div key={t} className={`rv ${['lg:col-span-3', 'lg:col-span-4', 'lg:col-span-5'][i]} flex flex-col`}>
+            {i === 0 && <h2 id="t-etapas" className="site-h2 mb-10 lg:mb-[14svh] max-w-[12ch]">Como eu cuido</h2>}
+            <div className={`${cor} ${h} h-[60vw] rounded-[4px] grid place-items-center overflow-hidden`}>
+              <Asa f={f} className="h-[80%] aspect-[3/4]" />
+            </div>
+            <p className="mt-4 text-[20px] font-medium">{t}</p>
+            <p className="mt-1 text-[16px] text-apoio max-w-[36ch]">{x}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/** Painel café: a carta da doutora, com o retrato cortado pela borda de baixo. */
+function Painel() {
+  return (
+    <section className="px-[10px] sm:px-5" aria-labelledby="t-carta">
+      <div className="relative bg-cafe text-creme rounded-[4px] overflow-hidden lg:min-h-[108svh] grid lg:grid-cols-[1fr_minmax(0,620px)] gap-10 p-[clamp(24px,4vw,56px)] pb-0 lg:pb-0">
+        <div className="rv flex flex-col">
+          <h2 id="t-carta" className="site-display text-[clamp(40px,4.4vw,64px)]">Antes da consulta</h2>
+          <div className="hidden lg:flex flex-1 items-end justify-start pt-10">
+            <Asa f={FOTOS.retrato} className="w-[min(34vw,520px)] aspect-[3/4] translate-y-[22%]" />
+          </div>
+        </div>
+        <div className="rv flex flex-col gap-10 lg:pt-4 pb-10 lg:pb-20 text-[16px] leading-[1.7]">
+          {SOBRE.paragrafos.map((p, i) => (
+            <div key={i}>
+              {i === 0 && <p className="text-[22px] mb-3">Por que eu faço assim</p>}
+              <p className="text-creme/90 max-w-[46ch]">{p}</p>
+            </div>
+          ))}
+          <div>
+            <p className="site-display italic text-[30px]">Bartira Rebouças</p>
+            <p className="text-[14px] text-areia mt-1">Endocrinologista · {CONTATO.crm}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-6"><Agendar claro /><Link to="/sobre" className="text-[16px] underline underline-offset-4 decoration-areia">Formação e trajetória</Link></div>
+        </div>
+        <div className="lg:hidden flex justify-center"><Asa f={FOTOS.retrato} className="w-[86vw] aspect-[3/4] translate-y-[25%] -mt-[10%]" /></div>
+      </div>
+    </section>
+  )
+}
+
+/** Os temas como um parágrafo: cada assunto é um link, com sua foto na linha. */
+function TemasFrase() {
+  const [a, b, c, d] = TEMAS
+  const L = ({ t }: { t: typeof a }) => t ? <Link to={`/temas/${t.slug}`} className="underline decoration-areia decoration-[2px] underline-offset-[6px] hover:decoration-cafe transition-colors">{t.titulo.toLowerCase()}</Link> : null
+  return (
+    <section className="site-wrap py-[clamp(96px,12vw,200px)]" aria-labelledby="t-temas">
+      <h2 id="t-temas" className="sr-only">O que eu trato</h2>
+      <p className="rv max-w-[40ch] site-display text-[clamp(22px,2.5vw,36px)] leading-[1.3]">
+        <span>No consultório eu cuido de <L t={a} /> <Mini f={QUADRO_VIDEO} largo />, avalio com você a <L t={b} /> <Mini f={FOTOS.pasta} largo />, acompanho <L t={c} /> e trato <L t={d} /> <Mini f={FOTOS.xicara} largo />.</span>
+      </p>
+      <div className="rv mt-16 lg:ml-[50%] flex flex-col gap-6 max-w-[44ch]">
+        <p className="text-[18px]">Sintomas e condições que mudam com os hormônios. Cada tema tem um texto curto para ler antes da consulta.</p>
+        <Link to="/temas" className="site-btn self-start">Ver todos os temas<ArrowRight className="w-4 h-4" /></Link>
+      </div>
+    </section>
+  )
+}
+
+/** Perguntas arquivadas como fichas com aba: uma aberta por vez. */
+function Fichas({ itens, titulo, id }: { itens: Array<[string, string]>; titulo: string; id: string }) {
+  const [aberta, setAberta] = useState(0)
+  const cores = ['bg-tom', 'bg-folha']
+  return (
+    <section className="site-wrap py-[clamp(90px,10vw,170px)]" aria-labelledby={id}>
+      <div className="lg:w-[66%] lg:mx-auto">
+        <h2 id={id} className="rv site-h2 mb-12">{titulo}</h2>
+        <div className="rv flex flex-col">
+          {itens.map(([q, r], i) => (
+            <div key={q} className={`rounded-[4px] ${aberta === i ? 'bg-areia' : cores[i % 2]} ${i ? 'mt-2' : ''} transition-colors`}>
+              <button className="w-full text-left px-6 py-5 flex items-start gap-4" aria-expanded={aberta === i} onClick={() => setAberta(i)}>
+                <span className="flex-1 text-[19px] font-medium">{q}</span>
+                <span aria-hidden="true" className={`mt-1 w-5 h-7 rounded-[50%] border-2 border-cafe transition-colors ${aberta === i ? 'bg-cafe' : ''}`} />
+              </button>
+              {aberta === i && <p className="fase-resposta px-6 pb-8 text-[17px] leading-relaxed max-w-[56ch]">{r}</p>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+const Perguntas = () => <Fichas itens={PERGUNTAS} titulo="Dúvidas comuns" id="t-faq" />
+
+/** Lista completa de temas (página Temas e Conteúdos). */
+function TemasMenu() {
+  return (
+    <section className="site-wrap py-[clamp(64px,8vw,140px)]" aria-label="Temas">
+      <div className="rv grid md:grid-cols-2 gap-x-16">
+        {TEMAS.map(t => (
+          <Link key={t.slug} to={`/temas/${t.slug}`} className="group flex gap-4 py-6">
+            <Ponto />
+            <span>
+              <span className="block site-display text-[clamp(26px,2.2vw,32px)] group-hover:text-cobre transition-colors">{t.titulo}</span>
+              <span className="block mt-1.5 text-[17px] text-apoio max-w-[46ch]">{t.resumo}</span>
+            </span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/** Fecho de toda página: a faixa inteira é o botão, com a curva da asa no topo. */
+function Fechamento() {
+  const href = linkAgendar(), fora = externo(href)
+  const dentro = (<>
+    <span className="absolute left-[clamp(20px,6vw,96px)] top-[22%] text-[17px] sm:text-[20px] max-w-[30ch]">Fale com a equipe e escolha o melhor horário em Natal.</span>
+    <ArrowUpRight className="absolute right-[clamp(20px,6vw,96px)] top-[21%] w-9 h-9 sm:w-12 sm:h-12" strokeWidth={1.4} aria-hidden="true" />
+    <span className="site-display absolute left-0 right-0 bottom-3 text-center leading-[0.8] text-[clamp(64px,19vw,300px)]">Agendar</span>
+  </>)
+  const cls = 'fecho relative block mt-10 h-[46svh] sm:h-[60svh] bg-areia text-texto overflow-hidden'
+  return fora
+    ? <a href={href} target="_blank" rel="noreferrer" className={cls} aria-label="Agendar consulta">{dentro}</a>
+    : <Link to={href} className={cls} aria-label="Agendar consulta">{dentro}</Link>
+}
+
+/** Abertura das páginas internas: título grande e uma frase. */
+function Abertura({ titulo, texto }: { titulo: string; texto?: string }) {
+  return (
+    <section className="site-wrap pt-[clamp(48px,7vw,120px)] pb-[clamp(40px,5vw,80px)]">
+      <div className="rv max-w-4xl">
+        <h1 className="site-display text-[clamp(46px,5.4vw,88px)] max-w-[14ch]">{titulo}</h1>
+        {texto && <p className="mt-6 text-[clamp(17px,1.3vw,20px)] leading-relaxed max-w-[44ch]">{texto}</p>}
+      </div>
+    </section>
+  )
 }
 
 /** O elemento vivo: a visitante escolhe o que vive hoje e lê em que fase provavelmente está. */
@@ -242,48 +393,6 @@ function QualFase() {
   )
 }
 
-/** Carta em primeira pessoa, com assinatura. */
-function Carta() {
-  return (
-    <div className="rv flex flex-col gap-6 max-w-[36ch] text-[18px] leading-[1.65]">
-      <h2 id="t-carta" className="site-h2">Uma palavra antes da consulta</h2>
-      {SOBRE.paragrafos.map((p, i) => <p key={i}>{p}</p>)}
-      <div>
-        <p className="site-display italic text-[32px]">Bartira Rebouças</p>
-        <p className="text-[14px] text-apoio mt-1">Endocrinologista · {CONTATO.crm}</p>
-      </div>
-      <Link to="/sobre" className="site-link text-[18px] self-start">Formação e trajetória</Link>
-    </div>
-  )
-}
-
-/** Os temas como um cardápio impresso sobre campo café. */
-function TemasMenu() {
-  return (
-    <section className="bg-cafe text-creme py-[clamp(90px,12vw,200px)]" aria-labelledby="t-temas">
-      <div className="site-wrap grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] gap-12 items-start">
-        <div className="rv">
-          <h2 id="t-temas" className="site-h2">O que eu trato no consultório</h2>
-          <p className="mt-5 text-[18px] text-areia max-w-[34ch]">Sintomas e condições que mudam com os hormônios. Escolha um assunto para ler mais.</p>
-          <Quadro f={FOTOS.pasta} className="mt-10 aspect-[4/3] w-full max-w-[520px]" />
-        </div>
-        <div className="rv bg-fundo text-texto rounded-[4px] p-[clamp(24px,4vw,56px)]">
-          {TEMAS.map(t => (
-            <Link key={t.slug} to={`/temas/${t.slug}`} className="group block py-5">
-              <span className="flex items-end gap-3">
-                <span className="site-display text-[clamp(26px,2.2vw,34px)] group-hover:text-cobre transition-colors">{t.titulo}</span>
-                <span className="pontos" aria-hidden="true" />
-                <ArrowRight className="w-5 h-5 shrink-0 -translate-y-1.5 transition-transform group-hover:translate-x-1" />
-              </span>
-              <span className="block mt-1.5 text-[18px] text-apoio max-w-[46ch]">{t.resumo}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 function MateriaisHome() {
   const lista = useMateriais(true)
   if (!lista?.length) return null
@@ -298,78 +407,6 @@ function MateriaisHome() {
   )
 }
 
-/** Perguntas como texto corrido, sem sanfona. */
-function Perguntas() {
-  return (
-    <section className="site-wrap pb-[clamp(90px,10vw,180px)] grid lg:grid-cols-[3fr_9fr] gap-10" aria-labelledby="t-faq">
-      <div className="rv"><h2 id="t-faq" className="site-h2 !text-[clamp(32px,2.6vw,40px)]">Dúvidas comuns</h2></div>
-      <div className="rv lg:columns-2 gap-14 text-[18px] leading-[1.6]">
-        {PERGUNTAS.map(([q, r]) => <p key={q} className="mb-6 break-inside-avoid"><b className="font-medium">{q}</b> <span>{r}</span></p>)}
-      </div>
-    </section>
-  )
-}
-
-/** Três fases, a borboleta da marca crescendo de uma para a outra. */
-function TresTempos() {
-  const tempos: Array<[string, string]> = [
-    ['Antes da transição', 'Avaliar com calma, antes que os sintomas apareçam.'],
-    ['Perimenopausa', 'Tratar os sintomas e ajustar a rotina à nova fase.'],
-    ['Depois da menopausa', 'Proteger ossos, coração, músculos e energia.'],
-  ]
-  return (
-    <section className="site-wrap py-[clamp(90px,10vw,170px)]" aria-labelledby="t-tempos">
-      <div className="rv max-w-3xl"><h2 id="t-tempos" className="site-h2">Cada fase pede um cuidado</h2></div>
-      <div className="rv mt-12 grid sm:grid-cols-3 gap-6">
-        {tempos.map(([t, x], i) => (
-          <div key={t} className="group">
-            <div className="bg-tom rounded-[4px] aspect-[4/3] grid place-items-center overflow-hidden">
-              <img src="/marca/simbolo.png" alt="" className="transition-transform duration-700 group-hover:scale-110" style={{ width: `${30 + i * 18}%`, opacity: 0.45 + i * 0.25 }} />
-            </div>
-            <p className="mt-4 site-display text-[30px]">{t}</p><p className="mt-1 text-[17px]">{x}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-/** Foto de Natal, texto na metade calma. */
-function Fechamento() {
-  return (<>
-    <TresTempos />
-    <section className="relative" aria-labelledby="t-fim">
-      <div className="relative h-[70svh] lg:h-[90svh] overflow-hidden">
-        <img src={FOTOS.natal.src} alt={FOTOS.natal.alt} className="absolute inset-0 w-full h-full object-cover object-[35%_50%] deriva" loading="lazy" />
-        <div className="absolute inset-0 bg-texto/35 hidden lg:block" />
-        <div className="hidden lg:flex absolute inset-0 site-wrap items-end pb-[10svh]">
-          <div className="rv ml-auto w-[44%] text-creme flex flex-col items-start gap-6">
-            <h2 id="t-fim" className="site-display text-[clamp(44px,4vw,68px)]">Vamos começar pela conversa</h2>
-            <p className="text-[18px] max-w-[38ch]">Atendimento na Clínica Equilibre e no Instituto Spinel, em Natal. A equipe ajuda a escolher o melhor horário.</p>
-            <Agendar claro />
-          </div>
-        </div>
-      </div>
-      <div className="lg:hidden bg-cafe text-creme site-wrap py-14 flex flex-col gap-5">
-        <p className="site-display text-[44px]">Vamos começar pela conversa</p>
-        <p className="text-[18px] text-areia">Atendimento na Clínica Equilibre e no Instituto Spinel, em Natal.</p>
-        <div><Agendar claro /></div>
-      </div>
-    </section>
-  </>)
-}
-
-/** Abertura das páginas internas: título grande e uma frase, sem rótulo. */
-function Abertura({ titulo, texto }: { titulo: string; texto?: string }) {
-  return (
-    <section className="site-wrap pt-[clamp(48px,7vw,120px)] pb-[clamp(40px,5vw,80px)]">
-      <div className="rv max-w-4xl">
-        <h1 className="site-display text-[clamp(46px,5.4vw,88px)] max-w-[14ch]">{titulo}</h1>
-        {texto && <p className="mt-6 text-[clamp(18px,1.35vw,21px)] leading-relaxed max-w-[44ch]">{texto}</p>}
-      </div>
-    </section>
-  )
-}
 
 // ---------- Sobre ----------
 export function SiteSobre() {
@@ -395,6 +432,7 @@ export function SiteSobre() {
         </div>
       </Duo>
     </>
+    <Etapas />
     <Fechamento />
   </>)
 }
@@ -545,12 +583,7 @@ export function SitePrograma() {
       </div>
     </section>
 
-    <section className="site-wrap pb-[clamp(90px,10vw,160px)] grid lg:grid-cols-[3fr_9fr] gap-10" aria-labelledby="t-faq-p">
-      <div className="rv"><h2 id="t-faq-p" className="site-h2 !text-[clamp(32px,2.6vw,40px)]">Dúvidas sobre o programa</h2></div>
-      <div className="rv lg:columns-2 gap-14 text-[18px] leading-[1.6]">
-        {P.perguntas.map(([q, r]) => <p key={q} className="mb-6 break-inside-avoid"><b className="font-medium">{q}</b> <span>{r}</span></p>)}
-      </div>
-    </section>
+    <Fichas itens={P.perguntas} titulo="Dúvidas sobre o programa" id="t-faq-p" />
 
     <section className="relative" aria-labelledby="t-fim-p">
       <div className="relative h-[70svh] lg:h-[80svh] overflow-hidden">
@@ -607,6 +640,7 @@ export function SiteTema() {
           <div className="mt-3 flex flex-col">{outros.map(o => <Link key={o.slug} to={`/temas/${o.slug}`} className="group flex items-end gap-3 py-3"><span className="site-display text-[32px] group-hover:text-cobre transition-colors">{o.titulo}</span><span className="pontos" /><ArrowRight className="w-4 h-4 -translate-y-1.5 transition-transform group-hover:translate-x-1" /></Link>)}</div>
         </div>
       </Duo>
+    <Etapas />
     <Fechamento /></Fragment>
   )
 }
@@ -650,7 +684,10 @@ export function SiteContato() {
         </div>
       </Duo>
     </>
-    <TresTempos />
+    <Etapas />
+    <Perguntas />
+    
+    <Fechamento />
   </>)
 }
 
