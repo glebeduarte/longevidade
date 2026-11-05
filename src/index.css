@@ -127,3 +127,16 @@
     .site-btn, .site-btn svg, .fase-opcao { transition: none; }
   }
 }
+@layer components {
+  .medida-ponto { opacity: 0; transform: scale(.3); transition: opacity .6s var(--ease), transform .7s var(--ease); display: block; }
+  .vis .medida-ponto { opacity: 1; transform: none; }
+  .tempo-barra > span { transform: scaleX(0); transition: transform 2.2s var(--ease) .3s; }
+  .tempo-linha.vis .tempo-barra > span { transform: scaleX(1); }
+  .seta-pulsa { animation: seta 2.4s ease-in-out infinite; }
+  @keyframes seta { 0%,100% { transform: translateX(0); } 50% { transform: translateX(8px); } }
+  @media (prefers-reduced-motion: reduce) {
+    .medida-ponto { opacity: 1; transform: none; transition: none; }
+    .tempo-barra > span { transform: none; transition: none; }
+    .seta-pulsa { animation: none; }
+  }
+}

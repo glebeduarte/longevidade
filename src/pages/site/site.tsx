@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, NavLink, Outlet, useLocation, useParams } from 'react-router-dom'
-import { ArrowRight, Clock, MapPin, Menu, MessageCircle, X } from 'lucide-react'
+import { ArrowRight, Check, Clock, MapPin, Menu, MessageCircle, X } from 'lucide-react'
 import { useAuth } from '../../auth/AuthProvider'
 import {
-  APP_PACIENTE, CONTATO, FASES, INICIO, LOCAIS, NAV, PERGUNTAS, PLANOS, ROTEIRO, ROTEIRO_FIM, SOBRE, TEMAS, linkAgendar,
+  CONTATO, FASES, INICIO, LOCAIS, NAV, PERGUNTAS, PROGRAMA, SOBRE, TEMAS, linkAgendar,
 } from '../../lib/site'
 import { CartaoMaterial, useMateriais } from './material'
 
@@ -86,23 +86,20 @@ export function LayoutSite() {
 
       <main className="flex-1"><Outlet /></main>
 
-      <footer className="site-wrap pt-[clamp(64px,8vw,120px)] pb-8 text-[14px]">
-        <div className="rv flex items-end gap-[2vw]">
-          <img src="/marca-bartira.svg" alt="" className="w-[9vw] min-w-14 voo" />
-          <p className="site-display text-[clamp(52px,11.5vw,180px)] leading-[.85] tracking-[-0.03em] lg:whitespace-nowrap">Bartira Rebouças</p>
-        </div>
-        <div className="mt-12 grid gap-y-3 md:grid-cols-[1fr_auto_1fr] items-baseline">
-          <p className="text-apoio">Dra. Bartira Rebouças, endocrinologista · {CONTATO.crm} · {CONTATO.rqe}</p>
-          <nav className="flex flex-wrap gap-x-6 gap-y-2" aria-label="Rodapé">
-            {NAV.map(([to, r]) => <Link key={to} to={to} className="hover:text-cobre transition-colors">{r}</Link>)}
-            <a href={CONTATO.instagram} target="_blank" rel="noreferrer" className="hover:text-cobre transition-colors">Instagram</a>
+      <footer className="site-wrap pt-20 pb-6 text-[14px] text-apoio">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          <Link to="/" className="flex items-center gap-2 text-texto"><img src="/marca-bartira.svg" alt="" className="w-5 h-5" />Dra. Bartira Rebouças</Link>
+          <span>Endocrinologista · {CONTATO.crm} · {CONTATO.rqe}</span>
+          <nav className="flex flex-wrap gap-x-5 gap-y-2 md:ml-auto" aria-label="Rodapé">
+            {NAV.map(([to, r]) => <Link key={to} to={to} className="hover:text-texto transition-colors">{r}</Link>)}
+            <a href={CONTATO.instagram} target="_blank" rel="noreferrer" className="hover:text-texto transition-colors">Instagram</a>
+            <Link to="/privacidade" className="hover:text-texto transition-colors">Privacidade</Link>
           </nav>
-          <p className="md:text-right text-apoio">© {new Date().getFullYear()} · <Link to="/privacidade" className="text-texto hover:text-cobre">Privacidade</Link></p>
         </div>
-        <p className="mt-6 text-[14px] text-apoio max-w-[75ch]">
-          As informações deste site não substituem a consulta médica. Pranchas de Maria Sibylla Merian (1702 a 1705), domínio público, via Wikimedia Commons.
+        <p className="mt-4 text-[13px] leading-relaxed text-apoio max-w-[75ch]">
+          © {new Date().getFullYear()} · As informações deste site não substituem a consulta médica. Pranchas de Maria Sibylla Merian (1702 a 1705), domínio público, via Wikimedia Commons.
           Vídeo: <a className="underline" href="https://commons.wikimedia.org/wiki/File:Monarch_Butterfly_Emerging_from_Chrysalis.webm">"Monarch Butterfly Emerging from Chrysalis"</a>, Danmation, <a className="underline" href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>, recortado e acelerado.
-          Foto de Ponta Negra: <a className="underline" href="https://commons.wikimedia.org/wiki/File:Vista_do_Morro_do_Careca_em_Ponta_Negra_pela_manh%C3%A3.jpg">"Vista do Morro do Careca em Ponta Negra pela manhã"</a>, Ppulbatu, <a className="underline" href="https://creativecommons.org/licenses/by/4.0">CC BY 4.0</a>.
+          Foto: <a className="underline" href="https://commons.wikimedia.org/wiki/File:Vista_do_Morro_do_Careca_em_Ponta_Negra_pela_manh%C3%A3.jpg">"Vista do Morro do Careca em Ponta Negra pela manhã"</a>, Ppulbatu, <a className="underline" href="https://creativecommons.org/licenses/by/4.0">CC BY 4.0</a>.
         </p>
       </footer>
 
@@ -161,7 +158,6 @@ export function SiteInicio() {
     { src: '/dra-bartira.jpg', alt: 'Dra. Bartira Rebouças em seu consultório', foco: '50% 25%' },
     { ...VIDEO },
     { ...PRANCHAS.folhas, prancha: true },
-    { ...PRANCHAS.voo, prancha: true },
     { src: '/dra-bartira.jpg', alt: 'Dra. Bartira Rebouças', foco: '50% 22%' },
   ]
   return (<>
@@ -173,7 +169,7 @@ export function SiteInicio() {
           <p className="mt-6 lg:mt-8 text-[clamp(18px,1.35vw,21px)] leading-relaxed max-w-[38ch]">{INICIO.texto}</p>
           <div className="mt-8 lg:mt-10 flex flex-wrap items-center gap-x-7 gap-y-4">
             <Agendar />
-            <Link to="/programa" className="site-link text-[18px]">Como funciona o programa</Link>
+            <Link to="/programa" className="site-link text-[18px]">Conheça o programa Longevidade</Link>
           </div>
           <p className="mt-10 text-[14px] text-apoio">{CONTATO.crm} · {CONTATO.rqe} · Clínica Equilibre e Instituto Spinel, Natal</p>
         </div>
@@ -189,13 +185,10 @@ export function SiteInicio() {
 
       <section data-quadro="2" className="py-[clamp(60px,8vw,140px)]" aria-labelledby="t-fase"><QualFase /><QuadroMovel q={PRANCHAS.folhas} /></section>
 
-      <section data-quadro="3" className="py-[clamp(80px,10vw,180px)]" aria-labelledby="t-roteiro"><Roteiro /><QuadroMovel q={PRANCHAS.voo} /></section>
-
-      <section data-quadro="4" className="py-[clamp(80px,10vw,180px)]" aria-labelledby="t-carta"><Carta /></section>
+      <section data-quadro="3" className="py-[clamp(80px,10vw,180px)]" aria-labelledby="t-carta"><Carta /></section>
     </Palco>
 
     <TemasMenu />
-    <Planos />
     <MateriaisHome />
     <Perguntas />
     <Fechamento />
@@ -227,31 +220,6 @@ function QualFase() {
             <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3"><Agendar rotulo="Quero uma avaliação" /><span className="text-[14px] text-apoio">Orientação geral. A fase é confirmada na consulta.</span></div>
           </div>
         )}
-      </div>
-    </div>
-  )
-}
-
-/** O programa impresso como um roteiro, com borda serrilhada. */
-function Roteiro() {
-  return (
-    <div className="flex flex-col">
-      <div className="rv">
-        <h2 id="t-roteiro" className="site-h2">Seis meses de acompanhamento</h2>
-        <p className="mt-4 text-[18px] max-w-[40ch]">O programa Longevidade tem começo, meio e fim. É assim que ele acontece.</p>
-      </div>
-      <div className="slip rv mt-10 bg-folha px-6 sm:px-8 pt-7 pb-12 max-w-[560px] text-[18px] tabular-nums">
-        {ROTEIRO.map(g => (
-          <div key={g.quando} className="mb-7">
-            <p className="font-semibold text-[18px]">{g.quando}</p>
-            {g.itens.map(([o, q]) => (
-              <div key={o} className="flex items-end gap-3 mt-3"><span className="max-w-[30ch]">{o}</span><span className="pontos" aria-hidden="true" /><span className="text-apoio whitespace-nowrap">{q}</span></div>
-            ))}
-          </div>
-        ))}
-        <div className="bg-cafe text-creme -mx-6 sm:-mx-8 px-6 sm:px-8 py-3 flex items-center justify-between gap-4 font-medium">
-          <span>{ROTEIRO_FIM[0]}</span><span className="whitespace-nowrap">{ROTEIRO_FIM[1]}</span>
-        </div>
       </div>
     </div>
   )
@@ -296,41 +264,6 @@ function TemasMenu() {
           ))}
         </div>
       </div>
-    </section>
-  )
-}
-
-/** Dois campos de cor lado a lado; a largura diz qual pesa mais. */
-function Planos() {
-  const [ess, comp, anual] = PLANOS
-  return (
-    <section aria-labelledby="t-planos">
-      <h2 id="t-planos" className="sr-only">Formatos do programa Longevidade</h2>
-      <div className="grid lg:grid-cols-[5fr_7fr]">
-        <div className="bg-areia/70 px-[clamp(24px,4vw,64px)] py-[clamp(56px,7vw,110px)] flex flex-col min-h-[70svh]">
-          <div className="rv">
-            <h3 className="site-display text-[clamp(48px,5vw,80px)]">{ess.nome}</h3>
-            <p className="mt-4 text-[21px] max-w-[26ch]">Para começar com uma avaliação completa e um plano claro.</p>
-            <p className="mt-6 text-[18px] max-w-[40ch]">{ess.encontros}, avaliação, protocolo por escrito, check-in semanal pelo app e o Mapa da Saúde ao final.</p>
-          </div>
-          <div className="mt-auto pt-12 flex flex-wrap items-end justify-between gap-6">
-            <p className="site-display text-[clamp(56px,7vw,112px)] leading-none">6 meses</p>
-            <Agendar rotulo="Quero conversar" />
-          </div>
-        </div>
-        <div className="bg-oliva text-creme px-[clamp(24px,4vw,64px)] py-[clamp(56px,7vw,110px)] flex flex-col min-h-[70svh]">
-          <div className="rv">
-            <h3 className="site-display text-[clamp(48px,5vw,80px)]">{comp.nome}</h3>
-            <p className="mt-4 text-[21px] max-w-[30ch]">Para cuidar de tudo de uma vez, com especialistas parceiros.</p>
-            <p className="mt-6 text-[18px] max-w-[46ch]">Tudo do Essencial, mais consulta com cardiologista e com nutricionista parceiros. Também em versão {anual.nome.toLowerCase()}: {anual.duracao}, {anual.encontros.replace(' com a Dra. Bartira', '')}.</p>
-          </div>
-          <div className="mt-auto pt-12 flex flex-wrap items-end justify-between gap-6">
-            <p className="site-display text-[clamp(56px,7vw,112px)] leading-none">6 ou 12 meses</p>
-            <Agendar claro rotulo="Quero conversar" />
-          </div>
-        </div>
-      </div>
-      <p className="site-wrap mt-5 text-[14px] text-apoio">Valores e condições são informados no agendamento.</p>
     </section>
   )
 }
@@ -449,29 +382,175 @@ export function SiteSobre() {
 }
 
 // ---------- Programa ----------
+const marca = (v: string | boolean, claro = false) => v === true ? <Check className={`w-5 h-5 mx-auto ${claro ? 'text-creme' : 'text-oliva'}`} aria-label="incluído" /> : v === false ? <span className={claro ? 'text-creme/60' : 'text-apoio/60'} aria-label="não incluído">·</span> : v
+
 export function SitePrograma() {
-  usePagina('Programa Longevidade', 'Acompanhamento de 6 ou 12 meses para mulheres no climatério, com encontros presenciais e check-in semanal pelo app.')
+  usePagina('Programa Longevidade', 'Acompanhamento de 6 ou 12 meses para mulheres no climatério: encontros, medidas comparadas, protocolo por escrito e check-in semanal.')
+  const P = PROGRAMA
   return (<>
-    <Palco quadros={[{ ...PRANCHAS.lagarta, prancha: true }, { ...PRANCHAS.folhas, prancha: true }, { ...PRANCHAS.voo, prancha: true }]}>
-      <section data-quadro="0" className="pt-[clamp(40px,6vw,110px)] pb-12">
+    <Palco quadros={[{ ...VIDEO }, { ...PRANCHAS.lagarta, prancha: true }, { ...PRANCHAS.folhas, prancha: true }, { ...PRANCHAS.voo, prancha: true }]}>
+      <section data-quadro="0" className="lg:min-h-[calc(100svh-76px)] flex flex-col justify-center pt-8 pb-16">
         <div className="rv">
-          <h1 className="site-display text-[clamp(46px,5.2vw,84px)] max-w-[12ch]">Programa Longevidade</h1>
-          <p className="mt-6 text-[21px] leading-relaxed max-w-[38ch]">Em vez de consultas soltas, um acompanhamento com começo, meio e fim: avaliação completa, protocolo por escrito e contato toda semana com a equipe.</p>
-          <div className="mt-10"><Agendar /></div>
+          <h1 className="site-display text-[clamp(52px,6vw,96px)] max-w-[10ch]">{P.titulo}</h1>
+          <p className="mt-6 text-[clamp(21px,1.6vw,26px)] leading-snug max-w-[26ch]">{P.sub}</p>
+          <p className="mt-6 text-[18px] leading-relaxed max-w-[42ch]">{P.tese}</p>
+          <div className="mt-10 flex flex-wrap items-center gap-x-7 gap-y-4"><Agendar rotulo="Quero falar com a equipe" /><a href="#comparativo" className="site-link text-[18px]">Ver os formatos</a></div>
         </div>
       </section>
-      <section data-quadro="1" className="py-[clamp(60px,8vw,140px)]" aria-labelledby="t-roteiro"><Roteiro /></section>
-      <section data-quadro="2" className="py-[clamp(60px,8vw,140px)]" aria-labelledby="t-app">
-        <div className="rv">
-          <h2 id="t-app" className="site-h2">O acompanhamento no seu celular</h2>
-          <p className="mt-4 text-[18px] max-w-[40ch]">Durante o programa você usa um aplicativo próprio, com letra grande e simples de usar.</p>
-          <ul className="mt-8 flex flex-col gap-3 text-[18px]">{APP_PACIENTE.map(x => <li key={x} className="bg-tom rounded-[4px] px-5 py-4">{x}</li>)}</ul>
+
+      <section data-quadro="1" className="py-[clamp(70px,9vw,150px)]" aria-labelledby="t-jornada">
+        <div className="rv"><h2 id="t-jornada" className="site-h2">Como o programa acontece</h2>
+          <p className="mt-4 text-[18px] max-w-[40ch]">Uma jornada com começo, meio e fim. Cada etapa prepara a próxima.</p></div>
+        <ol className="rv mt-10 flex flex-col">
+          {P.jornada.map(([t, x], i) => (
+            <li key={t} className="grid grid-cols-[44px_1fr] gap-x-5 pb-8 last:pb-0 relative">
+              <span className={`w-11 h-11 rounded-full grid place-items-center site-display text-[22px] ${i === 1 ? 'bg-areia text-texto' : 'bg-cafe text-creme'}`} aria-hidden="true">{i === 0 ? '·' : i}</span>
+              {i < P.jornada.length - 1 && <span className="absolute left-[20px] top-12 bottom-1 w-[4px] rounded-full bg-areia/70" aria-hidden="true" />}
+              <div><p className="text-[21px] font-medium">{t}</p><p className="mt-1 text-[18px] leading-relaxed max-w-[42ch]">{x}</p></div>
+            </li>
+          ))}
+        </ol>
+        <QuadroMovel q={PRANCHAS.lagarta} />
+      </section>
+
+      <section data-quadro="2" className="py-[clamp(70px,9vw,150px)]" aria-labelledby="t-medidas">
+        <div className="rv"><h2 id="t-medidas" className="site-h2">Em todo encontro, tudo comparado</h2>
+          <p className="mt-4 text-[18px] max-w-[42ch]">As mesmas medidas, nos mesmos pontos, para enxergar o que mudou desde o último encontro.</p></div>
+        <div className="rv mt-10 bg-folha rounded-[4px] p-6 sm:p-8">
+          <div className="grid grid-cols-[1fr_repeat(3,56px)] sm:grid-cols-[1fr_repeat(3,72px)] items-end gap-y-5 text-[14px] text-apoio">
+            <span /> {['Início', '3º mês', '6º mês'].map(m => <span key={m} className="text-center">{m}</span>)}
+            {P.medidas.map(([t, x], i) => (<Fragment key={t}>
+              <div><p className="text-[18px] font-medium text-texto">{t}</p><p className="text-[14px] text-apoio">{x}</p></div>
+              {[0, 1, 2].map(k => <span key={k} className="grid place-items-center"><span className="medida-ponto rounded-full bg-oliva" style={{ width: 10 + k * 6, height: 10 + k * 6, transitionDelay: `${i * 120 + k * 160}ms` }} /></span>)}
+            </Fragment>))}
+          </div>
+          <p className="mt-6 text-[14px] text-apoio">Esquema ilustrativo: cada encontro registra as mesmas medidas para comparação.</p>
         </div>
+        <QuadroMovel q={PRANCHAS.folhas} />
+      </section>
+
+      <section data-quadro="3" className="py-[clamp(70px,9vw,150px)]" aria-labelledby="t-entregas">
+        <div className="rv"><h2 id="t-entregas" className="site-h2">O que você recebe</h2>
+          <p className="mt-4 text-[18px] max-w-[40ch]">Documentos por escrito e um app para levar o acompanhamento no bolso.</p></div>
+        <dl className="rv mt-10 grid sm:grid-cols-2 gap-x-8 gap-y-8">
+          {P.entregas.map(([t, x]) => <div key={t}><dt className="site-display text-[32px] leading-tight">{t}</dt><dd className="mt-2 text-[18px] leading-relaxed">{x}</dd></div>)}
+        </dl>
+        <QuadroMovel q={PRANCHAS.voo} />
       </section>
     </Palco>
-    <Planos />
-    <div className="pt-[clamp(90px,10vw,160px)]"><Perguntas /></div>
-    <Fechamento />
+
+    <section className="bg-cafe text-creme py-[clamp(90px,11vw,180px)]" aria-labelledby="t-tempo">
+      <div className="site-wrap">
+        <div className="rv max-w-3xl"><h2 id="t-tempo" className="site-h2">Por que seis meses</h2>
+          <p className="mt-4 text-[18px] text-areia max-w-[48ch]">Cada parte do corpo responde no seu tempo. O programa acompanha todos eles, um de cada vez.</p></div>
+        <ol className="rv tempo-linha mt-16 grid sm:grid-cols-5 gap-10 sm:gap-6 relative">
+          <span className="tempo-barra hidden sm:block absolute left-0 right-0 top-[27px] h-[6px] rounded-full bg-areia/25" aria-hidden="true"><span className="block h-full rounded-full bg-areia origin-left" /></span>
+          {P.tempos.map(([q, t, x], i) => (
+            <li key={q} className="relative flex flex-col">
+              <span className="relative z-10 w-[60px] h-[60px] rounded-full bg-cafe grid place-items-center" aria-hidden="true">
+                <img src="/marca-bartira.svg" alt="" className="rounded-full bg-creme p-2" style={{ width: 30 + i * 6, height: 30 + i * 6 }} />
+              </span>
+              <p className="mt-5 site-display text-[44px] leading-none">{q}</p>
+              <p className="mt-3 text-[18px] font-medium">{t}</p>
+              <p className="mt-1 text-[16px] text-areia leading-relaxed">{x}</p>
+            </li>
+          ))}
+        </ol>
+        <p className="rv mt-12 text-[14px] text-areia/80 max-w-[70ch]">Tempos aproximados. Cada mulher responde de um jeito, e os resultados dependem do quadro de cada uma.</p>
+      </div>
+    </section>
+
+    <section className="site-wrap py-[clamp(90px,11vw,180px)]" aria-labelledby="t-diferenca">
+      <div className="rv max-w-3xl"><h2 id="t-diferenca" className="site-h2">Consulta avulsa ou programa</h2></div>
+      <div className="rv mt-12 grid md:grid-cols-[1fr_auto_1.15fr] gap-6 items-stretch">
+        <div className="bg-tom rounded-[4px] p-7">
+          <h3 className="site-display text-[32px]">Consulta avulsa</h3>
+          <ul className="mt-5 flex flex-col gap-3 text-[18px]">{P.avulsa.map(x => <li key={x} className="flex gap-3"><X className="w-5 h-5 text-apoio shrink-0 mt-1" />{x}</li>)}</ul>
+        </div>
+        <div className="hidden md:grid place-items-center"><ArrowRight className="w-8 h-8 text-cobre seta-pulsa" /></div>
+        <div className="bg-oliva text-creme rounded-[4px] p-7">
+          <h3 className="site-display text-[32px]">Programa Longevidade</h3>
+          <ul className="mt-5 flex flex-col gap-3 text-[18px]">{P.programa.map(x => <li key={x} className="flex gap-3"><Check className="w-5 h-5 text-areia shrink-0 mt-1" />{x}</li>)}</ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="comparativo" className="bg-tom/70 py-[clamp(90px,11vw,180px)] scroll-mt-20" aria-labelledby="t-comp">
+      <div className="site-wrap">
+        <div className="rv max-w-3xl"><h2 id="t-comp" className="site-h2">Três formatos, do essencial ao ano inteiro</h2>
+          <p className="mt-4 text-[18px] max-w-[52ch]">Cada formato inclui tudo do anterior. A equipe ajuda a escolher o que faz sentido para você.</p></div>
+        <div className="rv mt-12 overflow-x-auto -mx-[clamp(20px,3vw,40px)] px-[clamp(20px,3vw,40px)]">
+          <table className="w-full min-w-[640px] text-[16px] border-separate border-spacing-0">
+            <thead>
+              <tr>
+                <th className="text-left font-normal text-apoio pb-5 pr-4 w-[38%]"><span className="sr-only">Item</span></th>
+                {P.niveis.map((n, i) => (
+                  <th key={n} className={`pb-5 px-3 text-center align-bottom ${i === 1 ? 'bg-oliva text-creme rounded-t-[4px] pt-5' : ''}`}>
+                    <span className="site-display text-[32px] font-normal">{n}</span>
+                    {i === 1 && <span className="block text-[14px] font-normal text-areia mt-1">indicado para a maioria</span>}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {P.comparativo.map(([item, ...v], r) => (
+                <tr key={item as string} className={r % 2 ? '' : 'bg-folha/60'}>
+                  <th scope="row" className="text-left font-normal py-3.5 pr-4 pl-3">{item}</th>
+                  {v.map((c, i) => <td key={i} className={`py-3.5 px-3 text-center ${i === 1 ? 'bg-oliva/95 text-creme' : ''}`}>{marca(c, i === 1)}</td>)}
+                </tr>
+              ))}
+              <tr><td /><td className="pt-6 px-2 text-center"><Agendar rotulo="Conversar" className="!h-11 !px-4 !text-[14px]" /></td><td className="pt-6 px-2 text-center bg-oliva rounded-b-[4px] pb-5"><Agendar claro rotulo="Conversar" className="!h-11 !px-4 !text-[14px]" /></td><td className="pt-6 px-2 text-center"><Agendar rotulo="Conversar" className="!h-11 !px-4 !text-[14px]" /></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="rv mt-6 text-[14px] text-apoio">Exames de laboratório e de imagem são feitos fora e não estão incluídos. Valores e condições são informados pela equipe.</p>
+      </div>
+    </section>
+
+    <section className="grid lg:grid-cols-2" aria-label="Para quem é o programa">
+      <div className="bg-areia/60 px-[clamp(24px,5vw,80px)] py-[clamp(70px,8vw,130px)]"><div className="rv">
+        <h2 className="site-h2">Para quem é</h2>
+        <ul className="mt-8 flex flex-col gap-4 text-[18px]">{P.paraQuem.map(x => <li key={x} className="flex gap-3"><Check className="w-5 h-5 text-oliva shrink-0 mt-1" />{x}</li>)}</ul>
+      </div></div>
+      <div className="bg-folha px-[clamp(24px,5vw,80px)] py-[clamp(70px,8vw,130px)]"><div className="rv">
+        <h2 className="site-h2">Para quem não é</h2>
+        <ul className="mt-8 flex flex-col gap-4 text-[18px]">{P.naoE.map(x => <li key={x} className="flex gap-3"><X className="w-5 h-5 text-terracota shrink-0 mt-1" />{x}</li>)}</ul>
+      </div></div>
+    </section>
+
+    <section className="site-wrap py-[clamp(90px,11vw,180px)] grid lg:grid-cols-[4fr_8fr] gap-12" aria-labelledby="t-suporte">
+      <div className="rv"><h2 id="t-suporte" className="site-h2">Entre os encontros, você não fica sozinha</h2>
+        <p className="mt-4 text-[18px] max-w-[34ch]">Cada situação tem um caminho e um prazo. Assim nada fica sem resposta.</p></div>
+      <div className="rv flex flex-col gap-3">
+        {P.suporte.map(([s, onde, prazo], i) => (
+          <div key={s} className={`rounded-[4px] px-6 py-5 grid sm:grid-cols-[1.1fr_1.3fr_auto] gap-x-6 gap-y-1 items-baseline ${i === P.suporte.length - 1 ? 'bg-[#f6e3dc]' : 'bg-folha'}`}>
+            <p className="text-[18px] font-medium">{s}</p><p className="text-[16px]">{onde}</p><p className="text-[16px] font-medium text-oliva whitespace-nowrap">{prazo}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section className="site-wrap pb-[clamp(90px,10vw,160px)] grid lg:grid-cols-[3fr_9fr] gap-10" aria-labelledby="t-faq-p">
+      <div className="rv"><h2 id="t-faq-p" className="site-h2 !text-[clamp(32px,2.6vw,40px)]">Dúvidas sobre o programa</h2></div>
+      <div className="rv lg:columns-2 gap-14 text-[18px] leading-[1.6]">
+        {P.perguntas.map(([q, r]) => <p key={q} className="mb-6 break-inside-avoid"><b className="font-medium">{q}</b> <span>{r}</span></p>)}
+      </div>
+    </section>
+
+    <section className="relative" aria-labelledby="t-fim-p">
+      <div className="relative h-[70svh] lg:h-[80svh] overflow-hidden">
+        <img src={VIDEO.src} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <video src={VIDEO.video} poster={VIDEO.src} muted loop playsInline autoPlay aria-hidden="true" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-texto/45" />
+        <div className="absolute inset-0 site-wrap flex items-end pb-[9svh]">
+          <div className="rv text-creme flex flex-col items-start gap-6 lg:ml-auto lg:w-[46%]">
+            <h2 id="t-fim-p" className="site-display text-[clamp(42px,4vw,68px)]">Fale com a equipe</h2>
+            <p className="text-[18px] max-w-[38ch]">Tire suas dúvidas sobre o programa, os formatos e as datas. A equipe responde e ajuda a marcar sua consulta inicial.</p>
+            <Agendar claro rotulo="Quero falar com a equipe" />
+          </div>
+        </div>
+      </div>
+    </section>
   </>)
 }
 
