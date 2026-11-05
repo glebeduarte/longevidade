@@ -16,7 +16,6 @@ const FOTOS = {
   checkin: { src: '/site/m-checkin.jpg', alt: 'Check-in da semana no app da paciente', foco: '50% 50%' },
   inicio: { src: '/site/m-inicio.jpg', alt: 'Tela inicial do app, com a resposta da equipe', foco: '50% 50%' },
   evolucao: { src: '/site/m-evolucao.jpg', alt: 'Evolução das medidas no app', foco: '50% 50%' },
-  questionarios: { src: '/site/m-questionarios.jpg', alt: 'Questionários respondidos antes da consulta', foco: '50% 50%' },
   natal: { src: '/site/ponta-negra.jpg', alt: 'Morro do Careca visto da praia de Ponta Negra, em Natal, pela manhã', foco: '35% 50%' },
 }
 const VIDEO = { src: '/site/metamorfose.jpg', video: '/site/metamorfose.mp4', legenda: 'Uma monarca deixa a crisálida. Vídeo de Danmation, CC BY 3.0.' }
@@ -270,7 +269,7 @@ function Reconhece() {
 /** O programa Longevidade em etapas, cada uma com ícone e uma tela ou documento de exemplo. */
 function Jornada({ titulo = 'O programa Longevidade', cta = true }: { titulo?: string; cta?: boolean }) {
   const e: Array<[LucideIcon, string, string, Foto]> = [
-    [ClipboardList, 'Antes do primeiro encontro', 'Você responde os questionários no app e faz os exames pedidos.', FOTOS.questionarios],
+    [ClipboardList, 'Antes do primeiro encontro', 'Você responde os questionários no app e faz os exames pedidos.', FOTOS.inicio],
     [Stethoscope, 'Consulta inicial', 'Uma conversa longa sobre sua história, seus sintomas e seus riscos.', FOTOS.retrato],
     [FileText, 'Plano por escrito', 'O protocolo com o porquê de cada escolha e o Mapa da Saúde.', FOTOS.protocolo],
     [Smartphone, 'Check-in toda semana', 'Pelo app. A equipe lê, responde e avisa a doutora quando precisa.', FOTOS.checkin],
@@ -358,8 +357,8 @@ function Fichas({ itens, titulo, id }: { itens: Array<[string, string]>; titulo:
           <div className="mt-10 flex flex-wrap items-center gap-6"><Agendar /><Link to="/programa" className="site-link text-[16px]">Ver o programa</Link></div>
         </div>
         <div className="rv lg:col-start-7 lg:col-span-6 relative lg:-mt-[clamp(80px,10vw,160px)]">
-          <Prova f={FOTOS.questionarios} className="aspect-[3/4] lg:mb-20" />
-          <Prova f={FOTOS.inicio} className="absolute w-[38%] aspect-square -left-10 bottom-0 max-lg:-bottom-10 max-lg:left-auto max-lg:right-0" />
+          <Prova f={FOTOS.inicio} className="aspect-[3/4] lg:mb-20" />
+          <Prova f={FOTOS.evolucao} className="absolute w-[38%] aspect-square -left-10 bottom-0 max-lg:-bottom-10 max-lg:left-auto max-lg:right-0" />
         </div>
       </div>
     </section>
