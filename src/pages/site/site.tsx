@@ -529,13 +529,22 @@ export function SitePrograma() {
         </div>
       </Duo>
 
-      <Duo f={FOTOS.protocolo} rotulo="t-entregas">
-        <div className="rv"><h2 id="t-entregas" className="site-h2">O que você recebe</h2>
-          <p className="mt-4 text-[18px] max-w-[40ch]">Documentos por escrito e um app para levar o acompanhamento no bolso.</p></div>
-        <dl className="rv mt-10 grid sm:grid-cols-2 gap-x-8 gap-y-8">
-          {P.entregas.map(([t, x]) => <div key={t}><dt className="site-display text-[32px] leading-tight">{t}</dt><dd className="mt-2 text-[18px] leading-relaxed">{x}</dd></div>)}
-        </dl>
-      </Duo>
+      <section className="site-wrap pt-6 pb-[clamp(90px,11vw,180px)]" aria-labelledby="t-entregas">
+        <div className="rv grid lg:grid-cols-12 gap-x-6 gap-y-4 items-end">
+          <h2 id="t-entregas" className="site-h2 lg:col-span-6">O que você recebe</h2>
+          <p className="text-[17px] lg:col-start-8 lg:col-span-5">Documentos por escrito e um app para levar o acompanhamento no bolso. Tudo fica com você.</p>
+        </div>
+        <ul className="mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-14">
+          {P.entregas.map(([t, x], i) => (
+            <li key={t} className="rv entrega group">
+              <div className="prova aspect-[4/3]"><img src={`/site/${['e-mapa', 'e-protocolo', 'e-checklist', 'e-plano', 'e-app', 'e-videos'][i]}.jpg`} alt={`Exemplo: ${t}`} loading="lazy" /></div>
+              <h3 className="mt-5 site-display text-[clamp(26px,2vw,30px)] leading-tight">{t}</h3>
+              <p className="mt-2 text-[17px] leading-relaxed max-w-[38ch]">{x}</p>
+            </li>
+          ))}
+        </ul>
+        <p className="rv mt-10 text-[14px] text-apoio">Exemplos ilustrativos, com dados fictícios. Os seus são feitos para você.</p>
+      </section>
     </>
 
     <section className="bg-cafe text-creme py-[clamp(90px,11vw,180px)] relative overflow-hidden" aria-labelledby="t-tempo">
