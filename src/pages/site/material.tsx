@@ -27,14 +27,30 @@ export function useMateriais(soDestaque = false) {
 export function Capa({ m, className = '', grande = false }: { m: Pick<Landing, 'titulo' | 'tipo' | 'capa_path'>; className?: string; grande?: boolean }) {
   if (m.capa_path) return <img src={urlMaterial(m.capa_path)} alt={`Capa: ${m.titulo}`} className={`object-cover aspect-[3/4] h-auto self-start rounded-[4px] ${className}`} />
   return (
-    <div lang="pt-BR" className={`rounded-[4px] bg-cafe text-creme ${grande ? 'p-5' : 'p-2.5'} flex flex-col justify-between aspect-[3/4] h-auto self-start overflow-hidden break-words [hyphens:auto] ${className}`} role="img" aria-label={`Capa: ${m.titulo}`}>
-      <img src="/marca/simbolo-claro.png" alt="" className={grande ? 'w-12' : 'w-6'} />
-      <div>
-        <p className={`${grande ? 'text-[11px]' : 'text-[8px]'} text-areia`}>{m.tipo}</p>
-        <p className={`font-display leading-[1.05] mt-1 ${grande ? 'text-[18px] sm:text-[24px]' : 'text-[12px]'}`}>{m.titulo}</p>
-        {grande && <><p className="mt-2 text-[11px] text-areia/80">Dra. Bartira Rebouças</p></>}
+    <div lang="pt-BR" className={`relative bg-cafe text-creme ${grande ? 'p-6' : 'p-2.5'} flex flex-col justify-between aspect-[3/4] h-auto self-start overflow-hidden break-words [hyphens:auto] ${className}`} role="img" aria-label={`Capa: ${m.titulo}`}>
+      <img src="/marca/simbolo-claro.png" alt="" aria-hidden="true" className="absolute -right-[18%] -bottom-[10%] w-[95%] opacity-[0.14]" />
+      <p className={`relative ${grande ? 'text-[13px]' : 'text-[8px]'} text-areia`}>{m.tipo} gratuito</p>
+      <div className="relative">
+        <p className={`font-display leading-[1.02] ${grande ? 'text-[clamp(26px,2.6vw,36px)]' : 'text-[12px]'}`}>{m.titulo}</p>
+        {grande && <p className="mt-3 text-[13px] text-areia">Dra. Bartira Rebouças</p>}
       </div>
     </div>
+  )
+}
+
+/** O material como um livro: capa com lombada, que se abre um pouco ao passar o mouse. */
+export function Livro({ m }: { m: Landing }) {
+  return (
+    <Link to={`/material/${m.slug}`} className="livro group flex flex-col">
+      <div className="livro-capa relative w-[min(100%,300px)]">
+        <span aria-hidden="true" className="livro-lombada" />
+        <Capa m={m} grande className="w-full" />
+      </div>
+      <p className="mt-6 text-[15px] text-apoio">{m.chamada || m.tipo}</p>
+      <h3 className="site-display text-[30px] leading-tight mt-1">{m.titulo}</h3>
+      {m.subtitulo && <p className="mt-2 text-[16px] leading-relaxed max-w-[36ch]">{m.subtitulo}</p>}
+      <span className="mt-4 inline-flex items-center gap-2 text-[16px] font-medium">{m.botao}<ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" /></span>
+    </Link>
   )
 }
 
