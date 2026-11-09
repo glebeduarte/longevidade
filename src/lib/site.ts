@@ -57,7 +57,16 @@ export const DUVIDAS_INICIAIS = [
 /** Avaliações públicas. Os textos dos depoimentos ficam no Doctoralia e no Google, para não serem reescritos aqui. */
 export const DEPOIMENTOS = {
   titulo: 'O que dizem as pacientes',
-  texto: 'As avaliações das pacientes estão publicadas no Doctoralia e no Google, com nome e data, do jeito que foram escritas.',
+  texto: 'Nota 5 de 5 em 303 opiniões no Doctoralia, todas de consultas verificadas. Trechos copiados das avaliações, com autoria como publicada.',
+  // Fonte: doctoralia.com.br/perfil/bartira-miridan-reboucas, consultado em 09/11/2026
+  itens: [
+    { texto: 'Uma profissional extremamente atenciosa, cuidadosa e competente.', autor: 'Aline', data: 'outubro de 2026' },
+    { texto: 'Médica maravilhosa, humana e bastante técnica.', autor: 'A.L.S.S.F.', data: 'outubro de 2026' },
+    { texto: 'Ela é muito atenciosa, questiona tudo e orienta direito.', autor: 'Vania', data: 'setembro de 2026' },
+    { texto: 'Explicações detalhadas. Atenciosa durante a consulta. Pontual.', autor: 'K.J.B.K.', data: 'agosto de 2026' },
+    { texto: 'Bartira é uma profissional exemplar!', autor: 'Izabele Iduino', data: 'outubro de 2026' },
+    { texto: 'A melhor endocrinologista!', autor: 'Marina Lino', data: 'setembro de 2026' },
+  ],
 }
 
 /** "Em que fase você está?": orientação geral, não diagnóstico. */

@@ -248,15 +248,25 @@ function DuvidasIniciais() {
 function Depoimentos() {
   return (
     <section className="bg-areia/50" aria-labelledby="t-depo">
-      <div className="site-wrap py-[clamp(80px,10vw,150px)] grid lg:grid-cols-12 gap-8 items-end">
-        <div className="rv lg:col-span-7">
-          <h2 id="t-depo" className="site-h2">{DEPOIMENTOS.titulo}</h2>
-          <p className="mt-5 text-[18px] max-w-[48ch]">{DEPOIMENTOS.texto}</p>
+      <div className="site-wrap py-[clamp(80px,10vw,150px)]">
+        <div className="rv grid lg:grid-cols-12 gap-8 items-end">
+          <div className="lg:col-span-7">
+            <h2 id="t-depo" className="site-h2">{DEPOIMENTOS.titulo}</h2>
+            <p className="mt-5 text-[18px] max-w-[52ch]">{DEPOIMENTOS.texto}</p>
+          </div>
+          <div className="lg:col-span-5 flex flex-wrap gap-x-7 gap-y-4 lg:justify-end">
+            <a href={CONTATO.avaliacoesDoctoralia} target="_blank" rel="noreferrer" className="site-link text-[17px]">Todas no Doctoralia</a>
+            <a href={CONTATO.avaliacoesGoogle} target="_blank" rel="noreferrer" className="site-link text-[17px]">Avaliações no Google</a>
+          </div>
         </div>
-        <div className="rv lg:col-span-5 flex flex-wrap gap-x-7 gap-y-4 lg:justify-end">
-          <a href={CONTATO.avaliacoesDoctoralia} target="_blank" rel="noreferrer" className="site-link text-[17px]">Avaliações no Doctoralia</a>
-          <a href={CONTATO.avaliacoesGoogle} target="_blank" rel="noreferrer" className="site-link text-[17px]">Avaliações no Google</a>
-        </div>
+        <ul className="rv mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {DEPOIMENTOS.itens.map(d => (
+            <li key={d.autor} className="bg-fundo p-8 flex flex-col gap-5">
+              <p className="site-display text-[24px] leading-snug">“{d.texto}”</p>
+              <p className="mt-auto text-[15px] text-apoio">{d.autor} · {d.data} · Doctoralia</p>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   )
