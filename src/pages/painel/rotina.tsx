@@ -83,7 +83,7 @@ export function FilaCheckins() {
                 <textarea id="resp" rows={4} value={resposta} onChange={e => setResposta(e.target.value)} disabled={!pode}
                   placeholder={pode ? 'Escreva com calma. A paciente recebe um aviso por e-mail.' : 'Você não tem permissão para responder check-ins.'} className="campo !h-auto py-2.5 leading-relaxed" />
                 <div className="flex flex-wrap gap-2">
-                  {['Obrigada pelo retorno. Seguimos com o protocolo.', 'Vamos conversar sobre isso no próximo encontro.', 'A Dra. Bartira vai te ligar hoje.'].map(t => (
+                  {['Obrigada pelo retorno. Seguimos com o plano de cuidado.', 'Vamos conversar sobre isso no próximo encontro.', 'A Dra. Bartira vai te ligar hoje.'].map(t => (
                     <button key={t} onClick={() => setResposta(t)} disabled={!pode} className="h-8 px-3 rounded-full bg-tom text-meta text-texto hover:bg-ativo">{t}</button>
                   ))}
                 </div>
@@ -311,7 +311,7 @@ export function VerComo() {
   }
   return (
     <div className="flex flex-col gap-6">
-      <Titulo sub="Abre o app exatamente como a paciente vê: programa, check-ins, protocolo, evolução e questionários. Nada que você fizer lá é gravado no lugar dela.">Ver como paciente</Titulo>
+      <Titulo sub="Abre o app exatamente como a paciente vê: programa, check-ins, plano de cuidado, evolução e questionários. Nada que você fizer lá é gravado no lugar dela.">Ver como paciente</Titulo>
       <div className="relative max-w-sm">
         <label htmlFor="vc-busca" className="sr-only">Buscar paciente</label>
         <input id="vc-busca" value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por nome ou e-mail" className="campo" />

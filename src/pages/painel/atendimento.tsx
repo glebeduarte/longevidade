@@ -34,7 +34,7 @@ Impressão:
 Conduta:`,
   'Encontro de seguimento': `Como chegou desde o último encontro:
 
-Adesão ao protocolo:
+Adesão ao plano de cuidado:
 
 Sintomas: fogachos, sono, humor, energia.
 
@@ -42,7 +42,7 @@ Exames e medidas novos:
 
 Impressão:
 
-Ajustes no protocolo:`,
+Ajustes no plano de cuidado:`,
 }
 
 const campo = 'campo'

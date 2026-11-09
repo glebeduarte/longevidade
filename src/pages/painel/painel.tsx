@@ -21,7 +21,7 @@ async function convidar(body: Record<string, unknown>) {
   return data
 }
 
-const LOCAL: Record<string, string> = { equilibre: 'Clínica Equilibre', spinel: 'Instituto Spinel' }
+const LOCAL: Record<string, string> = { equilibre: 'Clínica Equilibre', spinel: 'Instituto Espinel' }
 const nomeLimpo = (n?: string | null) => (n ?? '').replace(/\s*\(teste\)/, '')
 const plural = (n: number, s: string, p: string) => `${n} ${n === 1 ? s : p}`
 const quando = (d: string) => {
@@ -401,7 +401,7 @@ export function Pacientes() {
           </div>
           <Selecao id="p-local" label="Local de atendimento" value={f.location} onChange={e => setF({ ...f, location: e.target.value })}>
             <option value="equilibre">Clínica Equilibre</option>
-            <option value="spinel">Instituto Spinel</option>
+            <option value="spinel">Instituto Espinel</option>
           </Selecao>
           {msg?.t === 'erro' && <Aviso tipo="erro">{msg.m}</Aviso>}
           <Botao type="submit" disabled={enviando} className="mt-2 w-full"><Send className="w-4 h-4" strokeWidth={1.8} />{enviando ? 'Enviando' : 'Cadastrar e enviar convite'}</Botao>

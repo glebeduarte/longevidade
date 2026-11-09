@@ -1,9 +1,9 @@
 import { Fragment, useEffect, useState, type ReactNode } from 'react'
 import { Link, NavLink, Outlet, useLocation, useParams } from 'react-router-dom'
-import { ArrowRight, Check, ChevronDown, ClipboardList, FileText, LineChart, Smartphone, Stethoscope, type LucideIcon, Clock, MapPin, Menu, MessageCircle, X } from 'lucide-react'
+import { ArrowRight, Check, ChevronDown, ClipboardList, FileText, LineChart, Smartphone, Stethoscope, type LucideIcon, Clock, MapPin, Menu, MessageCircle, Phone, X } from 'lucide-react'
 import { useAuth } from '../../auth/AuthProvider'
 import {
-  CONTATO, FASES, INICIO, LOCAIS, NAV, PERGUNTAS, PROGRAMA, SOBRE, TEMAS, linkAgendar,
+  CONTATO, DEPOIMENTOS, DUVIDAS_INICIAIS, FASES, INICIO, LOCAIS, NAV, PERGUNTAS, PROGRAMA, SOBRE, TEMAS, linkAgendar,
 } from '../../lib/site'
 import { Livro, useMateriais } from './material'
 
@@ -12,7 +12,7 @@ const FOTOS = {
   retrato: { src: '/dra-bartira.jpg', alt: 'Dra. Bartira Rebouças no consultório', foco: '50% 22%' },
   rosto: { src: '/dra-bartira-rosto.jpg', alt: 'Dra. Bartira Rebouças', foco: '50% 40%' },
   mapa: { src: '/site/m-mapa.jpg', alt: 'Mapa da Saúde: a nota e o perfil de cada área', foco: '60% 50%' },
-  protocolo: { src: '/site/m-protocolo.jpg', alt: 'Protocolo por escrito, com cada escolha explicada', foco: '50% 50%' },
+  protocolo: { src: '/site/m-protocolo.jpg', alt: 'Plano de cuidado por escrito, com cada escolha explicada', foco: '50% 50%' },
   checkin: { src: '/site/m-checkin.jpg', alt: 'Check-in da semana no app da paciente', foco: '50% 50%' },
   inicio: { src: '/site/m-inicio.jpg', alt: 'Tela inicial do app, com a resposta da equipe', foco: '50% 50%' },
   evolucao: { src: '/site/m-evolucao.jpg', alt: 'Evolução das medidas no app', foco: '50% 50%' },
@@ -130,11 +130,13 @@ export function LayoutSite() {
           <nav className="flex flex-wrap gap-x-5 gap-y-2 md:ml-auto" aria-label="Rodapé">
             {NAV.map(([to, r]) => <Link key={to} to={to} className="hover:text-texto transition-colors">{r}</Link>)}
             <a href={CONTATO.instagram} target="_blank" rel="noreferrer" className="hover:text-texto transition-colors">Instagram</a>
+            <a href={CONTATO.youtube} target="_blank" rel="noreferrer" className="hover:text-texto transition-colors">YouTube</a>
+            <a href={CONTATO.facebook} target="_blank" rel="noreferrer" className="hover:text-texto transition-colors">Facebook</a>
             <Link to="/privacidade" className="hover:text-texto transition-colors">Privacidade</Link>
           </nav>
         </div>
         <p className="mt-4 text-[14px] leading-relaxed text-apoio max-w-[75ch]">
-          © {new Date().getFullYear()} · As informações deste site não substituem a consulta médica.
+          © {new Date().getFullYear()} · CNPJ {CONTATO.cnpj} · As informações deste site não substituem a consulta médica.
           Vídeo: <a className="underline" href="https://commons.wikimedia.org/wiki/File:Monarch_Butterfly_Emerging_from_Chrysalis.webm">"Monarch Butterfly Emerging from Chrysalis"</a>, Danmation, <a className="underline" href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>, recortado e acelerado.
           Foto: <a className="underline" href="https://commons.wikimedia.org/wiki/File:Vista_do_Morro_do_Careca_em_Ponta_Negra_pela_manh%C3%A3.jpg">"Vista do Morro do Careca em Ponta Negra pela manhã"</a>, Ppulbatu, <a className="underline" href="https://creativecommons.org/licenses/by/4.0">CC BY 4.0</a>.
         </p>
@@ -189,9 +191,9 @@ export function SiteInicio() {
       <div className="site-wrap relative grid lg:grid-cols-12 gap-x-6 gap-y-10 items-center lg:min-h-[calc(100svh-80px)] pt-6 pb-16 lg:py-10">
         <div className="rv lg:col-span-6 flex flex-col">
           <h1 className="site-display text-[clamp(48px,6vw,96px)] max-w-[11ch]">Ciência e acolhimento</h1>
-          <p className="mt-7 text-[clamp(17px,1.35vw,20px)] leading-relaxed max-w-[40ch]">Sou a Dra. Bartira Rebouças, endocrinologista em Natal. Cuido de mulheres na perimenopausa e na menopausa com exames, escuta e um plano por escrito.</p>
+          <p className="mt-7 text-[clamp(17px,1.35vw,20px)] leading-relaxed max-w-[40ch]">Sou a Dra. Bartira Rebouças, endocrinologista em Natal. Cuido da saúde metabólica e hormonal, com atenção especial às mulheres no climatério, usando exames, escuta e um plano de cuidado por escrito.</p>
           <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4"><Agendar /><a href="#programa" className="site-link text-[17px]">Como eu acompanho você</a></div>
-          <p className="mt-10 text-[14px] text-apoio">{CONTATO.crm} · {CONTATO.rqe} · Clínica Equilibre e Instituto Spinel</p>
+          <p className="mt-10 text-[14px] text-apoio">{CONTATO.crm} · {CONTATO.rqe} · Clínica Equilibre e Instituto Espinel</p>
         </div>
         <div className="lg:col-start-8 lg:col-span-5"><Prova f={FOTOS.retrato} abre className="aspect-[4/5] max-h-[82svh]" /></div>
       </div>
@@ -199,6 +201,7 @@ export function SiteInicio() {
 
     {/* 2. Identificação: palco leve, o vídeo fica enquanto os sintomas passam */}
     <Reconhece />
+    <DuvidasIniciais />
 
     {/* 3. Quem é a Bartira */}
     <section className="bg-cafe text-creme relative overflow-hidden" aria-labelledby="t-quem">
@@ -212,7 +215,7 @@ export function SiteInicio() {
           <dl className="grid grid-cols-2 gap-x-8 gap-y-4 mt-2 text-[16px]">
             <div><dt className="text-areia text-[14px]">Especialidade</dt><dd>Endocrinologia e metabologia</dd></div>
             <div><dt className="text-areia text-[14px]">Registro</dt><dd>{CONTATO.crm} · {CONTATO.rqe}</dd></div>
-            <div><dt className="text-areia text-[14px]">Foco</dt><dd>Climatério e longevidade feminina</dd></div>
+            <div><dt className="text-areia text-[14px]">Foco</dt><dd>Saúde metabólica, climatério e longevidade</dd></div>
             <div><dt className="text-areia text-[14px]">Atende em</dt><dd>{LOCAIS.map(l => l.nome).join(' e ')}, Natal</dd></div>
           </dl>
         </div>
@@ -226,10 +229,47 @@ export function SiteInicio() {
     <Jornada />
 
     <TemasLista />
+    <Depoimentos />
     <MateriaisHome />
     <Perguntas />
     <Fechamento />
   </>)
+}
+
+/** As três perguntas mais comuns na primeira consulta. */
+function DuvidasIniciais() {
+  return (
+    <section className="site-wrap py-[clamp(80px,10vw,150px)]" aria-labelledby="t-duvidas">
+      <h2 id="t-duvidas" className="rv site-h2 max-w-3xl">As perguntas que mais escuto na primeira consulta</h2>
+      <ol className="rv mt-10 grid md:grid-cols-3 gap-4">
+        {DUVIDAS_INICIAIS.map((d, i) => (
+          <li key={d} className="bg-tom p-8 flex flex-col gap-4">
+            <span className="text-[14px] tracking-[0.18em] uppercase text-apoio">{String(i + 1).padStart(2, '0')}</span>
+            <p className="site-display text-[26px] leading-snug">{d}</p>
+          </li>
+        ))}
+      </ol>
+      <p className="rv mt-8 text-[17px] max-w-[60ch]">Cada uma tem resposta, e ela depende da sua história. É por isso que a consulta começa pela escuta e pelos seus exames.</p>
+    </section>
+  )
+}
+
+/** Depoimentos: levam às avaliações públicas, sem reescrever o que as pacientes disseram. */
+function Depoimentos() {
+  return (
+    <section className="bg-areia/50" aria-labelledby="t-depo">
+      <div className="site-wrap py-[clamp(80px,10vw,150px)] grid lg:grid-cols-12 gap-8 items-end">
+        <div className="rv lg:col-span-7">
+          <h2 id="t-depo" className="site-h2">{DEPOIMENTOS.titulo}</h2>
+          <p className="mt-5 text-[18px] max-w-[48ch]">{DEPOIMENTOS.texto}</p>
+        </div>
+        <div className="rv lg:col-span-5 flex flex-wrap gap-x-7 gap-y-4 lg:justify-end">
+          <a href={CONTATO.avaliacoesDoctoralia} target="_blank" rel="noreferrer" className="site-link text-[17px]">Avaliações no Doctoralia</a>
+          <a href={CONTATO.avaliacoesGoogle} target="_blank" rel="noreferrer" className="site-link text-[17px]">Avaliações no Google</a>
+        </div>
+      </div>
+    </section>
+  )
 }
 
 /** Você se reconhece? Duas colunas: o vídeo fica parado enquanto as frases passam. */
@@ -271,7 +311,7 @@ function Jornada({ titulo = 'O programa Longevidade', cta = true }: { titulo?: s
   const e: Array<[LucideIcon, string, string, Foto]> = [
     [ClipboardList, 'Antes do primeiro encontro', 'Você responde os questionários no app e faz os exames pedidos.', FOTOS.inicio],
     [Stethoscope, 'Consulta inicial', 'Uma conversa longa sobre sua história, seus sintomas e seus riscos.', FOTOS.retrato],
-    [FileText, 'Plano por escrito', 'O protocolo com o porquê de cada escolha e o Mapa da Saúde.', FOTOS.protocolo],
+    [FileText, 'Plano por escrito', 'O plano de cuidado com o porquê de cada escolha e o Mapa da Saúde.', FOTOS.protocolo],
     [Smartphone, 'Check-in toda semana', 'Pelo app. A equipe lê, responde e avisa a doutora quando precisa.', FOTOS.checkin],
     [LineChart, 'Encontros de seguimento', 'Nos meses 3 e 6, as mesmas medidas, comparadas com o começo.', FOTOS.evolucao],
   ]
@@ -491,7 +531,9 @@ export function SiteSobre() {
         <div className="rv lg:col-start-8 lg:col-span-5">
           <h2 className="text-[20px] font-medium">Formação</h2>
           <ul className="mt-6 flex flex-col gap-2 text-[17px]">{SOBRE.formacao.map(f => <li key={f} className="bg-creme/10 px-5 py-4">{f}</li>)}</ul>
-          <p className="mt-6 text-[14px] text-areia">{CONTATO.crm} · {CONTATO.rqe}</p>
+          <h2 className="mt-10 text-[20px] font-medium">Atualização contínua</h2>
+          <ul className="mt-6 flex flex-col gap-2 text-[17px]">{SOBRE.atualizacao.map(f => <li key={f} className="bg-creme/10 px-5 py-4">{f}</li>)}</ul>
+          <p className="mt-6 text-[14px] text-areia">{CONTATO.crm} · {CONTATO.rqe} · <a href={CONTATO.lattes} target="_blank" rel="noreferrer" className="underline underline-offset-4">Currículo Lattes</a></p>
         </div>
       </div>
     </section>
@@ -505,7 +547,7 @@ export function SiteSobre() {
 const marca = (v: string | boolean, claro = false) => v === true ? <Check className={`w-5 h-5 mx-auto ${claro ? 'text-creme' : 'text-oliva'}`} aria-label="incluído" /> : v === false ? <span className={claro ? 'text-creme/60' : 'text-apoio/60'} aria-label="não incluído">·</span> : v
 
 export function SitePrograma() {
-  usePagina('Programa Longevidade', 'Acompanhamento de 6 ou 12 meses para mulheres no climatério: encontros, medidas comparadas, protocolo por escrito e check-in semanal.')
+  usePagina('Programa Longevidade', 'Jornada estruturada de cuidado: avaliação dos pilares de saúde, encontros, medidas comparadas, plano de cuidado por escrito e check-in semanal.')
   const P = PROGRAMA
   return (<>
     <>
@@ -515,6 +557,10 @@ export function SitePrograma() {
       </Cabeca>
       <Jornada titulo="Como o programa acontece" cta={false} />
       <Duo f={FOTOS.checkin} inverso rotulo="t-medidas">
+        <div className="rv lg:col-span-full mb-[clamp(60px,8vw,120px)]"><h2 id="t-pilares" className="site-h2">{P.pilares.titulo}</h2>
+          <p className="mt-5 text-[18px] max-w-[60ch]">{P.pilares.texto}</p>
+          <ul className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">{P.pilares.itens.map(([t, x]) => <li key={t} className="bg-tom p-6"><p className="site-display text-[26px]">{t}</p><p className="mt-2 text-[16px] text-apoio">{x}</p></li>)}</ul>
+        </div>
         <div className="rv"><h2 id="t-medidas" className="site-h2">Em todo encontro, tudo comparado</h2>
           <p className="mt-4 text-[18px] max-w-[42ch]">As mesmas medidas, nos mesmos pontos, para enxergar o que mudou desde o último encontro.</p></div>
         <div className="rv mt-10 bg-folha p-6 sm:p-8">
@@ -724,8 +770,13 @@ export function SiteConteudos() {
 export function SiteContato() {
   usePagina('Contato e agendamento', 'Agende sua consulta com a Dra. Bartira Rebouças em Natal.')
   return (<>
-    <Cabeca titulo="Agende sua consulta" texto="Fale com a equipe para escolher o local e o horário. Ela também ajuda com valores e com o preparo para a consulta." f={FOTOS.natal}>
-      <div className="mt-9">{CONTATO.whatsapp ? <Agendar rotulo="Chamar no WhatsApp" /> : <><a href="#locais" className="site-btn">Ver os locais de atendimento<ArrowRight className="w-4 h-4" /></a><p className="mt-5 text-[17px] max-w-[40ch]">O número de agendamento pelo WhatsApp será publicado em breve.</p></>}</div>
+    <Cabeca titulo="Agende sua consulta" texto="Consulta presencial em Natal ou teleconsulta, inclusive para quem mora fora do Brasil. A equipe ajuda a escolher o local e o horário." f={FOTOS.natal}>
+      <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+        {CONTATO.whatsapp ? <Agendar rotulo="Agendar pelo WhatsApp" /> : <a href="#locais" className="site-btn">Ver os locais de atendimento<ArrowRight className="w-4 h-4" /></a>}
+        <a href={CONTATO.doctoralia} target="_blank" rel="noreferrer" className="site-link text-[17px]">Agendar on-line pelo Doctoralia</a>
+      </div>
+      <p className="mt-6 text-[16px] max-w-[48ch]">{CONTATO.horarioEquipe}</p>
+      <p className="mt-2 text-[14px] text-apoio max-w-[48ch]">{CONTATO.avisoWhatsapp} Não atendemos planos de saúde. Emitimos nota fiscal para reembolso.</p>
     </Cabeca>
     <section id="locais" className="site-wrap scroll-mt-24 pb-[clamp(90px,10vw,160px)]" aria-labelledby="t-locais">
       <h2 id="t-locais" className="rv site-h2">Onde eu atendo</h2>
@@ -735,6 +786,7 @@ export function SiteContato() {
             <h3 className="site-display text-[32px]">{l.nome}</h3>
             <p className="flex gap-3 text-[17px]"><MapPin className="w-5 h-5 shrink-0 mt-1" />{l.endereco}</p>
             <p className="flex gap-3 text-[17px]"><Clock className="w-5 h-5 shrink-0 mt-1" />{l.horario}</p>
+            <p className="flex gap-3 text-[17px]"><Phone className="w-5 h-5 shrink-0 mt-1" />{l.telefone}</p>
             {l.mapa && <a href={l.mapa} target="_blank" rel="noreferrer" className="site-link text-[17px] self-start">Ver no mapa</a>}
           </div>
         ))}
@@ -751,7 +803,7 @@ export function SitePrivacidade() {
   usePagina('Política de privacidade', 'Como tratamos os dados de quem visita o site e das pacientes.')
   // CONFIRMAR: responsável pelos dados (pessoa ou clínica) e revisão jurídica
   const itens: Array<[string, string]> = [
-    ['Quem é responsável', 'Dra. Bartira Rebouças, endocrinologista, responsável pelo tratamento dos dados coletados neste site e no app das pacientes.'],
+    ['Quem é responsável', 'Dra. Bartira Rebouças, endocrinologista, CNPJ 68.262.453/0001-20, responsável pelo tratamento dos dados coletados neste site e no app das pacientes.'],
     ['Que dados coletamos no site', 'Quando você pede um material gratuito, guardamos nome, e-mail e, se você informar, WhatsApp, para enviar o material e conteúdos da Dra. Bartira. Quando fala com a equipe pelo WhatsApp, os dados são usados só para o agendamento.'],
     ['Dados das pacientes', 'No app, guardamos dados de saúde informados pela paciente e pela equipe, com acesso restrito à médica e a quem ela autorizar. Cada abertura de ficha fica registrada.'],
     ['Seus direitos', 'Você pode pedir acesso, correção ou exclusão dos seus dados a qualquer momento, pelo contato da equipe.'],

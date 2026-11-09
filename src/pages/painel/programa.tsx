@@ -230,8 +230,8 @@ function Protocolos({ pid, podeEditar }: { pid: string; podeEditar: boolean }) {
   const mostrado = ver != null ? lista.find(p => p.version === ver) : atual
 
   return (
-    <Bloco icone={<Icone tema="protocolo" fundo tamanho={36} />} titulo="Protocolo" sub={atual ? `Versão ${atual.version} publicada em ${dataBR(atual.published_at!)} · a paciente vê esta versão no app` : 'Nenhuma versão publicada'}
-      acao={podeEditar && !rasc ? <Botao tamanho="sm" variante="linha" onClick={novaVersao}><Plus className="w-4 h-4" />{atual ? 'Nova versão' : 'Criar protocolo'}</Botao> : undefined}>
+    <Bloco icone={<Icone tema="protocolo" fundo tamanho={36} />} titulo="Plano de cuidado" sub={atual ? `Versão ${atual.version} publicada em ${dataBR(atual.published_at!)} · a paciente vê esta versão no app` : 'Nenhuma versão publicada'}
+      acao={podeEditar && !rasc ? <Botao tamanho="sm" variante="linha" onClick={novaVersao}><Plus className="w-4 h-4" />{atual ? 'Nova versão' : 'Criar plano de cuidado'}</Botao> : undefined}>
       {rasc ? (
         <div className="flex flex-col gap-3">
           <label className="flex flex-col gap-1.5"><span className="text-corpo font-medium">Mensagem de abertura</span>
@@ -264,7 +264,7 @@ function Protocolos({ pid, podeEditar }: { pid: string; podeEditar: boolean }) {
           {mostrado.intro && <p className="text-corpo">{mostrado.intro}</p>}
           <ListaProtocolo itens={mostrado.items} />
         </div>
-      ) : <Vazio titulo="Sem protocolo ainda" texto="Crie a partir das condutas ativas e publique. A paciente recebe por e-mail e vê no app." />}
+      ) : <Vazio titulo="Sem plano de cuidado ainda" texto="Crie a partir das condutas ativas e publique. A paciente recebe por e-mail e vê no app." />}
     </Bloco>
   )
 }

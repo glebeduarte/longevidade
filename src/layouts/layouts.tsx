@@ -28,7 +28,7 @@ export function Protegido({ papeis }: { papeis: Array<'medica' | 'equipe' | 'pac
 
 const navApp: Array<{ to: string; rotulo: string; icone: LucideIcon; end?: boolean }> = [
   { to: '/app', rotulo: 'Início', icone: Home, end: true },
-  { to: '/app/protocolo', rotulo: 'Protocolo', icone: ClipboardList },
+  { to: '/app/protocolo', rotulo: 'Plano de cuidado', icone: ClipboardList },
   { to: '/app/checkin', rotulo: 'Check-in', icone: MessageCircle },
   { to: '/app/evolucao', rotulo: 'Evolução', icone: LineChart },
 ]

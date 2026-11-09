@@ -47,7 +47,7 @@ export function FichaPaciente() {
   const trocar = (k: Aba) => { setAba(k); history.replaceState(null, '', `?aba=${k}`) }
   const idade = p.birth_date ? Math.floor((Date.now() - new Date(p.birth_date).getTime()) / 3.15576e10) : null
 
-  const local = p.location === 'spinel' ? 'Instituto Spinel' : p.location === 'equilibre' ? 'Clínica Equilibre' : null
+  const local = p.location === 'spinel' ? 'Instituto Espinel' : p.location === 'equilibre' ? 'Clínica Equilibre' : null
 
   return (
     <div className="flex flex-col gap-5">

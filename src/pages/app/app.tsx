@@ -95,7 +95,7 @@ export function Inicio() {
         {aberto && <Atalho to="/app/checkin" destaque icone={<Icone tema="checkin" fundo tamanho={44} />} titulo="Seu check-in da semana está aberto" texto="Conte como foram os últimos sete dias" />}
         {!!pend?.length && <Atalho to="/app/questionarios" destaque icone={<Icone tema="questionario" fundo tamanho={44} />} titulo={`${pend.length} questionário${pend.length > 1 ? 's' : ''} para responder`} texto="Leva poucos minutos e prepara seu encontro" />}
         {!aberto && <Atalho to="/app/checkin" icone={<Icone tema="checkin" fundo tamanho={44} />} titulo="Check-in" texto={proximoCheckin ? `Próximo em ${dataLonga(proximoCheckin.due_date)}` : 'Nenhum pendente agora'} />}
-        <Atalho to="/app/protocolo" icone={<Icone tema="protocolo" fundo tamanho={44} />} titulo="Meu protocolo" texto="Tudo o que foi orientado no encontro" />
+        <Atalho to="/app/protocolo" icone={<Icone tema="protocolo" fundo tamanho={44} />} titulo="Meu plano de cuidado" texto="Tudo o que foi orientado no encontro" />
         <div className="px-4 py-3.5 flex items-center gap-3.5 min-h-[72px]">
           <Icone tema="encontro" fundo tamanho={44} />
           <div className="flex-1">
@@ -213,14 +213,14 @@ export function MeuProtocolo() {
   const [atual, ...antigos] = lista ?? []
   return (
     <div className="px-4 pt-6 flex flex-col gap-5">
-      <Cabecalho titulo="Meu protocolo" sub={atual ? `Versão ${atual.version}, atualizada em ${dataLonga(atual.published_at!)}.` : undefined} />
+      <Cabecalho titulo="Meu plano de cuidado" sub={atual ? `Versão ${atual.version}, atualizada em ${dataLonga(atual.published_at!)}.` : undefined} />
       <ReceitasPaciente />
       {lista === null ? <p className="text-corpo text-apoio">Carregando</p> : !atual ? (
-        <div className="cartao p-6 text-center flex flex-col items-center gap-2"><Borboleta className="w-10 h-7 text-cobre" /><p className="text-corpo text-apoio">Seu protocolo aparece aqui depois do primeiro encontro.</p></div>
+        <div className="cartao p-6 text-center flex flex-col items-center gap-2"><Borboleta className="w-10 h-7 text-cobre" /><p className="text-corpo text-apoio">Seu plano de cuidado aparece aqui depois do primeiro encontro.</p></div>
       ) : (<>
         {atual.intro && <p className="text-[16px] leading-relaxed">{atual.intro}</p>}
         <ListaProtocolo itens={atual.items} />
-        <p className="text-meta text-apoio">Dúvidas sobre o protocolo? Use o check-in para falar com a equipe.</p>
+        <p className="text-meta text-apoio">Dúvidas sobre o plano de cuidado? Use o check-in para falar com a equipe.</p>
         {antigos.length > 0 && (
           <section className="flex flex-col gap-2">
             <button onClick={() => setVer(!ver)} className="self-start text-corpo link">{ver ? 'Ocultar versões anteriores' : `Ver versões anteriores (${antigos.length})`}</button>

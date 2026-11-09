@@ -26,7 +26,7 @@ export const TIPO_ITEM: Record<ItemProtocolo['tipo'], string> = {
 export const STATUS_ENCONTRO: Record<Encontro['status'], string> = {
   previsto: 'A agendar', agendado: 'Agendado', realizado: 'Realizado', faltou: 'Faltou', cancelado: 'Cancelado',
 }
-export const LOCAL: Record<string, string> = { equilibre: 'Clínica Equilibre', spinel: 'Instituto Spinel' }
+export const LOCAL: Record<string, string> = { equilibre: 'Clínica Equilibre', spinel: 'Instituto Espinel' }
 export const ADESAO: Record<string, string> = { sim: 'Seguiu tudo', parcial: 'Seguiu em parte', nao: 'Não conseguiu seguir' }
 export const SINTOMAS: Array<[keyof RespostasCheckin, string, string, string]> = [
   ['fogachos', 'Fogachos', 'nenhum', 'muitos'],
