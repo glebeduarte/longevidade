@@ -81,9 +81,12 @@
     --c-cafe: 73 60 50; --c-texto: 47 38 32; --c-creme: 249 247 242; --c-areia: 200 186 167; --c-fundo: 249 247 242; --c-folha: 255 255 255;
     --c-tom: 240 235 227; --c-ativo: 230 222 210; --c-apoio: 99 86 75; --c-cobre: 140 118 96; --c-oliva: 109 93 75; }
   .site b, .site strong, .site .font-medium { font-weight: 500; }
-  .site .font-display { font-family: 'Allegin', Georgia, serif; }
-  .site-display { font-family: 'Allegin', Georgia, serif; font-weight: 400; letter-spacing: -0.01em; line-height: 1.04; }
-  .site-h2 { font-family: 'Allegin', Georgia, serif; font-weight: 400; letter-spacing: -0.01em; line-height: 1.08; font-size: clamp(30px, 3.4vw, 52px); }
+  .site .font-display { font-family: 'Newsreader Variable', Georgia, serif; }
+  .site h1.font-display { font-family: 'Allegin', Georgia, serif; }
+  /* Allegin fica só nos títulos principais (h1). Títulos secundários usam Newsreader, serifada de leitura. */
+  .site-display { font-family: 'Newsreader Variable', Georgia, serif; font-weight: 400; letter-spacing: -0.005em; line-height: 1.15; }
+  h1.site-display { font-family: 'Allegin', Georgia, serif; letter-spacing: -0.01em; line-height: 1.04; }
+  .site-h2 { font-family: 'Newsreader Variable', Georgia, serif; font-weight: 400; letter-spacing: -0.01em; line-height: 1.15; font-size: clamp(30px, 3.2vw, 48px); }
   .site-wrap { width: 100%; margin: 0 auto; padding-left: var(--margem); padding-right: var(--margem); }
 
   /* botão único do site: pílula, uma cor */

@@ -53,16 +53,6 @@ function Agendar({ claro = false, rotulo = 'Agendar consulta', className = '' }:
 
 // ---------- Layout ----------
 /** Cabeçalho que sai do caminho ao descer e volta ao subir. */
-function useTopoOculto() {
-  const [oculto, setOculto] = useState(false)
-  useEffect(() => {
-    let ultimo = window.scrollY
-    const f = () => { const y = window.scrollY; setOculto(y > 160 && y > ultimo); ultimo = y }
-    window.addEventListener('scroll', f, { passive: true })
-    return () => window.removeEventListener('scroll', f)
-  }, [])
-  return oculto
-}
 
 function Marca({ claro = false }: { claro?: boolean }) {
   return (
@@ -77,7 +67,6 @@ export function LayoutSite() {
   const { session, profile } = useAuth()
   const [menu, setMenu] = useState(false)
   const { pathname, hash } = useLocation()
-  const oculto = useTopoOculto()
   useEffect(() => { setMenu(false); if (!hash) window.scrollTo(0, 0) }, [pathname, hash])
   useEffect(() => { document.body.style.overflow = menu ? 'hidden' : ''; return () => { document.body.style.overflow = '' } }, [menu])
   useRevelar(pathname)
@@ -85,7 +74,7 @@ export function LayoutSite() {
 
   return (
     <div className="site min-h-svh bg-fundo text-texto flex flex-col">
-      <header className={`topo sticky top-0 z-30 bg-fundo ${oculto && !menu ? 'oculto' : ''}`}>
+      <header className={`topo sticky top-0 z-30 bg-fundo `}>
         <div className="site-wrap h-[80px] flex items-center gap-8">
           <Marca />
           <nav className="hidden lg:flex items-center gap-1 ml-auto" aria-label="Principal">
@@ -222,13 +211,14 @@ export function SiteInicio() {
       </div>
     </section>
 
+    <TemasLista />
+
     {/* 4. O que muda para você: a fase */}
     <QualFase />
 
     {/* 5. O programa em etapas */}
     <Jornada />
 
-    <TemasLista />
     <Depoimentos />
     <MateriaisHome />
     <Perguntas />
@@ -275,12 +265,12 @@ function Depoimentos() {
 /** Você se reconhece? Duas colunas: o vídeo fica parado enquanto as frases passam. */
 function Reconhece() {
   const frases = [
-    'Acorda de madrugada com calor e não consegue voltar a dormir.',
-    'Sente um cansaço que não passa nem nos fins de semana.',
-    'Vê o peso mudar de lugar, mesmo comendo como sempre.',
-    'Percebe o humor oscilar sem um motivo claro.',
-    'Esquece palavras e perde o fio da conversa.',
-    'Ouviu que isso é da idade e que é só aguentar.',
+    ['Acorda de madrugada ', 'com calor', ' e não consegue voltar a dormir.'],
+    ['Sente um ', 'cansaço que não passa', ' nem nos fins de semana.'],
+    ['Vê o ', 'peso mudar de lugar', ', mesmo comendo como sempre.'],
+    ['Percebe o ', 'humor oscilar', ' sem um motivo claro.'],
+    ['', 'Esquece palavras', ' e perde o fio da conversa.'],
+    ['Ouviu que isso é ', 'da idade', ' e que é só aguentar.'],
   ]
   return (
     <section className="bg-tom" aria-labelledby="t-reconhece">
@@ -293,8 +283,8 @@ function Reconhece() {
           </div>
         </div>
         <div className="lg:col-start-7 lg:col-span-6 flex flex-col">
-          {frases.map(f => (
-            <p key={f} className="rv lg:min-h-[34svh] flex items-center"><span className="site-display text-[22px] lg:text-[clamp(26px,2.4vw,34px)] leading-[1.25] max-w-[24ch]">{f}</span></p>
+          {frases.map(([a, chave, b]) => (
+            <p key={chave} className="rv lg:min-h-[34svh] flex items-center"><span className="site-display text-[22px] lg:text-[clamp(26px,2.4vw,34px)] leading-[1.3] max-w-[24ch]">{a}<strong className="font-semibold text-terracota">{chave}</strong>{b}</span></p>
           ))}
           <div className="rv mt-10 lg:mt-0 bg-cafe text-creme p-8">
             <p className="text-[20px] font-medium">Tudo isso tem nome, explicação e tratamento.</p>
@@ -382,7 +372,7 @@ function Fichas({ itens, titulo, id }: { itens: Array<[string, string]>; titulo:
           <h2 id={id} className="site-h2">{titulo}</h2>
           <ul className="mt-6 flex flex-col gap-1 text-[17px]">
             {LOCAIS.map(l => <li key={l.nome}>{l.nome}, Natal</li>)}
-            <li>Consulta presencial, com retornos marcados pela equipe</li>
+            <li>Consulta presencial e teleconsulta</li>
           </ul>
           <div className="mt-10 flex flex-col gap-7">
             {itens.map(([q, r], i) => (
@@ -397,8 +387,7 @@ function Fichas({ itens, titulo, id }: { itens: Array<[string, string]>; titulo:
           <div className="mt-10 flex flex-wrap items-center gap-6"><Agendar /><Link to="/programa" className="site-link text-[16px]">Ver o programa</Link></div>
         </div>
         <div className="rv lg:col-start-7 lg:col-span-6 relative lg:-mt-[clamp(80px,10vw,160px)]">
-          <Prova f={FOTOS.inicio} className="aspect-[3/4] lg:mb-20" />
-          <Prova f={FOTOS.evolucao} className="absolute w-[38%] aspect-square -left-10 bottom-0 max-lg:-bottom-10 max-lg:left-auto max-lg:right-0" />
+          <Prova f={FOTOS.inicio} className="aspect-[3/4]" />
         </div>
       </div>
     </section>
