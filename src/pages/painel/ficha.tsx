@@ -34,6 +34,8 @@ export function FichaPaciente() {
   const [p, setP] = useState<Paciente | null>(null)
   const [aba, setAba] = useState<Aba>(() => (new URLSearchParams(location.search).get('aba') as Aba) || 'atendimento')
   const [mapa, setMapa] = useState<string | null>(null)
+  const [convite, setConvite] = useState<{ t: 'ok' | 'erro'; m: string } | null>(null)
+  const [reenviando, setReenviando] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -45,8 +47,6 @@ export function FichaPaciente() {
   if (!p) return <p className="rotulo">Carregando</p>
   const clinico = can(profile, perms, 'can_view_clinical')
   const podeLancar = can(profile, perms, 'can_upload_measurements')
-  const [convite, setConvite] = useState<{ t: 'ok' | 'erro'; m: string } | null>(null)
-  const [reenviando, setReenviando] = useState(false)
   async function reenviarConvite() {
     if (!p?.email) return
     setReenviando(true); setConvite(null)
