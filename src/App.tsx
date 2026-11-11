@@ -1,3 +1,4 @@
+import { Emails } from './pages/painel/emails'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthProvider'
 import { LayoutApp, LayoutPainel, Protegido } from './layouts/layouts'
@@ -58,6 +59,7 @@ export default function App() {
               <Route path="ver-como" element={<VerComo />} />
               <Route path="faixas" element={<Faixas />} />
               <Route path="site" element={<SiteGestao />} />
+              <Route path="emails" element={<Emails />} />
             </Route>
             <Route path="/painel/pacientes/:id/mapa/:mapaId" element={<ImprimirMapa />} />
           </Route>

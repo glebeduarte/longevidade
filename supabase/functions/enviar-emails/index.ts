@@ -12,7 +12,7 @@ const cors = {
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 const FN = `${Deno.env.get('SUPABASE_URL')}/functions/v1/enviar-emails`
 
-type Item = { id: string; to_email: string; subject: string; body: string; kind: string | null; link: string | null; destaque: string | null; sair_token: string | null }
+type Item = { id: string; to_email: string; subject: string; body: string; kind: string | null; link: string | null; destaque: string | null; sair_token: string | null; rotulo: string | null; titulo: string | null; botao: string | null }
 
 /** Visual de cada tipo de e-mail. */
 function modelo(e: Item): Modelo {
@@ -29,6 +29,14 @@ function modelo(e: Item): Modelo {
     case 'checkin_lembrete': return { rotulo: 'Check-in da semana', titulo: e.subject, corpo, botao: ['Fazer meu check-in', `${APP}/app/checkin`], rodape: 'paciente' }
     case 'material': return { rotulo: 'Seu material', titulo: e.subject, corpo, botao: e.link ? ['Baixar o material', e.link] : null, rodape: 'site', sair, previa: 'O link para baixar está aqui dentro.' }
     case 'sequencia': return { rotulo: 'Dra. Bartira Rebouças', titulo: e.subject, corpo, destaque: e.destaque, botao: e.link ? [e.link.includes('/contato') ? 'Agendar consulta' : 'Saiba mais', e.link] : null, rodape: 'site', sair }
+    case 'campanha':
+    case 'campanha_paciente':
+    case 'campanha_teste': {
+      const motivo = e.kind === 'campanha_paciente' ? 'Você recebe este e-mail porque participa do programa Longevidade.' : 'Você recebe estes e-mails porque se cadastrou no site.'
+      return { rotulo: e.rotulo || 'Dra. Bartira Rebouças', titulo: e.titulo || e.subject, corpo: e.body, destaque: e.destaque,
+        botao: e.link && e.botao ? [e.botao, e.link] : null, rodape: e.kind === 'campanha_paciente' ? 'paciente' : 'site',
+        sair: e.kind === 'campanha_teste' ? `${FN}?sair=teste` : sair, motivo }
+    }
     case 'lead': return { rotulo: 'Novo contato pelo site', titulo: e.subject, corpo, destaque: e.destaque, botao: ['Ver contatos no painel', `${APP}/painel/site`], rodape: 'interno' }
     case 'alerta': return { rotulo: 'Alerta do check-in', titulo: e.subject, corpo, botao: painel, rodape: 'interno' }
     default: return { rotulo: 'Dra. Bartira Rebouças', titulo: e.subject, corpo, destaque: e.destaque, botao: app, rodape: 'paciente' }
@@ -56,7 +64,7 @@ Deno.serve(async (req) => {
   const doCron = token ? (await admin.rpc('cron_token_ok', { t: token })).data === true : false
   if (!doCron && !auth.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)) {
     const caller = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: auth } } })
-    const { data: ok } = await caller.rpc('is_medica')
+    const { data: ok } = await caller.rpc('pode_gerir_site')
     if (!ok) return json({ erro: 'Sem permissão.' }, 403)
   }
 
@@ -70,6 +78,7 @@ Deno.serve(async (req) => {
     const m = modelo(e)
     const extra = m.sair ? { headers: { 'List-Unsubscribe': `<${m.sair}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } } : {}
     const r = await enviar(e.to_email, e.subject, montar(m), extra)
+    await new Promise(ok => setTimeout(ok, 550)) // limite do Resend: 2 envios por segundo
     if (r.ok) { enviados++; await admin.from('email_outbox').update({ sent_at: new Date().toISOString(), error: null }).eq('id', e.id) }
     else await admin.from('email_outbox').update({ error: r.erro }).eq('id', e.id)
   }
