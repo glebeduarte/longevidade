@@ -16,7 +16,7 @@ const FOTOS = {
   checkin: { src: '/site/m-checkin.jpg', alt: 'Check-in da semana no app da paciente', foco: '50% 50%' },
   inicio: { src: '/site/m-inicio.jpg', alt: 'Tela inicial do app, com a resposta da equipe', foco: '50% 50%' },
   evolucao: { src: '/site/m-evolucao.jpg', alt: 'Evolução das medidas no app', foco: '50% 50%' },
-  natal: { src: '/site/ponta-negra.jpg', alt: 'Morro do Careca visto da praia de Ponta Negra, em Natal, pela manhã', foco: '35% 50%' },
+  equilibre: { src: '/site/local-equilibre.jpg', alt: 'Recepção da Clínica Equilibre, no Tirol', foco: '50% 60%' },
 }
 const VIDEO = { src: '/site/metamorfose.jpg', video: '/site/metamorfose.mp4', legenda: 'Uma monarca deixa a crisálida. Vídeo de Danmation, CC BY 3.0.' }
 type Foto = { src: string; alt: string; foco?: string }
@@ -127,7 +127,6 @@ export function LayoutSite() {
         <p className="mt-4 text-[14px] leading-relaxed text-apoio max-w-[75ch]">
           © {new Date().getFullYear()} · CNPJ {CONTATO.cnpj} · As informações deste site não substituem a consulta médica.
           Vídeo: <a className="underline" href="https://commons.wikimedia.org/wiki/File:Monarch_Butterfly_Emerging_from_Chrysalis.webm">"Monarch Butterfly Emerging from Chrysalis"</a>, Danmation, <a className="underline" href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>, recortado e acelerado.
-          Foto: <a className="underline" href="https://commons.wikimedia.org/wiki/File:Vista_do_Morro_do_Careca_em_Ponta_Negra_pela_manh%C3%A3.jpg">"Vista do Morro do Careca em Ponta Negra pela manhã"</a>, Ppulbatu, <a className="underline" href="https://creativecommons.org/licenses/by/4.0">CC BY 4.0</a>.
         </p>
       </footer>
 
@@ -408,21 +407,12 @@ const Perguntas = () => <Fichas itens={PERGUNTAS} titulo="Dúvidas comuns" id="t
 /** Fecho de toda página: a última foto, com o convite na metade calma. */
 function Fechamento() {
   return (
-    <section className="relative" aria-labelledby="t-fim">
-      <div className="relative h-[70svh] lg:h-[90svh] overflow-hidden">
-        <img src={FOTOS.natal.src} alt={FOTOS.natal.alt} loading="lazy" className="absolute inset-0 w-full h-full object-cover object-[30%_50%] brightness-[.82] deriva" />
-        <div className="hidden lg:flex absolute inset-0 site-wrap items-end pb-[10svh]">
-          <div className="rv ml-[58%] text-creme flex flex-col items-start gap-6">
-            <h2 id="t-fim" className="site-display text-[clamp(40px,3.4vw,56px)]">Vamos começar pela conversa</h2>
-            <p className="text-[17px] max-w-[38ch]">A equipe ajuda a escolher o local e o horário, e explica como se preparar para a primeira consulta.</p>
-            <Agendar claro />
-          </div>
-        </div>
-      </div>
-      <div className="lg:hidden bg-cafe text-creme site-wrap py-14 flex flex-col gap-5">
-        <p className="site-display text-[30px]">Vamos começar pela conversa</p>
-        <p className="text-[17px]">A equipe ajuda a escolher o local e o horário.</p>
-        <Agendar claro className="w-full" />
+    <section className="bg-cafe text-creme relative overflow-hidden" aria-labelledby="t-fim">
+      <div aria-hidden="true" className="textura textura-clara absolute inset-0" />
+      <div className="rv site-wrap relative py-[clamp(80px,10vw,150px)] flex flex-col items-start gap-6">
+        <h2 id="t-fim" className="site-display text-[clamp(36px,3.4vw,56px)]">Vamos começar pela conversa</h2>
+        <p className="text-[17px] max-w-[44ch]">A equipe ajuda a escolher o local e o horário, e explica como se preparar para a primeira consulta.</p>
+        <Agendar claro />
       </div>
     </section>
   )
@@ -769,7 +759,7 @@ export function SiteConteudos() {
 export function SiteContato() {
   usePagina('Contato e agendamento', 'Agende sua consulta com a Dra. Bartira Rebouças em Natal.')
   return (<>
-    <Cabeca titulo="Agende sua consulta" texto="Consulta presencial em Natal ou teleconsulta, inclusive para quem mora fora do Brasil. A equipe ajuda a escolher o local e o horário." f={FOTOS.natal}>
+    <Cabeca titulo="Agende sua consulta" texto="Consulta presencial em Natal ou teleconsulta, inclusive para quem mora fora do Brasil. A equipe ajuda a escolher o local e o horário." f={FOTOS.equilibre}>
       <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
         {CONTATO.whatsapp ? <Agendar rotulo="Agendar pelo WhatsApp" /> : <a href="#locais" className="site-btn">Ver os locais de atendimento<ArrowRight className="w-4 h-4" /></a>}
         <a href={CONTATO.doctoralia} target="_blank" rel="noreferrer" className="site-link text-[17px]">Agendar on-line pelo Doctoralia</a>
