@@ -49,8 +49,8 @@ Deno.serve(async (req) => {
 
   const { data: lembretes } = await admin.rpc('enfileirar_lembretes')
   const { data: fila } = await admin.from('email_outbox').select('*').is('sent_at', null).order('created_at').limit(50)
-  const chave = Deno.env.get('RESEND_API_KEY'), de = Deno.env.get('EMAIL_REMETENTE')
-  if (!chave || !de) return json({ lembretes, pendentes: fila?.length ?? 0, aviso: 'Configure RESEND_API_KEY e EMAIL_REMETENTE para enviar.' })
+  const chave = Deno.env.get('RESEND_API_KEY'), de = Deno.env.get('EMAIL_REMETENTE') ?? 'Dra. Bartira Rebouças <contato@bartirareboucas.com.br>'
+  if (!chave) return json({ lembretes, pendentes: fila?.length ?? 0, aviso: 'Configure RESEND_API_KEY e EMAIL_REMETENTE para enviar.' })
 
   let enviados = 0
   for (const e of fila ?? []) {
