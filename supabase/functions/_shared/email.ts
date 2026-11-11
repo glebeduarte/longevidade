@@ -1,7 +1,7 @@
 // Envio pelo Resend. O visual fica em modelo.ts, compartilhado com a prévia do painel.
 import { montar as montarBase, type Modelo } from './modelo.ts'
 export type { Modelo }
-export const APP = Deno.env.get('APP_URL') ?? 'https://longevidade-black.vercel.app'
+export const APP = Deno.env.get('APP_URL') ?? 'https://bartirareboucas.com.br'
 export const SITE = Deno.env.get('SITE_URL') ?? APP
 export const REMETENTE = Deno.env.get('EMAIL_REMETENTE') ?? 'Dra. Bartira Rebouças <contato@bartirareboucas.com.br>'
 export const montar = (m: Modelo) => montarBase(m, { APP, SITE })

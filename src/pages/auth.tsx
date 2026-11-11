@@ -76,7 +76,7 @@ export function Esqueci() {
   async function enviar(e: FormEvent) {
     e.preventDefault()
     setErro('')
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/definir-senha` })
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `https://bartirareboucas.com.br/definir-senha` })
     if (error) setErro('Não foi possível enviar agora. Tente de novo em alguns minutos.')
     else setEnviado(true)
   }

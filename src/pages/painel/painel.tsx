@@ -11,7 +11,7 @@ import { type Checkin, type Encontro } from '../../lib/programa'
 
 export async function convidar(body: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke('convidar', {
-    body: { ...body, redirect_to: `${location.origin}/definir-senha` },
+    body: { ...body, redirect_to: `https://bartirareboucas.com.br/definir-senha` },
   })
   if (error) {
     let msg = 'Não foi possível enviar o convite.'

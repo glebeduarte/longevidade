@@ -1,7 +1,7 @@
 // Prévia e formatação dos e-mails no painel. O visual vem do mesmo arquivo usado pelo envio (supabase/functions/_shared/modelo.ts).
 import { montar, type Modelo } from '../../supabase/functions/_shared/modelo.ts'
 
-export const SITE_URL = 'https://longevidade-black.vercel.app'
+export const SITE_URL = 'https://bartirareboucas.com.br'
 export const previa = (m: Modelo) => montar(m, { APP: SITE_URL, SITE: SITE_URL })
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')

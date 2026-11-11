@@ -9,7 +9,7 @@ import { Chave, Folha } from './painel'
 type Lead = { id: string; landing_id: string; nome: string; email: string; whatsapp: string | null; origem: Record<string, string>; vezes: number; created_at: string; updated_at: string }
 type Aba = 'landings' | 'leads'
 
-const SITE = 'https://longevidade-black.vercel.app'
+const SITE = 'https://bartirareboucas.com.br'
 const slugar = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60)
 const VAZIA: Omit<Landing, 'id' | 'created_at' | 'updated_at'> = {
   slug: '', titulo: '', tipo: 'E-book', chamada: 'E-book gratuito', subtitulo: '', descricao: '', beneficios: [], botao: 'Quero receber',
