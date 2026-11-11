@@ -1,6 +1,7 @@
 // Convida paciente ou membro da equipe por e-mail.
 // Médica convida qualquer perfil. Equipe com permissão de cadastro convida só pacientes.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4'
+import { enviar, montar } from '../_shared/email.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -60,11 +61,31 @@ Deno.serve(async (req) => {
       if (error || !data.user) return json({ erro: error?.message?.includes('already') ? 'Já existe um acesso com este e-mail.' : 'Não foi possível criar o acesso.' }, 400)
       inv = data
     } else {
-      const { data, error: invErr } = await admin.auth.admin.inviteUserByEmail(email, {
-        data: { full_name: b.full_name.trim() },
-        redirectTo: b.redirect_to,
+      // Gera o link de convite e envia com o modelo visual próprio, pelo Resend
+      const { data, error: invErr } = await admin.auth.admin.generateLink({
+        type: 'invite', email, options: { data: { full_name: b.full_name.trim() }, redirectTo: b.redirect_to },
       })
-      if (invErr || !data.user) return json({ erro: 'Não foi possível enviar o convite. Confira o e-mail.' }, 400)
+      if (invErr || !data.user) return json({ erro: invErr?.message?.includes('already') ? 'Já existe um acesso com este e-mail.' : 'Não foi possível gerar o convite. Confira o e-mail.' }, 400)
+      const nome = b.full_name.trim().split(' ')[0]
+      const p = (t: string) => `<p style="margin:0 0 14px">${t}</p>`
+      const html = b.role === 'paciente'
+        ? montar({
+            rotulo: 'Programa Longevidade', titulo: `${nome}, seu acesso está pronto`, rodape: 'paciente',
+            previa: 'Crie sua senha para entrar no app do programa.',
+            corpo: p('A Dra. Bartira Rebouças liberou o seu acesso ao app do programa Longevidade.') +
+              p('No app você encontra o seu plano de cuidado, faz o check-in da semana, responde os questionários antes dos encontros e acompanha a sua evolução.') +
+              p('Toque no botão abaixo para criar sua senha. Depois, você pode instalar o app na tela inicial do celular.'),
+            destaque: 'O link vale por 24 horas. Se ele expirar, peça um novo à equipe.',
+            botao: ['Criar minha senha', data.properties.action_link],
+          })
+        : montar({
+            rotulo: 'Equipe', titulo: `${nome}, seu acesso à equipe está pronto`, rodape: 'interno',
+            corpo: p('A Dra. Bartira Rebouças convidou você para usar o painel do programa Longevidade.') +
+              p('Toque no botão abaixo para criar sua senha. O link vale por 24 horas.'),
+            botao: ['Criar minha senha', data.properties.action_link],
+          })
+      const env = await enviar(email, b.role === 'paciente' ? 'Seu acesso ao programa Longevidade' : 'Convite para a equipe Longevidade', html)
+      if (!env.ok) return json({ erro: 'O acesso foi criado, mas o e-mail de convite não saiu. Tente reenviar em instantes.' }, 502)
       inv = data
     }
 

@@ -1,43 +1,56 @@
-// Envia os e-mails da fila (email_outbox) pelo Resend e enfileira os lembretes de check-in do dia.
-// Segredos necessários: RESEND_API_KEY e EMAIL_REMETENTE (ex.: "Dra. Bartira Rebouças <contato@dominio.com.br>").
-// Sem a chave, a função só enfileira e informa quantos e-mails estão pendentes.
+// Envia os e-mails da fila (email_outbox) pelo Resend, com o modelo visual de cada tipo.
+// Também enfileira os lembretes de check-in e os passos da sequência dos e-books.
 // Chamada a cada 5 minutos pelo pg_cron (cabeçalho x-cron-token) ou manualmente pela médica.
+// GET ?sair=<token> descadastra o contato da sequência.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4'
+import { APP, SITE, type Modelo, enviar, montar } from '../_shared/email.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-token',
 }
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
+const FN = `${Deno.env.get('SUPABASE_URL')}/functions/v1/enviar-emails`
 
-const APP = Deno.env.get('APP_URL') ?? 'https://longevidade-black.vercel.app'
+type Item = { id: string; to_email: string; subject: string; body: string; kind: string | null; link: string | null; destaque: string | null; sair_token: string | null }
 
-const BOTAO: Record<string, [string, string] | null> = {
-  material: null,
-  lead: ['Abrir o painel', `${APP}/painel`],
-  alerta: ['Abrir o painel', `${APP}/painel`],
+/** Visual de cada tipo de e-mail. */
+function modelo(e: Item): Modelo {
+  const p = (t: string) => `<p style="margin:0 0 14px">${t}</p>`
+  const corpo = e.body.split(/<br\s*\/?><br\s*\/?>/).map(p).join('')
+  const app: [string, string] = ['Abrir o app', `${APP}/app`]
+  const painel: [string, string] = ['Abrir o painel', `${APP}/painel`]
+  const sair = e.sair_token ? `${FN}?sair=${e.sair_token}` : null
+  switch (e.kind) {
+    case 'questionario': return { rotulo: 'Programa Longevidade', titulo: e.subject, corpo, destaque: e.destaque, botao: ['Responder o questionário', `${APP}/app`], rodape: 'paciente' }
+    case 'mapa': return { rotulo: 'Programa Longevidade', titulo: e.subject, corpo, botao: ['Ver meu Mapa da Saúde', `${APP}/app/evolucao`], rodape: 'paciente' }
+    case 'protocolo': return { rotulo: 'Plano de cuidado', titulo: e.subject, corpo, botao: ['Ver meu plano de cuidado', `${APP}/app/protocolo`], rodape: 'paciente' }
+    case 'checkin_resposta': return { rotulo: 'Check-in', titulo: e.subject, corpo, destaque: e.destaque, botao: ['Abrir o app', `${APP}/app`], rodape: 'paciente' }
+    case 'checkin_lembrete': return { rotulo: 'Check-in da semana', titulo: e.subject, corpo, botao: ['Fazer meu check-in', `${APP}/app/checkin`], rodape: 'paciente' }
+    case 'material': return { rotulo: 'Seu material', titulo: e.subject, corpo, botao: e.link ? ['Baixar o material', e.link] : null, rodape: 'site', sair, previa: 'O link para baixar está aqui dentro.' }
+    case 'sequencia': return { rotulo: 'Dra. Bartira Rebouças', titulo: e.subject, corpo, destaque: e.destaque, botao: e.link ? [e.link.includes('/contato') ? 'Agendar consulta' : 'Saiba mais', e.link] : null, rodape: 'site', sair }
+    case 'lead': return { rotulo: 'Novo contato pelo site', titulo: e.subject, corpo, destaque: e.destaque, botao: ['Ver contatos no painel', `${APP}/painel/site`], rodape: 'interno' }
+    case 'alerta': return { rotulo: 'Alerta do check-in', titulo: e.subject, corpo, botao: painel, rodape: 'interno' }
+    default: return { rotulo: 'Dra. Bartira Rebouças', titulo: e.subject, corpo, destaque: e.destaque, botao: app, rodape: 'paciente' }
+  }
 }
 
-function html(assunto: string, corpo: string, kind: string) {
-  const b = kind in BOTAO ? BOTAO[kind] : ['Abrir o app', `${APP}/app`]
-  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#f5f1eb;font-family:Helvetica,Arial,sans-serif;color:#2e221b">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
-<table role="presentation" width="100%" style="max-width:520px;background:#fffdfa;border:1px solid #e6ddd1;border-radius:10px">
-<tr><td style="padding:28px 28px 8px;font-family:Georgia,serif;font-size:22px">Longevidade</td></tr>
-<tr><td style="padding:0 28px;font-size:12px;color:#6b5a4d">Dra. Bartira Rebouças</td></tr>
-<tr><td style="padding:24px 28px 8px;font-size:18px;font-weight:600">${assunto}</td></tr>
-<tr><td style="padding:0 28px 24px;font-size:15px;line-height:24px">${corpo}</td></tr>
-${b ? `<tr><td style="padding:0 28px 28px"><a href="${b[1]}" style="display:inline-block;background:#4a382d;color:#f3eee7;text-decoration:none;padding:12px 20px;border-radius:6px;font-size:14px">${b[0]}</a></td></tr>` : ''}
-</table>
-<p style="font-size:12px;color:#6b5a4d;margin-top:16px">Ciência e acolhimento</p>
-</td></tr></table></body></html>`
-}
+const pagina = (t: string) => new Response(`<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dra. Bartira Rebouças</title>
+<body style="margin:0;background:#f3eee7;font-family:Helvetica,Arial,sans-serif;color:#3a2b22"><div style="max-width:480px;margin:80px auto;padding:0 24px;text-align:center">
+<h1 style="font-family:Georgia,serif;font-weight:normal;font-size:28px">${t}</h1><p><a href="${SITE}" style="color:#4a382d">Voltar ao site</a></p></div></body></html>`, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
-  // Só a médica (ou a chamada agendada com a chave de serviço) pode disparar
+  // Descadastro da sequência
+  const sair = new URL(req.url).searchParams.get('sair')
+  if (sair) {
+    const { data } = await admin.rpc('descadastrar_lead', { t: sair })
+    return pagina(data ? 'Pronto. Você não vai mais receber estes e-mails.' : 'Este link não é mais válido.')
+  }
+
+  // Só a médica, a chave de serviço ou o agendamento podem disparar
   const auth = req.headers.get('Authorization') ?? ''
   const token = req.headers.get('x-cron-token')
   const doCron = token ? (await admin.rpc('cron_token_ok', { t: token })).data === true : false
@@ -48,19 +61,17 @@ Deno.serve(async (req) => {
   }
 
   const { data: lembretes } = await admin.rpc('enfileirar_lembretes')
+  const { data: sequencia } = await admin.rpc('enfileirar_sequencia')
   const { data: fila } = await admin.from('email_outbox').select('*').is('sent_at', null).order('created_at').limit(50)
-  const chave = Deno.env.get('RESEND_API_KEY'), de = Deno.env.get('EMAIL_REMETENTE') ?? 'Dra. Bartira Rebouças <contato@bartirareboucas.com.br>'
-  if (!chave) return json({ lembretes, pendentes: fila?.length ?? 0, aviso: 'Configure RESEND_API_KEY e EMAIL_REMETENTE para enviar.' })
+  if (!Deno.env.get('RESEND_API_KEY')) return json({ lembretes, sequencia, pendentes: fila?.length ?? 0, aviso: 'Configure RESEND_API_KEY para enviar.' })
 
   let enviados = 0
-  for (const e of fila ?? []) {
-    const r = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${chave}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: de, to: e.to_email, subject: e.subject, html: html(e.subject, e.body, e.kind ?? ''), text: e.body.replace(/<br>/g, '\n').replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') }),
-    })
+  for (const e of (fila ?? []) as Item[]) {
+    const m = modelo(e)
+    const extra = m.sair ? { headers: { 'List-Unsubscribe': `<${m.sair}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } } : {}
+    const r = await enviar(e.to_email, e.subject, montar(m), extra)
     if (r.ok) { enviados++; await admin.from('email_outbox').update({ sent_at: new Date().toISOString(), error: null }).eq('id', e.id) }
-    else await admin.from('email_outbox').update({ error: (await r.text()).slice(0, 300) }).eq('id', e.id)
+    else await admin.from('email_outbox').update({ error: r.erro }).eq('id', e.id)
   }
-  return json({ lembretes, enviados, restantes: (fila?.length ?? 0) - enviados })
+  return json({ lembretes, sequencia, enviados, restantes: (fila?.length ?? 0) - enviados })
 })

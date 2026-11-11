@@ -16,7 +16,7 @@ import { AbaRiscos } from './riscos'
 
 type Paciente = { id: string; full_name: string; email: string; phone: string | null; birth_date: string | null; location: string | null; status: string; user_id: string | null }
 type Questionario = { id: string; name: string; domain: string; sort: number }
-type Envio = { id: string; status: string; created_at: string; questionnaire_id: string; questionnaires: { name: string; domain: string } | null }
+type Envio = { id: string; status: string; created_at: string; reenviado_at: string | null; reenvios: number; questionnaire_id: string; questionnaires: { name: string; domain: string } | null }
 type Resposta = { id: string; questionnaire_id: string; score: number | null; band_label: string | null; band_level: Nivel | null; flagged: boolean; submitted_at: string; questionnaires: { name: string; domain: string } | null }
 
 type Aba = 'atendimento' | 'programa' | 'exames' | 'estilo' | 'riscos' | 'mapa'
@@ -93,7 +93,7 @@ export function AbaQuestionarios({ pid, podeEnviar }: { pid: string; podeEnviar:
 
   const carregar = () => {
     supabase.from('questionnaires').select('id, name, domain, sort').eq('active', true).order('sort').then(({ data }) => setTodos(data ?? []))
-    supabase.from('questionnaire_assignments').select('id, status, created_at, questionnaire_id, questionnaires(name, domain)').eq('patient_id', pid).eq('status', 'pendente').order('created_at')
+    supabase.from('questionnaire_assignments').select('id, status, created_at, reenviado_at, reenvios, questionnaire_id, questionnaires(name, domain)').eq('patient_id', pid).eq('status', 'pendente').order('created_at')
       .then(({ data }) => setEnvios((data as unknown as Envio[]) ?? []))
     supabase.from('questionnaire_responses').select('id, questionnaire_id, score, band_label, band_level, flagged, submitted_at, questionnaires(name, domain)').eq('patient_id', pid).order('submitted_at', { ascending: false })
       .then(({ data }) => setResp((data as unknown as Resposta[]) ?? []))
@@ -101,6 +101,16 @@ export function AbaQuestionarios({ pid, podeEnviar }: { pid: string; podeEnviar:
   useEffect(carregar, [pid])
 
   const pendentes = new Set(envios.map(e => e.questionnaire_id))
+  const [reSel, setReSel] = useState<Record<string, boolean>>({})
+  const [reMsg, setReMsg] = useState<{ t: 'ok' | 'erro'; m: string } | null>(null)
+  const reMarcados = envios.filter(e => reSel[e.id]).map(e => e.id)
+  async function reenviar(ids: string[]) {
+    setReMsg(null)
+    const { data, error } = await supabase.rpc('reenviar_questionarios', { p_ids: ids })
+    if (error) return setReMsg({ t: 'erro', m: 'Não foi possível reenviar. Tente de novo.' })
+    setReMsg({ t: 'ok', m: `Lembrete enviado por e-mail com ${data} questionário(s). Ele sai em até 5 minutos.` })
+    setReSel({}); carregar()
+  }
   const marcados = Object.keys(sel).filter(k => sel[k])
 
   async function enviar() {
@@ -156,9 +166,25 @@ export function AbaQuestionarios({ pid, podeEnviar }: { pid: string; podeEnviar:
       <div className="xl:col-span-5 flex flex-col gap-4">
         {envios.length > 0 && (
           <Bloco icone={<Icone tema="questionario" fundo tamanho={36} />} titulo="Aguardando resposta" acao={<Selo tom="alerta">{envios.length}</Selo>}>
-            <ul className="flex flex-col">
-              {envios.map(e => <li key={e.id} className="flex justify-between py-1.5 text-corpo"><span>{e.questionnaires?.name}</span><span className="text-apoio tabular-nums">enviado {dataBR(e.created_at)}</span></li>)}
+            <ul className="flex flex-col -mx-2">
+              {envios.map(e => (
+                <li key={e.id} className="flex items-center gap-3 px-2 py-1.5 rounded text-corpo hover:bg-tom/60">
+                  {podeEnviar && <input type="checkbox" aria-label={`Selecionar ${e.questionnaires?.name}`} className="w-4 h-4 accent-cafe" checked={!!reSel[e.id]} onChange={x => setReSel({ ...reSel, [e.id]: x.target.checked })} />}
+                  <span className="flex-1 min-w-0">
+                    <span className="block">{e.questionnaires?.name}</span>
+                    <span className="block text-meta text-apoio tabular-nums">enviado {dataBR(e.created_at)}{e.reenviado_at ? ` · lembrete ${dataBR(e.reenviado_at)}${e.reenvios > 1 ? ` (${e.reenvios}x)` : ''}` : ''}</span>
+                  </span>
+                  {podeEnviar && <button type="button" onClick={() => reenviar([e.id])} className="text-meta text-cafe underline underline-offset-4 shrink-0">Reenviar</button>}
+                </li>
+              ))}
             </ul>
+            {podeEnviar && (
+              <div className="flex gap-2 mt-4">
+                <Botao variante="linha" disabled={!reMarcados.length} onClick={() => reenviar(reMarcados)}>Reenviar selecionados {reMarcados.length || ''}</Botao>
+                <Botao className="flex-1" onClick={() => reenviar(envios.map(e => e.id))}><Send className="w-4 h-4" strokeWidth={1.8} />Reenviar todos</Botao>
+              </div>
+            )}
+            {reMsg && <div className="mt-3"><Aviso tipo={reMsg.t}>{reMsg.m}</Aviso></div>}
           </Bloco>
         )}
         {podeEnviar && (
