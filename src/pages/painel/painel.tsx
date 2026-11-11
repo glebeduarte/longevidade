@@ -9,7 +9,7 @@ import { dataBR } from '../../lib/faixas'
 import { idadeEm } from '../../lib/clinica'
 import { type Checkin, type Encontro } from '../../lib/programa'
 
-async function convidar(body: Record<string, unknown>) {
+export async function convidar(body: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke('convidar', {
     body: { ...body, redirect_to: `${location.origin}/definir-senha` },
   })
@@ -454,6 +454,16 @@ export function Equipe() {
   async function alternar(m: Membro, k: string) {
     await supabase.from('team_permissions').upsert({ user_id: m.id, [k]: !m.team_permissions?.[k] }); carregar()
   }
+  const [reenviando, setReenviando] = useState<string | null>(null)
+  async function reenviar(m: Membro) {
+    if (!m.email) return
+    setReenviando(m.id); setMsg(null)
+    try {
+      await convidar({ role: 'equipe', full_name: m.full_name ?? m.email, email: m.email, reenviar: true })
+      setMsg({ t: 'ok', m: `Convite reenviado para ${m.email}.` })
+    } catch (err) { setMsg({ t: 'erro', m: (err as Error).message }) }
+    setReenviando(null)
+  }
   async function acesso(m: Membro) {
     await supabase.from('profiles').update({ active: !m.active }).eq('id', m.id); carregar()
   }
@@ -499,7 +509,10 @@ export function Equipe() {
                   </li>
                 ))}
               </ul>
-              <button onClick={() => acesso(m)} className="self-start text-corpo text-apoio hover:text-terracota">{m.active ? 'Suspender acesso' : 'Reativar acesso'}</button>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <button onClick={() => acesso(m)} className="text-corpo text-apoio hover:text-terracota">{m.active ? 'Suspender acesso' : 'Reativar acesso'}</button>
+                {m.active && m.email && <button onClick={() => reenviar(m)} disabled={reenviando === m.id} className="text-corpo text-cafe underline underline-offset-4 disabled:opacity-50">{reenviando === m.id ? 'Reenviando' : 'Reenviar convite'}</button>}
+              </div>
             </article>
           ))}
         </div>

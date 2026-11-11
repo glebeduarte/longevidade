@@ -72,11 +72,12 @@ export function LayoutApp() {
   )
 }
 
-const itensPainel: Array<{ to: string; rotulo: string; icone: LucideIcon; precisa?: keyof Perms | 'medica'; grupo: string }> = [
+const itensPainel: Array<{ to: string; rotulo: string; icone: LucideIcon; precisa?: keyof Perms | 'medica'; grupo: string; externo?: boolean }> = [
   { to: '/painel', rotulo: 'Hoje', icone: Sun, grupo: 'Rotina' },
   { to: '/painel/pacientes', rotulo: 'Pacientes', icone: Users, precisa: 'can_manage_patients', grupo: 'Rotina' },
   { to: '/painel/checkins', rotulo: 'Check-ins', icone: MessagesSquare, precisa: 'can_answer_checkins', grupo: 'Rotina' },
   { to: '/painel/agenda', rotulo: 'Encontros', icone: CalendarDays, precisa: 'can_manage_patients', grupo: 'Rotina' },
+  { to: '/', rotulo: 'Abrir o site', icone: Home, grupo: 'Site', externo: true },
   { to: '/painel/site', rotulo: 'Site e leads', icone: Globe, precisa: 'can_manage_patients', grupo: 'Site' },
   { to: '/painel/emails', rotulo: 'E-mails', icone: Mail, precisa: 'can_manage_patients', grupo: 'Site' },
   { to: '/painel/ver-como', rotulo: 'Ver como paciente', icone: Eye, precisa: 'medica', grupo: 'Configurações' },
@@ -98,7 +99,12 @@ function Navegacao({ aoEscolher }: { aoEscolher?: () => void }) {
       {grupos.map((g, gi) => (
         <div key={g} className="flex flex-col gap-0.5">
           {gi > 0 && <p className="px-3 mb-1.5 text-meta text-apoio">{g}</p>}
-          {itens.filter(i => i.grupo === g).map(({ to, rotulo, icone: I }) => (
+          {itens.filter(i => i.grupo === g).map(({ to, rotulo, icone: I, externo }) => externo ? (
+            <a key={to} href={to} target="_blank" rel="noopener" onClick={aoEscolher}
+              className="flex items-center gap-2.5 px-3 h-9 rounded text-corpo transition-colors text-apoio hover:bg-tom hover:text-texto">
+              <I className="w-4 h-4 shrink-0" strokeWidth={1.6} /><span className="flex-1">{rotulo}</span>
+            </a>
+          ) : (
             <NavLink key={to} to={to} end={to === '/painel'} onClick={aoEscolher}
               className={({ isActive }) => `flex items-center gap-2.5 px-3 h-9 rounded text-corpo transition-colors ${isActive ? 'bg-ativo text-texto font-medium' : 'text-apoio hover:bg-tom hover:text-texto'}`}>
               <I className="w-4 h-4 shrink-0" strokeWidth={1.6} /><span className="flex-1">{rotulo}</span>{to === '/painel/checkins' && fila > 0 && <span className="min-w-5 h-5 px-1.5 rounded-full bg-cafe text-creme text-[11px] font-medium grid place-items-center tabular-nums">{fila}</span>}

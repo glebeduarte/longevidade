@@ -17,6 +17,8 @@ type Body = {
   perms?: Record<string, boolean | string | null>
   /** Cadastro manual: cria o acesso já confirmado, com esta senha, sem e-mail de convite. Só para equipe. */
   senha?: string
+  /** Reenvio: a pessoa já existe. Gera um link novo (convite ou criação de senha) e manda o e-mail de novo, sem recadastrar. */
+  reenviar?: boolean
 }
 
 const json = (b: unknown, status = 200) =>
@@ -43,7 +45,12 @@ Deno.serve(async (req) => {
 
     const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
-    if (b.role === 'paciente') {
+    if (b.role === 'paciente' && !b.reenviar) {
+      // Nova tentativa depois de uma falha: reaproveita a ficha ativa com o mesmo e-mail em vez de criar outra
+      const { data: ja } = await admin.from('patients').select('id').ilike('email', email).eq('status', 'ativa').limit(1)
+      if (ja?.length) b.reenviar = true
+    }
+    if (b.role === 'paciente' && !b.reenviar) {
       const { error } = await admin.from('patients').insert({
         full_name: b.full_name.trim(), email, created_by: u.user.id,
         phone: b.patient?.phone || null, birth_date: b.patient?.birth_date || null, location: b.patient?.location || null,
@@ -62,9 +69,14 @@ Deno.serve(async (req) => {
       inv = data
     } else {
       // Gera o link de convite e envia com o modelo visual próprio, pelo Resend
-      const { data, error: invErr } = await admin.auth.admin.generateLink({
+      let { data, error: invErr } = await admin.auth.admin.generateLink({
         type: 'invite', email, options: { data: { full_name: b.full_name.trim() }, redirectTo: b.redirect_to },
       })
+      // Já existe acesso com este e-mail: no reenvio, manda um link para criar a senha
+      if (b.reenviar && invErr) {
+        const r = await admin.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: b.redirect_to } })
+        data = r.data as typeof data; invErr = r.error
+      }
       if (invErr || !data.user) return json({ erro: invErr?.message?.includes('already') ? 'Já existe um acesso com este e-mail.' : 'Não foi possível gerar o convite. Confira o e-mail.' }, 400)
       const nome = b.full_name.trim().split(' ')[0]
       const p = (t: string) => `<p style="margin:0 0 14px">${t}</p>`
@@ -89,6 +101,7 @@ Deno.serve(async (req) => {
       inv = data
     }
 
+    if (b.reenviar) return json({ ok: true })
     if (b.role === 'equipe') {
       await admin.from('profiles').update({ role: 'equipe', full_name: b.full_name.trim() }).eq('id', inv.user!.id)
       const p = b.perms ?? {}

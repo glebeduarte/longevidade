@@ -13,6 +13,7 @@ import { AbaEstilo } from './estilo'
 import { AbaMapa } from './mapa'
 import { AbaPrograma } from './programa'
 import { AbaRiscos } from './riscos'
+import { convidar } from './painel'
 
 type Paciente = { id: string; full_name: string; email: string; phone: string | null; birth_date: string | null; location: string | null; status: string; user_id: string | null }
 type Questionario = { id: string; name: string; domain: string; sort: number }
@@ -44,6 +45,17 @@ export function FichaPaciente() {
   if (!p) return <p className="rotulo">Carregando</p>
   const clinico = can(profile, perms, 'can_view_clinical')
   const podeLancar = can(profile, perms, 'can_upload_measurements')
+  const [convite, setConvite] = useState<{ t: 'ok' | 'erro'; m: string } | null>(null)
+  const [reenviando, setReenviando] = useState(false)
+  async function reenviarConvite() {
+    if (!p?.email) return
+    setReenviando(true); setConvite(null)
+    try {
+      await convidar({ role: 'paciente', full_name: p.full_name, email: p.email, reenviar: true })
+      setConvite({ t: 'ok', m: `Convite reenviado para ${p.email}.` })
+    } catch (err) { setConvite({ t: 'erro', m: (err as Error).message }) }
+    setReenviando(false)
+  }
   const trocar = (k: Aba) => { setAba(k); history.replaceState(null, '', `?aba=${k}`) }
   const idade = p.birth_date ? Math.floor((Date.now() - new Date(p.birth_date).getTime()) / 3.15576e10) : null
 
@@ -68,8 +80,12 @@ export function FichaPaciente() {
           )}
           {mapa && <button onClick={() => trocar('mapa')} className="rounded-full focus-visible:outline-2"><Selo tom="alerta">Mapa em andamento</Selo></button>}
           {p.status === 'encerrada' ? <Selo>Programa encerrado</Selo> : p.user_id ? <Selo tom="ok">Acesso ativo</Selo> : <Selo>Convite enviado</Selo>}
+          {p.status === 'ativa' && p.email && can(profile, perms, 'can_manage_patients') && (
+            <Botao tamanho="sm" variante="linha" disabled={reenviando} onClick={reenviarConvite}><Send className="w-4 h-4" strokeWidth={1.8} />{reenviando ? 'Reenviando' : 'Reenviar convite'}</Botao>
+          )}
         </div>
       </header>
+      {convite && <Aviso tipo={convite.t}>{convite.m}</Aviso>}
 
       <Abas rotulo="Seções da ficha" itens={ABAS} atual={aba} aoTrocar={trocar} />
 
