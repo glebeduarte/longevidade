@@ -10,6 +10,7 @@ import { Livro, useMateriais } from './material'
 /* Imagens do site: fotos da doutora, aplicações da marca e a metamorfose em vídeo. */
 const FOTOS = {
   retrato: { src: '/dra-bartira.jpg', alt: 'Dra. Bartira Rebouças no consultório', foco: '50% 22%' },
+  apresentacao: { src: '/site/bartira-apresentacao.svg', alt: 'Dra. Bartira Rebouças sentada numa cadeira de madeira, de suéter verde', foco: '50% 25%' },
   rosto: { src: '/dra-bartira-rosto.jpg', alt: 'Dra. Bartira Rebouças', foco: '50% 40%' },
   mapa: { src: '/site/m-mapa.jpg', alt: 'Mapa da Saúde: a nota e o perfil de cada área', foco: '60% 50%' },
   protocolo: { src: '/site/m-protocolo.jpg', alt: 'Plano de cuidado por escrito, com cada escolha explicada', foco: '50% 50%' },
@@ -195,7 +196,7 @@ export function SiteInicio() {
     <section className="bg-cafe text-creme relative overflow-hidden" aria-labelledby="t-quem">
       <div aria-hidden="true" className="textura textura-clara absolute inset-0" />
       <div className="site-wrap relative grid lg:grid-cols-12 gap-x-6 gap-y-12 py-[clamp(90px,11vw,180px)] items-center">
-        <div className="rv lg:col-span-5"><Prova f={{ ...FOTOS.retrato, foco: '50% 30%' }} className="aspect-[4/5]" /></div>
+        <div className="rv lg:col-span-5"><Prova f={FOTOS.apresentacao} className="aspect-[4/5]" /></div>
         <div className="rv lg:col-start-7 lg:col-span-6 flex flex-col gap-6 text-[17px] leading-[1.7]">
           <h2 id="t-quem" className="site-h2">Quem vai cuidar de você</h2>
           {SOBRE.paragrafos.slice(0, 2).map((p, i) => <p key={i} className={i ? 'text-creme/90' : ''}>{p}</p>)}
