@@ -782,6 +782,7 @@ export function SiteContato() {
       <div className="rv mt-10 grid md:grid-cols-2 gap-4">
         {LOCAIS.map(l => (
           <div key={l.nome} className="bg-tom p-8 flex flex-col gap-3">
+            {l.foto && <img src={l.foto.src} alt={l.foto.alt} loading="lazy" className="-mx-8 -mt-8 mb-4 w-[calc(100%+4rem)] aspect-[4/3] object-cover" />}
             <h3 className="site-display text-[32px]">{l.nome}</h3>
             <p className="flex gap-3 text-[17px]"><MapPin className="w-5 h-5 shrink-0 mt-1" />{l.endereco}</p>
             <p className="flex gap-3 text-[17px]"><Clock className="w-5 h-5 shrink-0 mt-1" />{l.horario}</p>

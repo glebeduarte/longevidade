@@ -28,9 +28,10 @@ export const linkAgendar = () =>
 
 export const LOCAIS = [
   { nome: 'Clínica Equilibre', endereco: 'Av. Campos Sales, 901, salas 801/802, Tirol, Natal/RN, 59020-300', telefone: '(84) 99200-5446',
-    horario: 'Segunda, das 13h às 19h. Terça a sexta, das 8h às 13h.', mapa: 'https://share.google/HLzGxzB2sYYGaSWTX' },
+    horario: 'Segunda, das 13h às 19h. Terça a sexta, das 8h às 13h.', mapa: 'https://share.google/HLzGxzB2sYYGaSWTX', foto: undefined as { src: string; alt: string } | undefined },
   { nome: 'Instituto Espinel', endereco: 'R. Dr. José Gonçalves, 1720, Lagoa Nova, Natal/RN, 59056-570', telefone: '(84) 99926-5863',
-    horario: 'Terça, das 14h às 18h.', mapa: 'https://share.google/KxsHgPtP4gCyhnu1B' },
+    horario: 'Terça, das 14h às 18h.', mapa: 'https://share.google/KxsHgPtP4gCyhnu1B',
+    foto: { src: '/site/local-espinel.jpg', alt: 'Fachada do Instituto Espinel, na Rua Dr. José Gonçalves, em Lagoa Nova' } },
 ]
 
 export const NAV: Array<[string, string]> = [
