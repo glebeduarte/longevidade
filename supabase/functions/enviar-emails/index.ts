@@ -1,17 +1,25 @@
 // Envia os e-mails da fila (email_outbox) pelo Resend e enfileira os lembretes de check-in do dia.
 // Segredos necessários: RESEND_API_KEY e EMAIL_REMETENTE (ex.: "Dra. Bartira Rebouças <contato@dominio.com.br>").
 // Sem a chave, a função só enfileira e informa quantos e-mails estão pendentes.
+// Chamada a cada 5 minutos pelo pg_cron (cabeçalho x-cron-token) ou manualmente pela médica.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-token',
 }
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 
 const APP = Deno.env.get('APP_URL') ?? 'https://longevidade-black.vercel.app'
 
-function html(assunto: string, corpo: string) {
+const BOTAO: Record<string, [string, string] | null> = {
+  material: null,
+  lead: ['Abrir o painel', `${APP}/painel`],
+  alerta: ['Abrir o painel', `${APP}/painel`],
+}
+
+function html(assunto: string, corpo: string, kind: string) {
+  const b = kind in BOTAO ? BOTAO[kind] : ['Abrir o app', `${APP}/app`]
   return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#f5f1eb;font-family:Helvetica,Arial,sans-serif;color:#2e221b">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="100%" style="max-width:520px;background:#fffdfa;border:1px solid #e6ddd1;border-radius:10px">
@@ -19,7 +27,7 @@ function html(assunto: string, corpo: string) {
 <tr><td style="padding:0 28px;font-size:12px;color:#6b5a4d">Dra. Bartira Rebouças</td></tr>
 <tr><td style="padding:24px 28px 8px;font-size:18px;font-weight:600">${assunto}</td></tr>
 <tr><td style="padding:0 28px 24px;font-size:15px;line-height:24px">${corpo}</td></tr>
-<tr><td style="padding:0 28px 28px"><a href="${APP}" style="display:inline-block;background:#4a382d;color:#f3eee7;text-decoration:none;padding:12px 20px;border-radius:6px;font-size:14px">Abrir o app</a></td></tr>
+${b ? `<tr><td style="padding:0 28px 28px"><a href="${b[1]}" style="display:inline-block;background:#4a382d;color:#f3eee7;text-decoration:none;padding:12px 20px;border-radius:6px;font-size:14px">${b[0]}</a></td></tr>` : ''}
 </table>
 <p style="font-size:12px;color:#6b5a4d;margin-top:16px">Ciência e acolhimento</p>
 </td></tr></table></body></html>`
@@ -31,7 +39,9 @@ Deno.serve(async (req) => {
 
   // Só a médica (ou a chamada agendada com a chave de serviço) pode disparar
   const auth = req.headers.get('Authorization') ?? ''
-  if (!auth.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)) {
+  const token = req.headers.get('x-cron-token')
+  const doCron = token ? (await admin.rpc('cron_token_ok', { t: token })).data === true : false
+  if (!doCron && !auth.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)) {
     const caller = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: auth } } })
     const { data: ok } = await caller.rpc('is_medica')
     if (!ok) return json({ erro: 'Sem permissão.' }, 403)
@@ -47,7 +57,7 @@ Deno.serve(async (req) => {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${chave}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: de, to: e.to_email, subject: e.subject, html: html(e.subject, e.body), text: e.body.replace(/<br>/g, '\n').replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') }),
+      body: JSON.stringify({ from: de, to: e.to_email, subject: e.subject, html: html(e.subject, e.body, e.kind ?? ''), text: e.body.replace(/<br>/g, '\n').replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') }),
     })
     if (r.ok) { enviados++; await admin.from('email_outbox').update({ sent_at: new Date().toISOString(), error: null }).eq('id', e.id) }
     else await admin.from('email_outbox').update({ error: (await r.text()).slice(0, 300) }).eq('id', e.id)
