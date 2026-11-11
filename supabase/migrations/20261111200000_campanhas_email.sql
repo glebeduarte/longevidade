@@ -41,7 +41,7 @@ create or replace function public.destinatarios_campanha(p_publico text, p_landi
 returns table (email text, nome text, tipo text, lead_id uuid, token uuid)
 language sql stable security definer set search_path = public as $$
   with p as (
-    select lower(trim(email)) email, name nome, 'paciente'::text tipo, null::uuid lead_id, null::uuid token
+    select lower(trim(email)) email, full_name nome, 'paciente'::text tipo, null::uuid lead_id, null::uuid token
     from public.patients
     where p_publico in ('pacientes', 'todos') and status = 'ativa' and email is not null and email not like '%@teste.longevidade'
   ), l as (
