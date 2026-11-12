@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useParams } from 'react-router-dom'
 import { ArrowRight, Check, ChevronDown, ClipboardList, FileText, LineChart, Smartphone, Stethoscope, type LucideIcon, Clock, MapPin, Menu, MessageCircle, Phone, X } from 'lucide-react'
 import { useAuth } from '../../auth/AuthProvider'
 import {
-  CONTATO, DEPOIMENTOS, DUVIDAS_INICIAIS, FASES, INICIO, LOCAIS, NAV, PERGUNTAS, PROGRAMA, SOBRE, TEMAS, linkAgendar,
+  CONTATO, DEPOIMENTOS, DUVIDAS_INICIAIS, FASES, INICIO, LOCAIS, NAV, PERGUNTAS, PROGRAMA, SOBRE, TEMAS, linkWhatsapp,
 } from '../../lib/site'
 import { Livro, useMateriais } from './material'
 
@@ -44,12 +44,52 @@ function useRevelar(chave: string) {
   }, [chave])
 }
 
-const externo = (href: string) => href.startsWith('http')
+/** Todo botão de agendar abre a escolha do local; cada local leva ao WhatsApp da sua secretaria. */
+const abrirAgendar = () => window.dispatchEvent(new Event('abrir-agendar'))
 function Agendar({ claro = false, rotulo = 'Agendar consulta', className = '' }: { claro?: boolean; rotulo?: string; className?: string }) {
-  const href = linkAgendar(), cls = `site-btn ${claro ? 'site-btn-claro' : ''} ${className}`
-  return externo(href)
-    ? <a href={href} target="_blank" rel="noreferrer" className={cls}><MessageCircle className="w-4 h-4" />{rotulo}</a>
-    : <Link to={href} className={cls}>{rotulo}<ArrowRight className="w-4 h-4" /></Link>
+  return <button type="button" onClick={abrirAgendar} className={`site-btn ${claro ? 'site-btn-claro' : ''} ${className}`}><MessageCircle className="w-4 h-4" />{rotulo}</button>
+}
+
+function OpcoesAgendar({ claro = false }: { claro?: boolean }) {
+  return (
+    <div className="flex flex-col gap-3">
+      {LOCAIS.map(l => (
+        <a key={l.nome} href={linkWhatsapp(l.whatsapp)} target="_blank" rel="noreferrer"
+          className={`site-btn !h-auto !py-4 !justify-between text-left ${claro ? 'site-btn-claro' : ''}`}>
+          <span className="flex flex-col">
+            <span>{l.nome}</span>
+            <span className="text-[13px] font-normal opacity-75">{l.horario}</span>
+          </span>
+          <MessageCircle className="w-5 h-5 shrink-0" />
+        </a>
+      ))}
+      <a href={CONTATO.doctoralia} target="_blank" rel="noreferrer" className="site-link text-[16px] self-start mt-1">Prefere marcar on-line? Doctoralia, 24 horas</a>
+    </div>
+  )
+}
+
+function JanelaAgendar() {
+  const [aberta, setAberta] = useState(false)
+  useEffect(() => {
+    const abrir = () => setAberta(true)
+    const tecla = (e: KeyboardEvent) => { if (e.key === 'Escape') setAberta(false) }
+    window.addEventListener('abrir-agendar', abrir); window.addEventListener('keydown', tecla)
+    return () => { window.removeEventListener('abrir-agendar', abrir); window.removeEventListener('keydown', tecla) }
+  }, [])
+  if (!aberta) return null
+  return (
+    <div className="fixed inset-0 z-50 bg-black/45 grid place-items-end sm:place-items-center p-0 sm:p-6" onClick={() => setAberta(false)}>
+      <div role="dialog" aria-modal="true" aria-labelledby="t-agendar" onClick={e => e.stopPropagation()}
+        className="bg-[#f9f7f2] text-[#2f2620] w-full sm:max-w-[460px] rounded-t-[16px] sm:rounded-[8px] p-7 pb-9">
+        <div className="flex items-start justify-between gap-4">
+          <h2 id="t-agendar" className="site-display text-[30px] leading-tight">Onde você quer ser atendida?</h2>
+          <button type="button" onClick={() => setAberta(false)} aria-label="Fechar" className="p-1 -m-1"><X className="w-6 h-6" /></button>
+        </div>
+        <p className="mt-2 mb-6 text-[15px] text-apoio">Escolha o local e fale com a secretaria pelo WhatsApp.</p>
+        <OpcoesAgendar />
+      </div>
+    </div>
+  )
 }
 
 // ---------- Layout ----------
@@ -131,12 +171,11 @@ export function LayoutSite() {
         </p>
       </footer>
 
-      {CONTATO.whatsapp && (
-        <a href={linkAgendar()} target="_blank" rel="noreferrer" aria-label="Falar pelo WhatsApp"
-          className="fixed right-4 bottom-4 z-30 w-14 h-14 rounded-full bg-cafe text-creme grid place-items-center transition-transform hover:scale-105">
-          <MessageCircle className="w-6 h-6" />
-        </a>
-      )}
+      <button type="button" onClick={abrirAgendar} aria-label="Agendar pelo WhatsApp"
+        className="fixed right-4 bottom-4 z-30 w-14 h-14 rounded-full bg-cafe text-creme grid place-items-center transition-transform hover:scale-105">
+        <MessageCircle className="w-6 h-6" />
+      </button>
+      <JanelaAgendar />
     </div>
   )
 }
@@ -761,10 +800,7 @@ export function SiteContato() {
   usePagina('Contato e agendamento', 'Agende sua consulta com a Dra. Bartira Rebouças em Natal.')
   return (<>
     <Cabeca titulo="Agende sua consulta" texto="Consulta presencial em Natal ou teleconsulta, inclusive para quem mora fora do Brasil. A equipe ajuda a escolher o local e o horário." f={FOTOS.equilibre}>
-      <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
-        {CONTATO.whatsapp ? <Agendar rotulo="Agendar pelo WhatsApp" /> : <a href="#locais" className="site-btn">Ver os locais de atendimento<ArrowRight className="w-4 h-4" /></a>}
-        <a href={CONTATO.doctoralia} target="_blank" rel="noreferrer" className="site-link text-[17px]">Agendar on-line pelo Doctoralia</a>
-      </div>
+      <div id="agendar" className="mt-9 max-w-[460px] scroll-mt-24"><OpcoesAgendar /></div>
       <p className="mt-6 text-[16px] max-w-[48ch]">{CONTATO.horarioEquipe}</p>
       <p className="mt-2 text-[14px] text-apoio max-w-[48ch]">{CONTATO.avisoWhatsapp} Não atendemos planos de saúde. Emitimos nota fiscal para reembolso.</p>
     </Cabeca>
@@ -778,7 +814,10 @@ export function SiteContato() {
             <p className="flex gap-3 text-[17px]"><MapPin className="w-5 h-5 shrink-0 mt-1" />{l.endereco}</p>
             <p className="flex gap-3 text-[17px]"><Clock className="w-5 h-5 shrink-0 mt-1" />{l.horario}</p>
             <p className="flex gap-3 text-[17px]"><Phone className="w-5 h-5 shrink-0 mt-1" />{l.telefone}</p>
-            {l.mapa && <a href={l.mapa} target="_blank" rel="noreferrer" className="site-link text-[17px] self-start">Ver no mapa</a>}
+            <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <a href={linkWhatsapp(l.whatsapp)} target="_blank" rel="noreferrer" className="site-btn !h-11 !px-5 !text-[14px]"><MessageCircle className="w-4 h-4" />Agendar nesta clínica</a>
+              {l.mapa && <a href={l.mapa} target="_blank" rel="noreferrer" className="site-link text-[17px]">Ver no mapa</a>}
+            </div>
           </div>
         ))}
       </div>
