@@ -10,6 +10,7 @@ import { Agenda, FilaCheckins, VerComo, Videos } from './pages/painel/rotina'
 import { FichaPaciente } from './pages/painel/ficha'
 import { ImprimirMapa } from './pages/painel/mapa'
 import { Faixas } from './pages/painel/faixas'
+import { WhatsApp } from './pages/painel/whatsapp'
 import { Questionarios, Responder } from './pages/app/questionarios'
 import Placeholder from './pages/Placeholder'
 import { SiteGestao } from './pages/painel/site'
@@ -58,6 +59,7 @@ export default function App() {
               <Route path="videos" element={<Videos />} />
               <Route path="ver-como" element={<VerComo />} />
               <Route path="faixas" element={<Faixas />} />
+              <Route path="whatsapp" element={<WhatsApp />} />
               <Route path="site" element={<SiteGestao />} />
               <Route path="emails" element={<Emails />} />
             </Route>

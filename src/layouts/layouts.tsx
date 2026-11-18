@@ -83,6 +83,7 @@ const itensPainel: Array<{ to: string; rotulo: string; icone: LucideIcon; precis
   { to: '/painel/ver-como', rotulo: 'Ver como paciente', icone: Eye, precisa: 'medica', grupo: 'Configurações' },
   { to: '/painel/videos', rotulo: 'Vídeos', icone: PlayCircle, precisa: 'medica', grupo: 'Configurações' },
   { to: '/painel/faixas', rotulo: 'Faixas dos indicadores', icone: SlidersHorizontal, precisa: 'medica', grupo: 'Configurações' },
+  { to: '/painel/whatsapp', rotulo: 'Avisos por WhatsApp', icone: MessageCircle, precisa: 'medica', grupo: 'Configurações' },
   { to: '/painel/equipe', rotulo: 'Equipe e acessos', icone: UserCog, precisa: 'medica', grupo: 'Configurações' },
 ]
 
