@@ -48,6 +48,18 @@ export const SECOES: Array<{ titulo: string; mulher?: boolean; perguntas: Pergun
 ]
 
 type Resp = Record<string, { valor?: string | string[]; detalhe?: string }>
+/** Só dígitos, sem o 55 do Brasil quando vier colado de outro lugar. */
+const digitos = (t: string) => { let d = t.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d.slice(0, 11) }
+/** (84) 9 9999-9999 enquanto digita */
+export const mascaraCelular = (t: string) => {
+  const d = digitos(t)
+  if (d.length <= 2) return d.length ? `(${d}` : ''
+  if (d.length <= 3) return `(${d.slice(0, 2)}) ${d.slice(2)}`
+  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2, 3)} ${d.slice(3)}`
+  return `(${d.slice(0, 2)}) ${d.slice(2, 3)} ${d.slice(3, 7)}-${d.slice(7)}`
+}
+/** Celular brasileiro: DDD válido (11 a 99, sem zero no fim do primeiro dígito) + 9 + 8 dígitos. */
+export const celularValido = (t: string) => /^[1-9][1-9]9\d{8}$/.test(digitos(t))
 const MAX_ARQ = 15 * 1024 * 1024
 const TIPOS = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 
@@ -71,6 +83,8 @@ export function PreConsulta() {
   const [arquivos, setArquivos] = useState<File[]>([])
   const [fase, setFase] = useState<'form' | 'enviando' | 'pronto'>('form')
   const [erro, setErro] = useState('')
+  const [telTocado, setTelTocado] = useState(false)
+  const telErro = telTocado && f.telefone && !celularValido(f.telefone) ? 'Digite um celular com DDD, por exemplo (84) 9 9999-9999.' : ''
 
   useEffect(() => {
     document.title = 'Questionário pré-consulta · Dra. Bartira Rebouças'
@@ -100,7 +114,7 @@ export function PreConsulta() {
     e.preventDefault(); setErro('')
     if (f.nome.trim().split(/\s+/).length < 2) return setErro('Informe seu nome completo.')
     if (!f.nascimento) return setErro('Informe sua data de nascimento.')
-    if (f.telefone.replace(/\D/g, '').length < 10) return setErro('Informe um telefone com DDD.')
+    if (!celularValido(f.telefone)) { setTelTocado(true); return setErro('Confira o WhatsApp: digite um celular com DDD, por exemplo (84) 9 9999-9999.') }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim())) return setErro('Confira o seu e-mail.')
     if (!f.ok) return setErro('Para enviar, marque que concorda com o uso dos seus dados para o atendimento.')
     setFase('enviando')
@@ -121,7 +135,7 @@ export function PreConsulta() {
       for (const p of s.perguntas) respostas[p.id] = { pergunta: p.texto, secao: s.titulo, ...r[p.id] }
     }
     const { error } = await supabase.rpc('enviar_pre_consulta', {
-      p_nome: f.nome, p_nascimento: f.nascimento, p_telefone: f.telefone, p_email: f.email,
+      p_nome: f.nome, p_nascimento: f.nascimento, p_telefone: digitos(f.telefone), p_email: f.email,
       p_respostas: respostas, p_anexos: caminhos, p_consentimento: f.ok,
     })
     if (error) {
@@ -162,7 +176,10 @@ export function PreConsulta() {
               <label className="flex flex-col gap-1.5 text-[15px] font-medium">Data de nascimento
                 <input required type="date" autoComplete="bday" max={new Date().toISOString().slice(0, 10)} value={f.nascimento} onChange={e => setF({ ...f, nascimento: e.target.value })} className="campo !min-h-[52px] text-[18px]" /></label>
               <label className="flex flex-col gap-1.5 text-[15px] font-medium">Telefone (WhatsApp)
-                <input required type="tel" autoComplete="tel" inputMode="tel" placeholder="(84) 9 0000-0000" value={f.telefone} onChange={e => setF({ ...f, telefone: e.target.value })} className="campo !min-h-[52px] text-[18px]" /></label>
+                <input required type="tel" autoComplete="tel-national" inputMode="numeric" placeholder="(84) 9 9999-9999" value={f.telefone}
+                  onChange={e => setF({ ...f, telefone: mascaraCelular(e.target.value) })} onBlur={() => setTelTocado(true)}
+                  aria-invalid={!!telErro} aria-describedby="tel-erro" className={`campo !min-h-[52px] text-[18px] ${telErro ? '!border-terracota' : ''}`} />
+                {telErro && <span id="tel-erro" className="text-[14px] font-normal text-terracota">{telErro}</span>}</label>
             </div>
             <label className="flex flex-col gap-1.5 text-[15px] font-medium">E-mail
               <input required type="email" autoComplete="email" inputMode="email" value={f.email} onChange={e => setF({ ...f, email: e.target.value })} className="campo !min-h-[52px] text-[18px]" /></label>
