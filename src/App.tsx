@@ -15,6 +15,7 @@ import { Questionarios, Responder } from './pages/app/questionarios'
 import Placeholder from './pages/Placeholder'
 import { SiteGestao } from './pages/painel/site'
 import { LandingMaterial } from './pages/site/material'
+import { PreConsulta } from './pages/site/preconsulta'
 import { LayoutSite, SiteContato, SiteConteudos, SiteInicio, SitePrivacidade, SitePrograma, SiteSobre, SiteTema, SiteTemas } from './pages/site/site'
 
 export default function App() {
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/contato" element={<SiteContato />} />
             <Route path="/privacidade" element={<SitePrivacidade />} />
             <Route path="/material/:slug" element={<LandingMaterial />} />
+            <Route path="/pre-consulta" element={<PreConsulta />} />
           </Route>
           <Route path="/entrar" element={<Entrar />} />
           <Route path="/esqueci" element={<Esqueci />} />

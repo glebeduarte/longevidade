@@ -5,9 +5,10 @@ import { Abas, Aviso, Botao, Selo, Titulo } from '../../components/ui'
 import { dataBR } from '../../lib/faixas'
 import { Capa, urlMaterial, type Landing } from '../site/material'
 import { Chave, Folha } from './painel'
+import { PreConsultas } from './preconsultas'
 
 type Lead = { id: string; landing_id: string; nome: string; email: string; whatsapp: string | null; origem: Record<string, string>; vezes: number; created_at: string; updated_at: string }
-type Aba = 'landings' | 'leads'
+type Aba = 'landings' | 'leads' | 'preconsultas'
 
 const SITE = 'https://bartirareboucas.com.br'
 const slugar = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60)
@@ -43,7 +44,7 @@ export function SiteGestao() {
     <div className="flex flex-col gap-6">
       <Titulo sub="Materiais com página de captura, o que aparece na página inicial do site e os contatos captados."
         acao={aba === 'landings' && <Botao onClick={() => setEditando({ ...VAZIA, ordem: (landings?.length ?? 0) + 1 })}><Plus className="w-4 h-4" />Nova landing page</Botao>}>Site</Titulo>
-      <Abas rotulo="Seções do site" atual={aba} aoTrocar={trocar} itens={[['landings', 'Landing pages'], ['leads', 'Leads', leads ? <Selo key="n">{leads.length}</Selo> : null]]} />
+      <Abas rotulo="Seções do site" atual={aba} aoTrocar={trocar} itens={[['landings', 'Landing pages'], ['leads', 'Leads', leads ? <Selo key="n">{leads.length}</Selo> : null], ['preconsultas', 'Pré-consultas']]} />
 
       {aba === 'landings' && (
         <div className="flex flex-col gap-4">
@@ -83,6 +84,7 @@ export function SiteGestao() {
         </div>
       )}
 
+      {aba === 'preconsultas' && <PreConsultas />}
       {aba === 'leads' && <Leads leads={leads} landings={landings ?? []} aoMudar={carregar} />}
 
       <Folha aberto={!!editando} titulo={editando?.id ? 'Editar landing page' : 'Nova landing page'} sub="Mesma estrutura das demais: capa, textos, benefícios e formulário." onFechar={() => setEditando(null)}>

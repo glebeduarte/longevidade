@@ -162,6 +162,7 @@ export function LayoutSite() {
             <a href={CONTATO.instagram} target="_blank" rel="noreferrer" className="hover:text-texto transition-colors">Instagram</a>
             <a href={CONTATO.youtube} target="_blank" rel="noreferrer" className="hover:text-texto transition-colors">YouTube</a>
             <a href={CONTATO.facebook} target="_blank" rel="noreferrer" className="hover:text-texto transition-colors">Facebook</a>
+            <Link to="/pre-consulta" className="hover:text-texto transition-colors">Pré-consulta</Link>
             <Link to="/privacidade" className="hover:text-texto transition-colors">Privacidade</Link>
           </nav>
         </div>
