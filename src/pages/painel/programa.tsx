@@ -227,11 +227,21 @@ function Protocolos({ pid, podeEditar }: { pid: string; podeEditar: boolean }) {
       items: rasc.items.filter(i => i.titulo.trim()), published_at: new Date().toISOString(), author: session?.user.id })
     setRasc(null); carregar()
   }
+  const [reenvio, setReenvio] = useState<string | null>(null)
+  async function reenviar() {
+    setReenvio('Enviando...')
+    const { error } = await supabase.rpc('reenviar_plano_cuidado', { pid })
+    setReenvio(error ? 'Não foi possível reenviar' : 'Reenviado por e-mail e WhatsApp')
+    setTimeout(() => setReenvio(null), 4000)
+  }
   const mostrado = ver != null ? lista.find(p => p.version === ver) : atual
 
   return (
     <Bloco icone={<Icone tema="protocolo" fundo tamanho={36} />} titulo="Plano de cuidado" sub={atual ? `Versão ${atual.version} publicada em ${dataBR(atual.published_at!)} · a paciente vê esta versão no app` : 'Nenhuma versão publicada'}
-      acao={podeEditar && !rasc ? <Botao tamanho="sm" variante="linha" onClick={novaVersao}><Plus className="w-4 h-4" />{atual ? 'Nova versão' : 'Criar plano de cuidado'}</Botao> : undefined}>
+      acao={podeEditar && !rasc ? <div className="flex flex-wrap gap-2">
+        {atual && <Botao tamanho="sm" variante="texto" disabled={reenvio !== null} onClick={reenviar}>{reenvio ?? 'Reenviar à paciente'}</Botao>}
+        <Botao tamanho="sm" variante="linha" onClick={novaVersao}><Plus className="w-4 h-4" />{atual ? 'Nova versão' : 'Criar plano de cuidado'}</Botao>
+      </div> : undefined}>
       {rasc ? (
         <div className="flex flex-col gap-3">
           <label className="flex flex-col gap-1.5"><span className="text-corpo font-medium">Mensagem de abertura</span>
