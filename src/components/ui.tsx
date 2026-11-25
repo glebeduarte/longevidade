@@ -1,21 +1,17 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
 import { AlertCircle, Check, Info } from 'lucide-react'
 
+/** O símbolo oficial (borboleta de traço fino) como máscara: assume a cor do texto, como um ícone. */
 export function Borboleta({ className = 'w-7 h-7' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 40 28" className={className} fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true">
-      <path d="M20 14C15 5 4 3 4 10s11 9 16 4Z" />
-      <path d="M20 14c5-9 16-11 16-4s-11 9-16 4Z" />
-      <path d="M20 14c-4 4-10 10-13 8M20 14c4 4 10 10 13 8" opacity=".55" />
-    </svg>
-  )
+  const mascara = "url('/marca/simbolo.png') center / contain no-repeat"
+  return <span aria-hidden="true" className={`inline-block bg-current ${className}`} style={{ mask: mascara, WebkitMask: mascara }} />
 }
 
 export function Marca({ claro = false, oficial = false }: { claro?: boolean; oficial?: boolean }) {
   if (oficial) return <img src="/marca/logo-escuro.png" alt="Dra. Bartira Rebouças, Endocrinologista" className="h-12 w-auto" />
   return (
     <div className={`flex items-center gap-2.5 ${claro ? 'text-creme' : 'text-texto'}`}>
-      <img src="/marca-bartira.svg" alt="" className={`w-8 h-8 ${claro ? 'rounded-full bg-creme p-1' : ''}`} />
+      <img src={claro ? '/marca/simbolo-claro.png' : '/marca/simbolo.png'} alt="" className="h-7 w-auto" />
       <div className="leading-none">
         <span className="font-display text-[21px]">Longevidade</span>
         <span className={`block mt-0.5 text-[11px] ${claro ? 'text-areia/80' : 'text-apoio'}`}>Dra. Bartira Rebouças</span>

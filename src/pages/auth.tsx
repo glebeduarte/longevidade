@@ -20,7 +20,7 @@ function Moldura({ children }: { children: ReactNode }) {
       </section>
       <section className="flex items-center px-5 sm:px-10 py-10 lg:py-16 bg-fundo">
         <div className="w-full max-w-[380px] mx-auto flex flex-col gap-6">
-          <img src="/logo-bartira.svg" alt="Bartira Rebouças, Endocrinologia" className="w-48 self-center" />
+          <img src="/marca/logo-escuro.png" alt="Dra. Bartira Rebouças, Endocrinologista" className="w-56 self-center" />
           {children}
         </div>
       </section>
