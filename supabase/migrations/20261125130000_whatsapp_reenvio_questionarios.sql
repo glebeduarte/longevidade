@@ -1,0 +1,2 @@
+-- Reenvio de questionários também avisa por WhatsApp (mesma mensagem agrupada do envio).
+-- Aplicada pelo painel do Supabase em 25/11; corpo igual a reenviar_questionarios de 20261111180000 com o perform public.whatsapp_paciente(...) incluído.
